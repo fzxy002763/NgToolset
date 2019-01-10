@@ -10173,7 +10173,6 @@ class NgNrGridUi(QDialog):
             self.accept()
             return
         
-        #TODO
         '''
         #step 4: call NgNbiotGrid
         nbGrid = NgNbiotGrid(self.ngwin, self.argsNbiot)
@@ -10202,9 +10201,47 @@ class NgNrGridUi(QDialog):
         #hsfn, sfn = incSfn(hsfn, sfn, 1) #wait for next NPDCCH candidate
         '''
         nrGrid = NgNrGrid(self.ngwin, self.args)
-        self.curHsfn = 0
-        self.curSfn = int(self.args['mib']['sfn'])
-        nrGrid.recvSsb(self.curHsfn, self.curSfn)
+        hsfn = 0
+        sfn = int(self.args['mib']['sfn'])
+        
+        #receiving SSB
+        hsfn, sfn = nrGrid.recvSsb(hsfn, sfn)
+        
+        #monitoring PDCCH for SIB1
+        hsfn, sfn = nrGrid.monitorPdcch(hsfn, sfn, dci='dci10', rnti='si-rnti')
+        #receiving SIB1
+        hsfn, sfn = nrGrid.recvSib1(hsfn, sfn)
+        #sending Msg1(PRACH) 
+        hsfn, sfn = nrGrid.sendMsg1(hsfn, sfn)
+        #monitoring PDCCH for Msg2
+        hsfn, sfn = nrGrid.monitorPdcch(hsfn, sfn, dci='dci10', rnti='ra-rnti')
+        #receiving Msg2(RAR)
+        hsfn, sfn = nrGrid.recvMsg2(hsfn, sfn)
+        #sending Msg3(PUSCH)
+        hsfn, sfn = nrGrid.sendMsg3(hsfn, sfn)
+        #monitoring PDCCH for Msg4
+        hsfn, sfn = nrGrid.monitorPdcch(hsfn, sfn, dci='dci10', rnti='tc-rnti')
+        #receiving Msg4
+        hsfn, sfn = nrGrid.recvMsg4(hsfn, sfn)
+        #sending Msg4 HARQ feedback(PUCCH)
+        hsfn, sfn = nrGrid.sendPucch(hsfn, sfn)
+        
+        #monitoring PDCCH for normal PDSCH 
+        hsfn, sfn = nrGrid.monitorPdcch(hsfn, sfn, dci='dci11', rnti='c-rnti')
+        #receiving PDSCH
+        hsfn, sfn = nrGrid.recvPdsch(hsfn, sfn)
+        #sending PDSCH HARQ feedback(PUCCH), together with CSI
+        hsfn, sfn = nrGrid.sendPucch(hsfn, sfn)
+        
+        #sending PUCCH for DSR
+        hsfn, sfn = nrGrid.sendPucch(hsfn, sfn)
+        #monitoring PDCCH for normal PUSCH 
+        hsfn, sfn = nrGrid.monitorPdcch(hsfn, sfn, dci='dci01', rnti='c-rnti')
+        #sending PUSCH
+        hsfn, sfn = nrGrid.sendPusch(hsfn, sfn)
+        
+        #other procedures
+        #TODO
         
         #export grid to excel
         nrGrid.exportToExcel()
@@ -10269,6 +10306,38 @@ class NgNrGridUi(QDialog):
         self.args['tddCfg']['pat2NumDlSymbs'] = self.nrTddCfgPat2NumDlSymbsEdit.text()
         self.args['tddCfg']['pat2NumUlSymbs'] = self.nrTddCfgPat2NumUlSymbsEdit.text()
         self.args['tddCfg']['pat2NumUlSlots'] = self.nrTddCfgPat2NumUlSlotsEdit.text()
+        
+        #(3) 'pdcch settings' tab
+        self.args['css0'] = dict()
+        self.args['css0']['aggLevel'] = self.nrCss0AggLevelComb.currentText()
+        self.args['css0']['numCandidates'] = self.nrCss0NumCandidatesComb.currentText()
+        self.args['dci10Sib1'] = dict()
+        self.args['dci10Sib1']['rnti'] = self.nrDci10Sib1RntiEdit.text()
+        self.args['dci10Sib1']['muPdcch'] = self.nrDci10Sib1MuPdcchEdit.text()
+        self.args['dci10Sib1']['muPdsch'] = self.nrDci10Sib1MuPdschEdit.text()
+        self.args['dci10Sib1']['tdRa'] = self.nrDci10Sib1TimeAllocFieldEdit.text()
+        self.args['dci10Sib1']['tdMapppingType'] = self.nrDci10Sib1TimeAllocMappingTypeComb.currentText()
+        self.args['dci10Sib1']['tdK0'] = self.nrDci10Sib1TimeAllocK0Edit.text()
+        self.args['dci10Sib1']['tdSliv'] = self.nrDci10Sib1TimeAllocSlivEdit.text()
+        self.args['dci10Sib1']['tdStartSymb'] = self.nrDci10Sib1TimeAllocSEdit.text()
+        self.args['dci10Sib1']['tdNumSymbs'] = self.nrDci10Sib1TimeAllocLEdit.text()
+        self.args['dci10Sib1']['fdRaType'] = self.nrDci10Sib1FreqAllocTypeComb.currentText()
+        self.args['dci10Sib1']['fdRa'] = self.nrDci10Sib1FreqAllocFieldEdit.text()
+        self.args['dci10Sib1']['fdStartRb'] = self.nrDci10Sib1FreqAllocType1RbStartEdit.text()
+        self.args['dci10Sib1']['fdNumRbs'] = self.nrDci10Sib1FreqAllocType1LRbsEdit.text()
+        self.args['dci10Sib1']['fdVrbPrbMappingType'] = self.nrDci10Sib1FreqAllocType1VrbPrbMappingTypeComb.currentText()
+        self.args['dci10Sib1']['fdBundleSize'] = self.nrDci10Sib1FreqAllocType1BundleSizeComb.currentText()
+        self.args['dci10Sib1']['mcsCw0'] = self.nrDci10Sib1Cw0McsEdit.text()
+        self.args['dci10Sib1']['tbs'] = self.nrDci10Sib1TbsEdit.text()
+        
+        #(4) 'bwp settings' tab
+        self.args['dmrsSib1'] = dict()
+        self.args['dmrsSib1']['dmrsType'] = self.nrDmrsSib1DmrsTypeComb.currentText()
+        self.args['dmrsSib1']['dmrsAddPos'] = self.nrDmrsSib1AddPosComb.currentText()
+        self.args['dmrsSib1']['maxLength'] = self.nrDmrsSib1MaxLengthComb.currentText()
+        self.args['dmrsSib1']['dmrsPorts'] = self.nrDmrsSib1DmrsPortsEdit.text()
+        self.args['dmrsSib1']['cdmGroupsWoData'] = self.nrDmrsSib1CdmGroupsWoDataEdit.text()
+        self.args['dmrsSib1']['numFrontLoadSymbs'] = self.nrDmrsSib1FrontLoadSymbsEdit.text()
         
         #print dict info
         for key in self.args.keys():

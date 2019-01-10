@@ -175,7 +175,14 @@ class NgNrGrid(object):
         for i in range(len(self.ssbSet)):
             ssbFirstSymbSetStr.append(str(self.ssbFirstSymbSet[i]) if self.ssbSet[i] == '1' else '-')
         self.ngwin.logEdit.append('ssb first symbols: "%s"' % ','.join(ssbFirstSymbSetStr))
-                
+        
+        self.nrCoreset0MultiplexingPat = self.args['mib']['coreset0MultiplexingPat']
+        self.nrCoreset0NumRbs = self.args['mib']['coreset0NumRbs']
+        self.nrCoreset0NumSymbs = self.args['mib']['coreset0NumSymbs']
+        self.nrCoreset0Offset = self.args['mib']['coreset0Offset']
+        self.nrRmsiCss0 = int(self.args['mib']['rmsiCss0'])
+        self.nrCss0AggLevel = int(self.args['css0']['aggLevel'])
+        self.nrCss0NumCandidates = int(self.args['css0']['numCandidates'][1:])
         
         return True
         
@@ -303,7 +310,7 @@ class NgNrGrid(object):
         
         tddCfgMap = {'D':NrResType.NR_RES_D.value, 'F':NrResType.NR_RES_F.value, 'U':NrResType.NR_RES_U.value}
         scale = self.baseScsTd // self.nrTddCfgRefScs
-        self.ngwin.logEdit.append('scale=%d where baseScTd=%dKHz and tddCfgRefScs=%dKHz' % (scale, self.baseScsTd, self.nrTddCfgRefScs))
+        self.ngwin.logEdit.append('scale=%d where baseScsTd=%dKHz and tddCfgRefScs=%dKHz' % (scale, self.baseScsTd, self.nrTddCfgRefScs))
         if sfn % 2 == 0:
             for i in range(len(self.tddPatEvenRf)):
                 for j in range(scale):
@@ -331,7 +338,8 @@ class NgNrGrid(object):
                 hsfn, sfn = key.split('_')
                 for i in range(self.nrSymbPerRfNormCp//self.nrSymbPerSlotNormCp):
                     for j in range(self.nrSymbPerSlotNormCp):
-                        horizontalHeader.append('sfn%s\nslot%d\nsymb%d' % (sfn, i, j))
+                        #horizontalHeader.append('sfn%s\nslot%d\nsymb%d' % (sfn, i, j))
+                        horizontalHeader.append('%s-%d-%d' % (sfn, i, j))
         else:
             for key in self.gridNrFddDl.keys():
                 hsfn, sfn = key.split('_')
@@ -340,7 +348,7 @@ class NgNrGrid(object):
                         horizontalHeader.append('sfn%s\nslot%d\nsymb%d' % (sfn, i, j))
         
         workbook = xlsxwriter.Workbook(os.path.join(self.outDir, '5gnr_grid_%s.xlsx' % (time.strftime('%Y%m%d%H%M%S', time.localtime()))))
-        fmtHHeader = workbook.add_format({'font_name':'Arial', 'font_size':9, 'bold':True, 'align':'center', 'valign':'vcenter', 'text_wrap':True, 'bg_color':'yellow'})
+        fmtHHeader = workbook.add_format({'font_name':'Arial', 'font_size':9, 'bold':True, 'align':'center', 'valign':'vcenter', 'text_wrap':True, 'shrink':True, 'bg_color':'yellow'})
         fmtVHeader = workbook.add_format({'font_name':'Arial', 'font_size':9, 'bold':True, 'align':'center', 'valign':'vcenter', 'shrink':True, 'bg_color':'yellow'})
         
         #key=NrResType, val=(name, font_color, bg_color)
@@ -515,36 +523,158 @@ class NgNrGrid(object):
                             for k in range(scaleFd):
                                 self.gridNrFddDl[dn][j+k, ssbFirstSymb+2*scaleTd+i] = NrResType.NR_RES_DMRS_PBCH.value
                         
+        
+        return (hsfn, sfn)
     
     def deltaSfn(self, hsfn0, sfn0, hsfn1, sfn1):
         return (1024 * hsfn1 + sfn1) - (1024 * hsfn0 + sfn0)
     
-    def monitorPdcch(self):
-        pass
+    def incSfn(self, hsfn, sfn, n):
+        if n <= 0:
+            return (hsfn, sfn)
     
-    def recvSib1(self):
-        pass
+        sfn = sfn + n
+        if sfn >= 1024:
+            sfn = sfn % 1024
+            hsfn = hsfn + 1
+            if hsfn >= 1024:
+                hsfn = hsfn % 1024
+                
+        return (hsfn, sfn)
     
-    def sendMsg1(self):
-        pass
+    def monitorPdcch(self, hsfn, sfn, dci=None, rnti=None):
+        if dci is None or rnti is None:
+            return (hsfn, sfn)
+        
+        if not dci in ('dci01', 'dci10', 'dci11'):
+            return (hsfn, sfn)
+        
+        if not rnti in ('si-rnti', 'ra-rnti', 'tc-rnti', 'c-rnti'):
+            return (hsfn, sfn)
+        
+        self.ngwin.logEdit.append('---->inside recvPdcch(dci="%s",rnti="%s")' % (dci, rnti))
+        if dci == 'dci10' and rnti == 'si-rnti':
+            #refer to 3GPP 38.213 vf30
+            #Table 13-11: Parameters for PDCCH monitoring occasions for Type0-PDCCH CSS set - SS/PBCH block and CORESET multiplexing pattern 1 and FR1
+            #Table 13-12: Parameters for PDCCH monitoring occasions for Type0-PDCCH CSS set - SS/PBCH block and CORESET multiplexing pattern 1 and FR2
+            css0OccasionsPat1Fr1 = {
+                0 : (0,1,2,(0,)),
+                1 : (0,2,1,(0, self.nrCoreset0NumSymbs)),
+                2 : (4,1,2,(0,)),
+                3 : (4,2,1,(0, self.nrCoreset0NumSymbs)),
+                4 : (10,1,2,(0,)),
+                5 : (10,2,1,(0, self.nrCoreset0NumSymbs)),
+                6 : (14,1,2,(0,)),
+                7 : (14,2,1,(0, self.nrCoreset0NumSymbs)),
+                8 : (0,1,4,(0,)),
+                9 : (10,1,4,(0,)),
+                10 : (0,1,2,(1,)),
+                11 : (0,1,2,(2,)),
+                12 : (4,1,2,(1,)),
+                13 : (4,1,2,(2,)),
+                14 : (10,1,2,(1,)),
+                15 : (10,1,2,(2,)),
+                }
+            css0OccasionsPat1Fr2 = {
+                0 : (0,1,2,(0,)),
+                1 : (0,2,1,(0,7),),
+                2 : (5,1,2,(0,)),
+                3 : (5,2,1,(0,7),),
+                4 : (10,1,2,(0,)),
+                5 : (10,2,1,(0,7),),
+                6 : (0,2,1,(0, self.nrCoreset0NumSymbs)),
+                7 : (5,2,1,(0, self.nrCoreset0NumSymbs)),
+                8 : (10,2,1,(0, self.nrCoreset0NumSymbs)),
+                9 : (15,1,2,(0,)),
+                10 : (15,2,1,(0,7),),
+                11 : (15,2,1,(0, self.nrCoreset0NumSymbs)),
+                12 : (0,1,4,(0,)),
+                13 : (10,1,4,(0,)),
+                14 : None,
+                15 : None,
+                }
+            
+            if self.nrCoreset0MultiplexingPat == 1:
+                O2, numSetsPerSlot, M2, firstSymbSet = css0OccasionsPat1Fr1[self.nrRmsiCss0] if self.args['freqBand']['freqRange'] == 'FR1' else css0OccasionsPat1Fr2[self.nrRmsiCss0] 
+                
+                self.coreset0Occasions = []                
+                for issb in range(self.nrSsbMaxL):
+                    #determine pdcch monitoring occasion (sfnc + nc) for ssb with index issb
+                    val = (O2 * 2 ** self.nrScs2Mu[self.nrMibCommonScs]) // 2 + math.floor(issb * M2 / 2)
+                    valSfnc = math.floor(val / self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]])
+                    if (valSfnc % 2 == 0 and sfn % 2 == 0) or (valSfnc % 2 == 1 and sfn % 2 == 1):
+                        sfnc = sfn
+                    else:
+                        hsfn, sfn = incSfn(hsfn, sfn, 1)
+                        sfnc = sfn
+                    
+                    n0 = val % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] 
+                    nc = [n0, n0+1]
+                    
+                    #determine first symbol of coreset0
+                    if len(firstSymbSet) == 2:
+                        firstSymbCoreset0 = firstSymbSet[0] if issb % 2 == 0 else firstSymbSet[1]
+                    else:
+                        firstSymbCoreset0 = firstSymbSet[0]
+                    
+                    self.coreset0Occasions.append([hsfn, sfnc, nc, firstSymbCoreset0])
+                    
+                for issb in range(self.nrSsbMaxL):
+                    self.ngwin.logEdit.append('PDCCH monitoring occasion for SSB index=%d: %s' % (issb, self.coreset0Occasions[issb]))
+                
+                #for simplicity, assume SSB index is randomly selected!
+                #issb = np.random.randint(0, self.nrSsbMaxL)
+                
+                #FIXME pdcch monitoring occasions may overlap with SSB
+                #TODO
+                
+            elif self.nrCoreset0MultiplexingPat == 2:
+                pass
+            else:
+                pass
+            #TODO determine pdcch candidate
+            
+            pass
+        else:
+            pass
+        
+        return (hsfn, sfn)
+        
     
-    def recvMsg2(self):
-        pass
+    def recvSib1(self, hsfn, sfn):
+        self.ngwin.logEdit.append('---->inside recvSib1')
+        
+        #TODO determine sib1(pdsch) and its dmrs
+        return (hsfn, sfn)
     
-    def sendMsg3(self):
-        pass
+    def sendMsg1(self, hsfn, sfn):
+        self.ngwin.logEdit.append('---->inside sendMsg1')
+        return (hsfn, sfn)
     
-    def recvMsg4(self):
-        pass
+    def recvMsg2(self, hsfn, sfn):
+        self.ngwin.logEdit.append('---->inside recvMsg2')
+        return (hsfn, sfn)
     
-    def sendPucch(self):
-        pass
+    def sendMsg3(self, hsfn, sfn):
+        self.ngwin.logEdit.append('---->inside sendMsg3')
+        return (hsfn, sfn)
     
-    def sendPusch(self):
-        pass
+    def recvMsg4(self, hsfn, sfn):
+        self.ngwin.logEdit.append('---->inside recvMsg4')
+        return (hsfn, sfn)
     
-    def recvPdsch(self):
-        pass
+    def sendPucch(self, hsfn, sfn):
+        self.ngwin.logEdit.append('---->inside sendPucch')
+        return (hsfn, sfn)
     
-    def normalOps(self):
-        pass
+    def sendPusch(self, hsfn, sfn):
+        self.ngwin.logEdit.append('---->inside sendPusch')
+        return (hsfn, sfn)
+    
+    def recvPdsch(self, hsfn, sfn):
+        self.ngwin.logEdit.append('---->inside recvPdsch')
+        return (hsfn, sfn)
+    
+    def normalOps(self, hsfn, sfn):
+        self.ngwin.logEdit.append('---->inside normalOps')
+        return (hsfn, sfn)
