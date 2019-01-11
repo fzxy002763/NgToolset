@@ -66,6 +66,7 @@ class NgNrGrid(object):
         self.args = args
         if not self.init():
             return
+        self.error = False
     
     def init(self):
         self.ngwin.logEdit.append('---->inside init')
@@ -170,6 +171,8 @@ class NgNrGrid(object):
             for j in ssb3:
                 self.ssbFirstSymbSet.append(i + ssb2 * j)
         self.ssbFirstSymbSet.sort()
+        
+        self.ssbFirstSymbInBaseScsTd = dict()
         
         ssbFirstSymbSetStr = [] 
         for i in range(len(self.ssbSet)):
@@ -310,7 +313,7 @@ class NgNrGrid(object):
         
         tddCfgMap = {'D':NrResType.NR_RES_D.value, 'F':NrResType.NR_RES_F.value, 'U':NrResType.NR_RES_U.value}
         scale = self.baseScsTd // self.nrTddCfgRefScs
-        self.ngwin.logEdit.append('scale=%d where baseScsTd=%dKHz and tddCfgRefScs=%dKHz' % (scale, self.baseScsTd, self.nrTddCfgRefScs))
+        self.ngwin.logEdit.append('scaleTd=%d where baseScsTd=%dKHz and tddCfgRefScs=%dKHz' % (scale, self.baseScsTd, self.nrTddCfgRefScs))
         if sfn % 2 == 0:
             for i in range(len(self.tddPatEvenRf)):
                 for j in range(scale):
@@ -348,8 +351,8 @@ class NgNrGrid(object):
                         horizontalHeader.append('sfn%s\nslot%d\nsymb%d' % (sfn, i, j))
         
         workbook = xlsxwriter.Workbook(os.path.join(self.outDir, '5gnr_grid_%s.xlsx' % (time.strftime('%Y%m%d%H%M%S', time.localtime()))))
-        fmtHHeader = workbook.add_format({'font_name':'Arial', 'font_size':9, 'bold':True, 'align':'center', 'valign':'vcenter', 'text_wrap':True, 'shrink':True, 'bg_color':'yellow'})
-        fmtVHeader = workbook.add_format({'font_name':'Arial', 'font_size':9, 'bold':True, 'align':'center', 'valign':'vcenter', 'shrink':True, 'bg_color':'yellow'})
+        fmtHHeader = workbook.add_format({'font_name':'Arial', 'font_size':8, 'align':'center', 'valign':'vcenter', 'text_wrap':True, 'bg_color':'yellow', 'border':1})
+        fmtVHeader = workbook.add_format({'font_name':'Arial', 'font_size':8, 'align':'center', 'valign':'vcenter', 'bg_color':'yellow', 'border':1})
         
         #key=NrResType, val=(name, font_color, bg_color)
         resMap = dict()
@@ -359,14 +362,14 @@ class NgNrGrid(object):
         resMap[NrResType.NR_RES_SIB1.value] = ('SIB1', '#0000FF', '#FFFFFF')
         resMap[NrResType.NR_RES_PDCCH.value] = ('PDCCH', '#000000', '#00FFFF')
         resMap[NrResType.NR_RES_PDSCH.value] = ('PDSCH', '#000000', '#FFFFFF')
-        resMap[NrResType.NR_RES_CSI_RS.value] = ('CSI-RS', '#000000', '#FF0000')
+        resMap[NrResType.NR_RES_CSI_RS.value] = ('CSIRS', '#000000', '#FF0000')
         resMap[NrResType.NR_RES_MSG2.value] = ('MSG2', '#000000', '#FF00FF')
         resMap[NrResType.NR_RES_MSG4.value] = ('MSG4', '#000000', '#FF00FF')
         
-        resMap[NrResType.NR_RES_PRACH.value] = ('CSI-RS', '#000000', '#80FFFF')
+        resMap[NrResType.NR_RES_PRACH.value] = ('PRACH', '#000000', '#80FFFF')
         resMap[NrResType.NR_RES_PUCCH.value] = ('PUCCH', '#FFFFFF', '#0000FF')
         resMap[NrResType.NR_RES_PUSCH.value] = ('PUSCH', '#000000', '#FFFFFF')
-        resMap[NrResType.NR_RES_SRS.value] = ('PUSCH', '#000000', '#FFFF00')
+        resMap[NrResType.NR_RES_SRS.value] = ('SRS', '#000000', '#FFFF00')
         resMap[NrResType.NR_RES_MSG3.value] = ('MSG3', '#000000', '#FF00FF')
         
         resMap[NrResType.NR_RES_DMRS_PBCH.value] = ('DMRS', '#000000', '#FF0000')
@@ -392,11 +395,11 @@ class NgNrGrid(object):
         formatMap = dict()
         for key, val in resMap.items():
             name, fg, bg = val
-            formatMap[key] = workbook.add_format({'font_name':'Arial', 'font_size':9, 'align':'left', 'valign':'vcenter', 'font_color':fg, 'bg_color':bg})
+            formatMap[key] = workbook.add_format({'font_name':'Arial', 'font_size':8, 'align':'center', 'valign':'vcenter', 'font_color':fg, 'bg_color':bg, 'border':1})
             
         if self.nrDuplexMode == 'TDD':
             sheet1 = workbook.add_worksheet('TDD Grid')
-            sheet1.set_zoom(90)
+            sheet1.set_zoom(80)
             sheet1.freeze_panes(1, 1)
             
             #write header
@@ -410,12 +413,14 @@ class NgNrGrid(object):
                         name, fg, bg = resMap[val[row, col]]
                         sheet1.write(row+1, col+1+count*val.shape[1], name, formatMap[val[row, col]])
                 count += 1
+            
+            sheet1.set_column(1, len(self.gridNrTdd) * self.nrSymbPerRfNormCp, 5)
         else:
             sheet1 = workbook.add_worksheet('FDD UL Grid')
-            sheet1.set_zoom(90)
+            sheet1.set_zoom(80)
             sheet1.freeze_panes(1, 1)
             sheet2 = workbook.add_worksheet('FDD DL Grid')
-            sheet2.set_zoom(90)
+            sheet2.set_zoom(80)
             sheet2.freeze_panes(1, 1)
             
             #write header
@@ -439,16 +444,35 @@ class NgNrGrid(object):
                         name, fg, bg = resMap[val[row, col]]
                         sheet2.write(row+1, col+1+count*val.shape[1], name, formatMap[val[row, col]])
                 count += 1
+                
+            sheet1.set_column(1, len(self.gridNrFddDl) * self.nrSymbPerRfNormCp, 5)
+            sheet2.set_column(1, len(self.gridNrFddUl) * self.nrSymbPerRfNormCp, 5)
         
         workbook.close()
     
     def recvSsb(self, hsfn, sfn):
-        self.ngwin.logEdit.append('---->inside recvSsb')
+        self.ngwin.logEdit.append('---->inside recvSsb(hsfn=%d,sfn=%d)' % (hsfn, sfn))
+        
+        #init gridNrTdd or gridNrFddDl/gridNrFddUl if necessary
+        if self.nrDuplexMode == 'TDD'and not dn in self.gridNrTdd:
+            self.gridNrTdd[dn] = np.full((self.nrScTot, self.nrSymbPerRfNormCp), NrResType.NR_RES_GB.value)
+            self.initTddGrid(hsfn, sfn)
+        elif self.nrDuplexMode == 'FDD' and not dn in self.gridNrFddDl:
+            self.gridNrFddDl[dn] = np.full((self.nrScTot, self.nrSymbPerRfNormCp), NrResType.NR_RES_D.value)
+            self.gridNrFddUl[dn] = np.full((self.nrScTot, self.nrSymbPerRfNormCp), NrResType.NR_RES_U.value)
+            #init 'min guard band'
+            self.gridNrFddDl[dn][:self.nrScGb, :] = NrResType.NR_RES_GB.value
+            self.gridNrFddUl[dn][:self.nrScGb, :] = NrResType.NR_RES_GB.value
+        else:
+            pass
         
         if self.nrSsbPeriod >= 10 and self.deltaSfn(self.hsfn, self.nrMibSfn, hsfn, sfn) % (self.nrSsbPeriod // 10) != 0:
             return
         
         dn = '%s_%s' % (hsfn, sfn)
+        if not dn in self.ssbFirstSymbInBaseScsTd:
+            self.ssbFirstSymbInBaseScsTd[dn] = []
+            
         ssbHrfSet = [0, 1] if self.nrSsbPeriod < 10 else [self.nrMibHrf]
         
         #SSB frequency domain
@@ -457,18 +481,33 @@ class NgNrGrid(object):
         v = self.nrPci % 4
         
         for hrf in ssbHrfSet:
-            for issb in range(len(self.ssbSet)):
+            for issb in range(self.nrSsbMaxL):
                 if self.ssbSet[issb] == '0':
+                    self.ssbFirstSymbInBaseScsTd[dn].append(None)
                     continue
+                
                 #SSB time domain
                 scaleTd = self.baseScsTd // self.nrSsbScs
                 ssbFirstSymb = hrf * (self.nrSymbPerRfNormCp // 2) + self.ssbFirstSymbSet[issb] * scaleTd
-                self.ngwin.logEdit.append('ssbFirstSc=%d, v=%d, ssbFirstSymb=%d' % (ssbFirstSc, v, ssbFirstSymb))
+                self.ssbFirstSymbInBaseScsTd[dn].append(ssbFirstSymb)
+                self.ngwin.logEdit.append('ssbFirstSc=%d, v=%d, ssbFirstSymb=%d with scaleFd=%d(baseScsFd=%d,ssbScs=%d) and scaleTd=%d(baseScsTd=%d,ssbScs=%d)' % (ssbFirstSc, v, ssbFirstSymb, scaleFd, self.baseScsFd, self.nrSsbScs, scaleTd, self.baseScsTd, self.nrSsbScs))
                 
-                #update nr grid
                 #refer to 3GPP 38.211 vf30
                 #Table 7.4.3.1-1: Resources within an SS/PBCH block for PSS, SSS, PBCH, and DM-RS for PBCH.
                 if self.nrDuplexMode == 'TDD':
+                    #check ul/dl config
+                    #refer to 3GPP 38.213 vf30
+                    #11.1 Slot configurations
+                    '''
+                    For a set of symbols of a slot that are indicated to a UE by ssb-PositionsInBurst in SystemInformationBlockType1 or ssb-PositionsInBurst in ServingCellConfigCommon, when provided to the UE, for reception of SS/PBCH blocks, the UE does not transmit PUSCH, PUCCH, PRACH in the slot if a transmission would overlap with any symbol from the set of symbols and the UE does not transmit SRS in the set of symbols of the slot. The UE does not expect the set of symbols of the slot to be indicated as uplink by TDD-UL-DL-ConfigurationCommon, or TDD-UL-DL-ConfigDedicated, when provided to the UE.
+                    '''
+                    for i in range(4):
+                        for j in range(scaleTd):
+                            if self.gridNrTdd[dn][ssbFirstSc, ssbFirstSymb+i*scaleTd+j] == NrResType.NR_RES_U.value:
+                                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: The UE does not expect the set of symbols of the slot which are used for SSB transmission(ssb index=%d, first symbol=%d) to be indicated as uplink by TDD-UL-DL-ConfigurationCommon.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), issb, ssbFirstSymb))
+                                self.error = True
+                                return (hsfn, sfn)
+                    
                     for i in range(scaleTd):
                         #symbol 0 of SSB, PSS
                         self.gridNrTdd[dn][ssbFirstSc:ssbFirstSc+56*scaleFd, ssbFirstSymb+i] = NrResType.NR_RES_DTX.value
@@ -552,7 +591,8 @@ class NgNrGrid(object):
         if not rnti in ('si-rnti', 'ra-rnti', 'tc-rnti', 'c-rnti'):
             return (hsfn, sfn)
         
-        self.ngwin.logEdit.append('---->inside recvPdcch(dci="%s",rnti="%s")' % (dci, rnti))
+        self.ngwin.logEdit.append('---->inside recvPdcch(hsfn=%d, sfn=%d, dci="%s",rnti="%s")' % (hsfn, sfn, dci, rnti))
+        
         if dci == 'dci10' and rnti == 'si-rnti':
             #refer to 3GPP 38.213 vf30
             #Table 13-11: Parameters for PDCCH monitoring occasions for Type0-PDCCH CSS set - SS/PBCH block and CORESET multiplexing pattern 1 and FR1
@@ -594,18 +634,23 @@ class NgNrGrid(object):
                 15 : None,
                 }
             
+            self.coreset0Occasions = []                
             if self.nrCoreset0MultiplexingPat == 1:
                 O2, numSetsPerSlot, M2, firstSymbSet = css0OccasionsPat1Fr1[self.nrRmsiCss0] if self.args['freqBand']['freqRange'] == 'FR1' else css0OccasionsPat1Fr2[self.nrRmsiCss0] 
                 
-                self.coreset0Occasions = []                
                 for issb in range(self.nrSsbMaxL):
+                    if self.ssbSet[issb] == '0':
+                        self.coreset0Occasions.append(None)
+                        continue
+                    
                     #determine pdcch monitoring occasion (sfnc + nc) for ssb with index issb
                     val = (O2 * 2 ** self.nrScs2Mu[self.nrMibCommonScs]) // 2 + math.floor(issb * M2 / 2)
                     valSfnc = math.floor(val / self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]])
                     if (valSfnc % 2 == 0 and sfn % 2 == 0) or (valSfnc % 2 == 1 and sfn % 2 == 1):
                         sfnc = sfn
                     else:
-                        hsfn, sfn = incSfn(hsfn, sfn, 1)
+                        hsfn, sfn = self.incSfn(hsfn, sfn, 1)
+                        self.recvSsb(hsfn, sfn)
                         sfnc = sfn
                     
                     n0 = val % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] 
@@ -617,21 +662,39 @@ class NgNrGrid(object):
                     else:
                         firstSymbCoreset0 = firstSymbSet[0]
                     
-                    self.coreset0Occasions.append([hsfn, sfnc, nc, firstSymbCoreset0])
+                    self.coreset0Occasions.append([hsfn, sfnc, nc, firstSymbCoreset0, [True, True]])
                     
-                for issb in range(self.nrSsbMaxL):
-                    self.ngwin.logEdit.append('PDCCH monitoring occasion for SSB index=%d: %s' % (issb, self.coreset0Occasions[issb]))
-                
-                #for simplicity, assume SSB index is randomly selected!
-                #issb = np.random.randint(0, self.nrSsbMaxL)
-                
                 #FIXME pdcch monitoring occasions may overlap with SSB
-                #TODO
-                
+                dn = '%s_%s' % (hsfn, sfn)
+                scaleTd = self.baseScsTd // self.nrMibCommonScs
+                for issb in range(self.nrSsbMaxL):
+                    #refer to 3GPP 38.213 vf30
+                    #10 UE procedure for receiving control information 
+                    '''
+                    If the UE monitors the PDCCH candidate for a Type0-PDCCH CSS set on the serving cell according to the procedure described in Subclause 13, the UE may assume that no SS/PBCH block is transmitted in REs used for monitoring the PDCCH candidate on the serving cell.
+                    '''
+                    if dn in self.ssbFirstSymbInBaseScsTd:
+                        hsfn, sfnc, nc, firstSymb, valid = self.coreset0Occasions[issb]
+                        for i in range(2):
+                            firstSymbInBaseScsTd = (nc[i] * self.nrSymbPerSlotNormCp + firstSymb) * scaleTd
+                            coreset0SymbsInBaseScsTd = [firstSymbInBaseScsTd+j for j in range(self.nrCoreset0NumSymbs * scaleTd)]
+                            for k in self.ssbFirstSymbInBaseScsTd[dn]:
+                                if k in coreset0SymbsInBaseScsTd:
+                                    valid[i] = False
+                        self.coreset0Occasions[issb][4] = valid
+                        
+                    self.ngwin.logEdit.append('PDCCH monitoring occasion for SSB index=%d: %s, with scaleTd=%d(baseScsTd=%d,commonScs=%d)' % (issb, self.coreset0Occasions[issb], scaleTd, self.baseScsTd, self.nrMibCommonScs))
             elif self.nrCoreset0MultiplexingPat == 2:
+                for issb in range(self.nrSsbMaxL):
+                    sfnc = sfn
+                    #TODO
                 pass
             else:
                 pass
+            
+            #for simplicity, assume SSB index is randomly selected!
+            #issb = np.random.randint(0, self.nrSsbMaxL)
+            
             #TODO determine pdcch candidate
             
             pass
