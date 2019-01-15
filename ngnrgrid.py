@@ -173,7 +173,7 @@ class NgNrGrid(object):
         self.ssbFirstSymbSet.sort()
         
         self.ssbFirstSymbInBaseScsTd = dict()
-        self.ssbScRangeInBaseScsFd = dict()
+        self.ssbScRangeInBaseScsFd = None
         
         ssbFirstSymbSetStr = [] 
         for i in range(len(self.ssbSet)):
@@ -478,8 +478,6 @@ class NgNrGrid(object):
         
         if not dn in self.ssbFirstSymbInBaseScsTd:
             self.ssbFirstSymbInBaseScsTd[dn] = []
-        if not dn in self.ssbScRangeInBaseScsFd:
-            self.ssbScRangeInBaseScsFd[dn] = []
             
         ssbHrfSet = [0, 1] if self.nrSsbPeriod < 10 else [self.nrMibHrf]
         
@@ -487,12 +485,12 @@ class NgNrGrid(object):
         scaleFd = self.nrSsbScs // self.baseScsFd
         ssbFirstSc = self.nrSsbNCrbSsb * self.nrScPerPrb + self.nrSsbKssb * (self.nrMibCommonScs // self.baseScsFd if self.args['freqBand']['freqRange'] == 'FR2' else 1)
         v = self.nrPci % 4
+        self.ssbScRangeInBaseScsFd = [ssbFirstSc, ssbFirstSc+20*self.nrScPerPrb*scaleFd]
         
         for hrf in ssbHrfSet:
             for issb in range(self.nrSsbMaxL):
                 if self.ssbSet[issb] == '0':
                     self.ssbFirstSymbInBaseScsTd[dn].append(None)
-                    self.ssbScRangeInBaseScsFd[dn].append(None)
                     continue
                 
                 #SSB time domain
@@ -571,7 +569,6 @@ class NgNrGrid(object):
                                 self.gridNrFddDl[dn][j+k, ssbFirstSymb+2*scaleTd+i] = NrResType.NR_RES_DMRS_PBCH.value
                                 
                 self.ssbFirstSymbInBaseScsTd[dn].append(ssbFirstSymb)
-                self.ssbScRangeInBaseScsFd[dn].append([ssbFirstSc, ssbFirstSc+20*self.nrScPerPrb*scaleFd])
         
         return (hsfn, sfn)
     
@@ -677,7 +674,15 @@ class NgNrGrid(object):
                         sfnc = sfn
                     
                     n0 = val % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] 
-                    nc = [n0, n0+1]
+                    if n0 == self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] - 1:
+                        oc = [(hsfn, sfnc, n0)]
+                        hsfn, sfn = self.incSfn(hsfn, sfn, 1)
+                        self.recvSsb(hsfn, sfn)
+                        sfnc = sfn
+                        oc.append((hsfn, sfnc, 0))
+                    else:
+                        nc = [n0, n0+1]
+                        oc = [(hsfn, sfnc, i) for i in nc]
                     
                     #determine first symbol of coreset0
                     if len(firstSymbSet) == 2:
@@ -685,7 +690,7 @@ class NgNrGrid(object):
                     else:
                         firstSymbCoreset0 = firstSymbSet[0]
                     
-                    self.coreset0Occasions.append([hsfn, sfnc, nc, firstSymbCoreset0, ['OK', 'OK']])
+                    self.coreset0Occasions.append([oc, firstSymbCoreset0, ['OK', 'OK']])
             
             elif self.nrCoreset0MultiplexingPat == 2:
                 dn = '%s_%s' % (hsfn, sfn)
@@ -725,7 +730,8 @@ class NgNrGrid(object):
                         self.error = True
                         return (hsfn, sfn)
                     
-                    self.coreset0Occasions.append([hsfn, sfnc, nc, firstSymbCoreset0, ['OK']])
+                    oc = [(hsfn, sfnc, i) for i in nc]
+                    self.coreset0Occasions.append([oc, firstSymbCoreset0, ['OK']])
             else:
                 dn = '%s_%s' % (hsfn, sfn)
                 if not dn in self.ssbFirstSymbInBaseScsTd:
@@ -752,23 +758,32 @@ class NgNrGrid(object):
                         self.error = True
                         return (hsfn, sfn)
                     
-                    self.coreset0Occasions.append([hsfn, sfnc, nc, firstSymbCoreset0, ['OK']])
+                    oc = [(hsfn, sfnc, i) for i in nc]
+                    self.coreset0Occasions.append([oc, firstSymbCoreset0, ['OK']])
                     
-            #refer to 3GPP 38.213 vf30
-            #10 UE procedure for receiving control information 
-            '''
-            If the UE monitors the PDCCH candidate for a Type0-PDCCH CSS set on the serving cell according to the procedure described in Subclause 13, the UE may assume that no SS/PBCH block is transmitted in REs used for monitoring the PDCCH candidate on the serving cell.
-            '''
+            
+            #validate pdcch occasions
             scaleTd = self.baseScsTd // self.nrMibCommonScs
             for i in range(len(self.coreset0Occasions)):
-                hsfn, sfnc, nc, firstSymb, valid = self.coreset0Occasions[i]
+                if self.coreset0Occasions[i] is None:
+                    continue
                 
-                dn = '%s_%s' % (hsfn, sfnc)
-                if dn in self.ssbFirstSymbInBaseScsTd:
-                    for j in range(len(nc)):
-                        firstSymbInBaseScsTd = (nc[j] * self.nrSymbPerSlotNormCp + firstSymb) * scaleTd
-                        coreset0SymbsInBaseScsTd = [firstSymbInBaseScsTd+k for k in range(self.nrCoreset0NumSymbs * scaleTd)]
-                        #self.ngwin.logEdit.append('---->coreset0SymbsInBaseScsTd[issb=%d,nc=%d]=%s' % (i % self.nrSsbMaxL, nc[j], coreset0SymbsInBaseScsTd))
+                oc, firstSymb, valid = self.coreset0Occasions[i]
+                
+                for j in range(len(oc)):
+                    hsfn, sfnc, nc = oc[j]
+                    
+                    dn = '%s_%s' % (hsfn, sfnc)
+                    firstSymbInBaseScsTd = (nc * self.nrSymbPerSlotNormCp + firstSymb) * scaleTd
+                    coreset0SymbsInBaseScsTd = [firstSymbInBaseScsTd+k for k in range(self.nrCoreset0NumSymbs * scaleTd)]
+                    #self.ngwin.logEdit.append('---->coreset0SymbsInBaseScsTd[issb=%d,nc=%d]=%s' % (i % self.nrSsbMaxL, nc, coreset0SymbsInBaseScsTd))
+                    
+                    #refer to 3GPP 38.213 vf30
+                    #10 UE procedure for receiving control information 
+                    '''
+                    If the UE monitors the PDCCH candidate for a Type0-PDCCH CSS set on the serving cell according to the procedure described in Subclause 13, the UE may assume that no SS/PBCH block is transmitted in REs used for monitoring the PDCCH candidate on the serving cell.
+                    '''
+                    if dn in self.ssbFirstSymbInBaseScsTd:
                         for k in self.ssbFirstSymbInBaseScsTd[dn]:
                             #multiplexing pattern 1 uses TDM only, and pattern 2 uses FDM/TDM, pattern 3 uses FDM only
                             #coreset0 and ssb dosn't overlap in freq-domain when:
@@ -776,8 +791,20 @@ class NgNrGrid(object):
                             #(2) if offset<0, offset <= -1 * #RB_SSB * (ssbScs / commonScs)
                             if k in coreset0SymbsInBaseScsTd and not (self.nrCoreset0Offset >= self.nrCoreset0NumRbs or self.nrCoreset0Offset <= -20*(self.nrSsbScs//self.nrMibCommonScs)):
                                 valid[j] = 'NOK' 
-                    self.coreset0Occasions[i][4] = valid
-                    
+                                break
+                                    
+                    #refer to 3GPP 38.213 vf30
+                    #11.1 Slot configuration
+                    '''
+                    For a set of symbols of a slot indicated to a UE by pdcch-ConfigSIB1 in MIB for a CORESET for Type0-PDCCH CSS set, the UE does not expect the set of symbols to be indicated as uplink by TDD-UL-DL-ConfigurationCommon, or TDD-UL-DL-ConfigDedicated.
+                    '''                
+                    if self.nrDuplexMode == 'TDD':                
+                        for k in coreset0SymbsInBaseScsTd:
+                            if self.gridNrTdd[dn][self.ssbScRangeInBaseScsFd[0], k] == NrResType.NR_RES_U.value:
+                                valid[j] = 'NOK'
+                                break
+                        
+                self.coreset0Occasions[i][2] = valid
                 self.ngwin.logEdit.append('PDCCH monitoring occasion for SSB index=%d(hrf=%d): %s' % (i % self.nrSsbMaxL, self.nrMibHrf if self.nrSsbPeriod >= 10 else i // self.nrSsbMaxL, self.coreset0Occasions[i]))
             
             #for simplicity, assume SSB index is randomly selected!
