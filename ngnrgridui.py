@@ -10244,7 +10244,7 @@ class NgNrGridUi(QDialog):
         #TODO
         
         #export grid to excel
-        #nrGrid.exportToExcel()
+        nrGrid.exportToExcel()
         
         self.accept()
     

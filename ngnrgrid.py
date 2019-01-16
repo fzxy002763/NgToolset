@@ -58,6 +58,9 @@ class NrResType(Enum):
     NR_RES_U = 62 
     NR_RES_GB = 63
     
+    NR_RES_CORESET0 = 70
+    NR_RES_CORESET1 = 71
+    
     NR_RES_BUTT = 99
 
 class NgNrGrid(object):
@@ -186,7 +189,12 @@ class NgNrGrid(object):
         self.nrCoreset0Offset = self.args['mib']['coreset0Offset']
         self.nrRmsiCss0 = int(self.args['mib']['rmsiCss0'])
         self.nrCss0AggLevel = int(self.args['css0']['aggLevel'])
-        self.nrCss0NumCandidates = int(self.args['css0']['numCandidates'][1:])
+        self.nrCss0MaxNumCandidates = int(self.args['css0']['numCandidates'][1:])
+        
+        self.coreset0NumCces = self.nrCoreset0NumRbs * self.nrCoreset0NumSymbs // 6
+        if self.nrCss0AggLevel > self.coreset0NumCces:
+            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid configurations of CSS0/CORESET0: aggregation level=%d while total number of CCEs=%d!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.nrCss0AggLevel, self.coreset0NumCces))
+            return False
         
         return True
         
@@ -363,7 +371,7 @@ class NgNrGrid(object):
         resMap[NrResType.NR_RES_SSS.value] = ('SSS', '#000000', '#FFFF00')
         resMap[NrResType.NR_RES_PBCH.value] = ('PBCH', '#000000', '#80FFFF')
         resMap[NrResType.NR_RES_SIB1.value] = ('SIB1', '#0000FF', '#FFFFFF')
-        resMap[NrResType.NR_RES_PDCCH.value] = ('PDCCH', '#000000', '#00FFFF')
+        resMap[NrResType.NR_RES_PDCCH.value] = ('PDCCH', '#000000', '#FF00FF')
         resMap[NrResType.NR_RES_PDSCH.value] = ('PDSCH', '#000000', '#FFFFFF')
         resMap[NrResType.NR_RES_CSI_RS.value] = ('CSIRS', '#000000', '#FF0000')
         resMap[NrResType.NR_RES_MSG2.value] = ('MSG2', '#000000', '#FF00FF')
@@ -394,6 +402,9 @@ class NgNrGrid(object):
         resMap[NrResType.NR_RES_F.value] = ('F', '#FFFFFF', '#808080')
         resMap[NrResType.NR_RES_U.value] = ('U', '#FFFFFF', '#808080')
         resMap[NrResType.NR_RES_GB.value] = ('GB', '#808080', '#000000')
+        
+        resMap[NrResType.NR_RES_CORESET0.value] = ('CORESET0', '#000000', '#00FFFF')
+        resMap[NrResType.NR_RES_CORESET1.value] = ('CORESET1', '#000000', '#00FFFF')
         
         formatMap = dict()
         for key, val in resMap.items():
@@ -764,6 +775,8 @@ class NgNrGrid(object):
             
             #validate pdcch occasions
             scaleTd = self.baseScsTd // self.nrMibCommonScs
+            scaleFd = self.nrMibCommonScs // self.baseScsFd
+            coreset0FirstSc = self.ssbScRangeInBaseScsFd[0] - self.nrCoreset0Offset * self.nrScPerPrb * scaleFd
             for i in range(len(self.coreset0Occasions)):
                 if self.coreset0Occasions[i] is None:
                     continue
@@ -803,6 +816,14 @@ class NgNrGrid(object):
                             if self.gridNrTdd[dn2][self.ssbScRangeInBaseScsFd[0], k] == NrResType.NR_RES_U.value:
                                 valid[j] = 'NOK'
                                 break
+                            
+                    #set CORESET0 for each PDCCH occasions
+                    if valid[j] == 'OK':
+                        for k in coreset0SymbsInBaseScsTd:
+                            if self.nrDuplexMode == 'TDD':
+                                self.gridNrTdd[dn2][coreset0FirstSc:coreset0FirstSc+self.nrCoreset0NumRbs*self.nrScPerPrb*scaleFd, k] = NrResType.NR_RES_CORESET0.value
+                            else:
+                                self.gridNrFddDl[dn2][coreset0FirstSc:coreset0FirstSc+self.nrCoreset0NumRbs*self.nrScPerPrb*scaleFd, k] = NrResType.NR_RES_CORESET0.value
                         
                 self.coreset0Occasions[i][2] = valid
                 self.ngwin.logEdit.append('PDCCH monitoring occasion for SSB index=%d(hrf=%d): %s' % (i % self.nrSsbMaxL, self.nrMibHrf if self.nrSsbPeriod >= 10 else i // self.nrSsbMaxL, self.coreset0Occasions[i]))
@@ -812,12 +833,36 @@ class NgNrGrid(object):
             
             #for simplicity, assume SSB index is randomly selected!
             while True:
-                i = np.random.randint(0, len(self.ssbFirstSymbInBaseScsTd[dn]))
-                if self.ssbFirstSymbInBaseScsTd[dn][i] is not None:
-                    issb = i % self.nrSsbMaxL
+                bestSsb = np.random.randint(0, len(self.ssbFirstSymbInBaseScsTd[dn]))
+                if self.ssbFirstSymbInBaseScsTd[dn][bestSsb] is not None:
                     break
             
-            #TODO determine pdcch candidate
+            #determine pdcch candidate randomly
+            oc, firstSymb, valid = self.coreset0Occasions[bestSsb]
+            if len(valid) == 2 and valid[0] == 'OK' and valid[1] == 'OK':
+                pdcchSlot = np.random.randint(0, 2)
+            else:
+                if len(valid) == 1:
+                    pdcchSlot = 0
+                else:
+                    pdcchSlot = 0 if valid[0] == 'OK' else 1
+                    
+            numCandidates = min(self.nrCss0MaxNumCandidates, self.coreset0NumCces // self.nrCss0AggLevel)
+            pdcchCandidate = np.random.randint(0, numCandidates)
+            
+            self.ngwin.logEdit.append('randomly selecting pdcch candidate: bestSsb=%d(hrf=%d,issb=%d), pdcchSlot=%d, pdcchCandidate=%d' % (bestSsb, self.nrMibHrf if self.nrSsbPeriod >= 10 else bestSsb // self.nrSsbMaxL, bestSsb % self.nrSsbMaxL, pdcchSlot, pdcchCandidate)) 
+            
+            hsfn, sfnc, nc = oc[pdcchSlot]
+            dn2 = '%s_%s' % (hsfn, sfnc)
+            firstSymbInBaseScsTd = (nc * self.nrSymbPerSlotNormCp + firstSymb) * scaleTd
+            cceSet = [pdcchCandidate * self.nrCss0AggLevel + k for k in range(self.nrCss0AggLevel)]
+            for i in range(self.coreset0Cces.shape[0]):
+                for j in range(self.coreset0Cces.shape[1]):
+                    if self.coreset0Cces[i, j] in cceSet:
+                        if self.nrDuplexMode == 'TDD':
+                            self.gridNrTdd[dn2][coreset0FirstSc+i*self.nrScPerPrb*scaleFd:coreset0FirstSc+(i+1)*self.nrScPerPrb*scaleFd, firstSymbInBaseScsTd+j*scaleTd:firstSymbInBaseScsTd+(j+1)*scaleTd] = NrResType.NR_RES_PDCCH.value
+                        else:
+                            self.gridNrFddDl[dn2][coreset0FirstSc+i*self.nrScPerPrb*scaleFd:coreset0FirstSc+(i+1)*self.nrScPerPrb*scaleFd, firstSymbInBaseScsTd+j*scaleTd:firstSymbInBaseScsTd+(j+1)*scaleTd] = NrResType.NR_RES_PDCCH.value
             
             pass
         else:
