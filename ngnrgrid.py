@@ -773,7 +773,7 @@ class NgNrGrid(object):
                 for j in range(len(oc)):
                     hsfn, sfnc, nc = oc[j]
                     
-                    dn = '%s_%s' % (hsfn, sfnc)
+                    dn2 = '%s_%s' % (hsfn, sfnc)
                     firstSymbInBaseScsTd = (nc * self.nrSymbPerSlotNormCp + firstSymb) * scaleTd
                     coreset0SymbsInBaseScsTd = [firstSymbInBaseScsTd+k for k in range(self.nrCoreset0NumSymbs * scaleTd)]
                     #self.ngwin.logEdit.append('---->coreset0SymbsInBaseScsTd[issb=%d,nc=%d]=%s' % (i % self.nrSsbMaxL, nc, coreset0SymbsInBaseScsTd))
@@ -783,8 +783,8 @@ class NgNrGrid(object):
                     '''
                     If the UE monitors the PDCCH candidate for a Type0-PDCCH CSS set on the serving cell according to the procedure described in Subclause 13, the UE may assume that no SS/PBCH block is transmitted in REs used for monitoring the PDCCH candidate on the serving cell.
                     '''
-                    if dn in self.ssbFirstSymbInBaseScsTd:
-                        for k in self.ssbFirstSymbInBaseScsTd[dn]:
+                    if dn2 in self.ssbFirstSymbInBaseScsTd:
+                        for k in self.ssbFirstSymbInBaseScsTd[dn2]:
                             #multiplexing pattern 1 uses TDM only, and pattern 2 uses FDM/TDM, pattern 3 uses FDM only
                             #coreset0 and ssb dosn't overlap in freq-domain when:
                             #(1) if offset>0, offset >= #RB_CORESET0
@@ -800,15 +800,22 @@ class NgNrGrid(object):
                     '''                
                     if self.nrDuplexMode == 'TDD':                
                         for k in coreset0SymbsInBaseScsTd:
-                            if self.gridNrTdd[dn][self.ssbScRangeInBaseScsFd[0], k] == NrResType.NR_RES_U.value:
+                            if self.gridNrTdd[dn2][self.ssbScRangeInBaseScsFd[0], k] == NrResType.NR_RES_U.value:
                                 valid[j] = 'NOK'
                                 break
                         
                 self.coreset0Occasions[i][2] = valid
                 self.ngwin.logEdit.append('PDCCH monitoring occasion for SSB index=%d(hrf=%d): %s' % (i % self.nrSsbMaxL, self.nrMibHrf if self.nrSsbPeriod >= 10 else i // self.nrSsbMaxL, self.coreset0Occasions[i]))
             
+            #CORESET0 CCE-to-REG mapping
+            self.coreset0RegBundles, self.coreset0Cces = self.coresetCce2RegMapping(numRbs=self.nrCoreset0NumRbs, numSymbs=self.nrCoreset0NumSymbs, interleaved=True, L=6, R=2, nShift=self.nrPci)
+            
             #for simplicity, assume SSB index is randomly selected!
-            #issb = np.random.randint(0, self.nrSsbMaxL)
+            while True:
+                i = np.random.randint(0, len(self.ssbFirstSymbInBaseScsTd[dn]))
+                if self.ssbFirstSymbInBaseScsTd[dn][i] is not None:
+                    issb = i % self.nrSsbMaxL
+                    break
             
             #TODO determine pdcch candidate
             
@@ -818,6 +825,78 @@ class NgNrGrid(object):
         
         return (hsfn, sfn)
         
+    
+    def coresetCce2RegMapping(self, numRbs=6, numSymbs=1, interleaved=False, L=6, R=None, nShift=None):
+        if not interleaved and L != 6:
+            return (None, None)
+        
+        if interleaved:
+            if (numSymbs == 1 and not L in (2, 6)) or (numSymbs in (2, 3) and not L in (numSymbs, 6)):
+                return (None, None)
+            if R is None:
+                return (None, None)
+            if (numRbs * numSymbs) % (L * R) != 0:
+                return (None, None)
+            if nShift is None:
+                return (None, None)
+        
+        self.ngwin.logEdit.append('calling coresetCce2RegMapping with: numRbs=%d,numSymbs=%d,interleaved=%s,L=%d,R=%s,nShift=%s' % (numRbs, numSymbs, interleaved, L, R, nShift))
+        
+        #indexing REGs
+        #refer to 3GPP 38.211 vf30
+        #7.3.2.2	Control-resource set (CORESET)
+        #Resource-element groups within a control-resource set are numbered in increasing order in a time-first manner, starting with 0 for the first OFDM symbol and the lowest-numbered resource block in the control resource set.
+        numRegs = numRbs * numSymbs
+        regBundles = np.full((numRbs, numSymbs), 0)
+        count = 0
+        for i in range(regBundles.shape[0]):
+            for j in range(regBundles.shape[1]):
+                regBundles[i, j] = count
+                count += 1
+        
+        #indexing REG bundles
+        numRegBundles = numRegs // L
+        for i in range(regBundles.shape[0]):
+            for j in range(regBundles.shape[1]):
+                regBundles[i, j] = regBundles[i, j] // L
+                
+        #indexing CCEs
+        numCces = numRegs // 6
+        numRegBundlesPerCce = 6 // L
+        cces = np.full((numRbs, numSymbs), 0)
+        for i in range(numCces):
+            regBundlesSet = [numRegBundlesPerCce * i + j for j in range(numRegBundlesPerCce)]
+            if interleaved:
+                C = numRegs // (L * R)
+                for k in range(len(regBundlesSet)):
+                    x = regBundlesSet[k]
+                    c = x // R
+                    r = x % R
+                    regBundlesSet[k] = (r * C + c + nShift) % numRegBundles
+            
+            for j in range(cces.shape[0]):
+                for k in range(cces.shape[1]):
+                    if regBundles[j, k] in regBundlesSet:
+                        cces[j, k] = i
+        
+        #print info
+        regBundlesStr = []
+        ccesStr = []
+        for isymb in range(regBundles.shape[1]):
+            for irb in range(regBundles.shape[0]): 
+                if irb == 0:
+                    regBundlesStr.append(str(regBundles[irb, isymb]))
+                    ccesStr.append(str(cces[irb, isymb]))
+                else:
+                    regBundlesStr.append(','+str(regBundles[irb, isymb]))
+                    ccesStr.append(','+str(cces[irb, isymb]))
+            if isymb != regBundles.shape[1]-1:
+                regBundlesStr.append('\n')
+                ccesStr.append('\n')
+        self.ngwin.logEdit.append('contents of regBundles:\n%s' % ''.join(regBundlesStr))
+        self.ngwin.logEdit.append('contents of cces:\n%s' % ''.join(ccesStr))
+                
+        return (regBundles, cces)
     
     def recvSib1(self, hsfn, sfn):
         self.ngwin.logEdit.append('---->inside recvSib1')
