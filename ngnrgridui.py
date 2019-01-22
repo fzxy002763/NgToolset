@@ -10205,29 +10205,30 @@ class NgNrGridUi(QDialog):
         sfn = int(self.args['mib']['sfn'])
         
         #receiving SSB
-        hsfn, sfn = nrGrid.recvSsb(hsfn, sfn)
-        
+        nrGrid.recvSsb(hsfn, sfn)
         #monitoring PDCCH for SIB1
-        hsfn, sfn = nrGrid.monitorPdcch(hsfn, sfn, dci='dci10', rnti='si-rnti')
-        #receiving SIB1
-        hsfn, sfn = nrGrid.recvSib1(hsfn, sfn)
+        hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci10', rnti='si-rnti')
+        if hsfn is not None and sfn is not None and slot is not None:
+            #receiving SIB1
+            hsfn, sfn = nrGrid.recvSib1(hsfn, sfn)
+        
         #sending Msg1(PRACH) 
         hsfn, sfn = nrGrid.sendMsg1(hsfn, sfn)
         #monitoring PDCCH for Msg2
-        hsfn, sfn = nrGrid.monitorPdcch(hsfn, sfn, dci='dci10', rnti='ra-rnti')
+        hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci10', rnti='ra-rnti')
         #receiving Msg2(RAR)
         hsfn, sfn = nrGrid.recvMsg2(hsfn, sfn)
         #sending Msg3(PUSCH)
         hsfn, sfn = nrGrid.sendMsg3(hsfn, sfn)
         #monitoring PDCCH for Msg4
-        hsfn, sfn = nrGrid.monitorPdcch(hsfn, sfn, dci='dci10', rnti='tc-rnti')
+        hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci10', rnti='tc-rnti')
         #receiving Msg4
         hsfn, sfn = nrGrid.recvMsg4(hsfn, sfn)
         #sending Msg4 HARQ feedback(PUCCH)
         hsfn, sfn = nrGrid.sendPucch(hsfn, sfn)
         
         #monitoring PDCCH for normal PDSCH 
-        hsfn, sfn = nrGrid.monitorPdcch(hsfn, sfn, dci='dci11', rnti='c-rnti')
+        hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci11', rnti='c-rnti')
         #receiving PDSCH
         hsfn, sfn = nrGrid.recvPdsch(hsfn, sfn)
         #sending PDSCH HARQ feedback(PUCCH), together with CSI
@@ -10236,7 +10237,7 @@ class NgNrGridUi(QDialog):
         #sending PUCCH for DSR
         hsfn, sfn = nrGrid.sendPucch(hsfn, sfn)
         #monitoring PDCCH for normal PUSCH 
-        hsfn, sfn = nrGrid.monitorPdcch(hsfn, sfn, dci='dci01', rnti='c-rnti')
+        hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci01', rnti='c-rnti')
         #sending PUSCH
         hsfn, sfn = nrGrid.sendPusch(hsfn, sfn)
         
@@ -10244,7 +10245,8 @@ class NgNrGridUi(QDialog):
         #TODO
         
         #export grid to excel
-        nrGrid.exportToExcel()
+        if not nrGrid.error:
+            nrGrid.exportToExcel()
         
         self.accept()
     

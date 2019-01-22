@@ -466,7 +466,7 @@ class NgNrGrid(object):
     
     def recvSsb(self, hsfn, sfn):
         if self.error:
-            return (hsfn, sfn)
+            return 
         
         self.ngwin.logEdit.append('---->inside recvSsb(hsfn=%d,sfn=%d, scaleFd=%d, scaleTd=%d)' % (hsfn, sfn, self.nrSsbScs // self.baseScsFd, self.baseScsTd // self.nrSsbScs))
         
@@ -485,7 +485,7 @@ class NgNrGrid(object):
             pass
         
         if self.nrSsbPeriod >= 10 and self.deltaSfn(self.hsfn, self.nrMibSfn, hsfn, sfn) % (self.nrSsbPeriod // 10) != 0:
-            return
+            return 
         
         if not dn in self.ssbFirstSymbInBaseScsTd:
             self.ssbFirstSymbInBaseScsTd[dn] = []
@@ -523,8 +523,8 @@ class NgNrGrid(object):
                             if self.gridNrTdd[dn][ssbFirstSc, ssbFirstSymb+i*scaleTd+j] == NrResType.NR_RES_U.value:
                                 self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: The UE does not expect the set of symbols of the slot which are used for SSB transmission(ssb index=%d, first symbol=%d) to be indicated as uplink by TDD-UL-DL-ConfigurationCommon.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), issb, ssbFirstSymb))
                                 self.error = True
-                                return (hsfn, sfn)
-                    
+                                return 
+                            
                     for i in range(scaleTd):
                         #symbol 0 of SSB, PSS
                         self.gridNrTdd[dn][ssbFirstSc:ssbFirstSc+56*scaleFd, ssbFirstSymb+i] = NrResType.NR_RES_DTX.value
@@ -580,8 +580,6 @@ class NgNrGrid(object):
                                 self.gridNrFddDl[dn][j+k, ssbFirstSymb+2*scaleTd+i] = NrResType.NR_RES_DMRS_PBCH.value
                                 
                 self.ssbFirstSymbInBaseScsTd[dn].append(ssbFirstSymb)
-        
-        return (hsfn, sfn)
     
     def deltaSfn(self, hsfn0, sfn0, hsfn1, sfn1):
         return (1024 * hsfn1 + sfn1) - (1024 * hsfn0 + sfn0)
@@ -601,16 +599,16 @@ class NgNrGrid(object):
     
     def monitorPdcch(self, hsfn, sfn, dci=None, rnti=None):
         if self.error:
-            return (hsfn, sfn)
+            return (None, None, None)
         
         if dci is None or rnti is None:
-            return (hsfn, sfn)
+            return (None, None, None)
         
         if not dci in ('dci01', 'dci10', 'dci11'):
-            return (hsfn, sfn)
+            return (None, None, None)
         
         if not rnti in ('si-rnti', 'ra-rnti', 'tc-rnti', 'c-rnti'):
-            return (hsfn, sfn)
+            return (None, None, None)
         
         self.ngwin.logEdit.append('---->inside recvPdcch(hsfn=%d, sfn=%d, dci="%s",rnti="%s", scaleTdSsb=%d, scaleTdRmsiScs=%d)' % (hsfn, sfn, dci, rnti, self.baseScsTd // self.nrSsbScs, self.baseScsTd // self.nrMibCommonScs))
         
@@ -660,13 +658,13 @@ class NgNrGrid(object):
                 if css0OccasionsPat1Fr2[self.nrRmsiCss0] is None:
                     self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(=%d) when referring css0OccasionsPat1Fr2.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.nrRmsiCss0))
                     self.error = True
-                    return (hsfn, sfn)
+                    return (None, None, None)
                 else:
                     O2, numSetsPerSlot, M2, firstSymbSet = css0OccasionsPat1Fr1[self.nrRmsiCss0] if self.args['freqBand']['freqRange'] == 'FR1' else css0OccasionsPat1Fr2[self.nrRmsiCss0] 
                 
                 dn = '%s_%s' % (hsfn, sfn)
                 if not dn in self.ssbFirstSymbInBaseScsTd:
-                    return (hsfn, sfn)
+                    return (None, None, None)
                 
                 for i in range(len(self.ssbFirstSymbInBaseScsTd[dn])):
                     if self.ssbFirstSymbInBaseScsTd[dn][i] is None:
@@ -706,7 +704,7 @@ class NgNrGrid(object):
             elif self.nrCoreset0MultiplexingPat == 2:
                 dn = '%s_%s' % (hsfn, sfn)
                 if not dn in self.ssbFirstSymbInBaseScsTd:
-                    return (hsfn, sfn)
+                    return (None, None, None)
                 
                 for i in range(len(self.ssbFirstSymbInBaseScsTd[dn])):
                     if self.ssbFirstSymbInBaseScsTd[dn][i] is None:
@@ -739,14 +737,14 @@ class NgNrGrid(object):
                     else:
                         self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid combination of ssbScs(=%d) and mibCommonScs(=%d) for FR2.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.nrSsbScs, self.nrMibCommonScs))
                         self.error = True
-                        return (hsfn, sfn)
+                        return (None, None, None)
                     
                     oc = [(hsfn, sfnc, i) for i in nc]
                     self.coreset0Occasions.append([oc, firstSymbCoreset0, ['OK']])
             else:
                 dn = '%s_%s' % (hsfn, sfn)
                 if not dn in self.ssbFirstSymbInBaseScsTd:
-                    return (hsfn, sfn)
+                    return (None, None, None)
                 
                 for i in range(len(self.ssbFirstSymbInBaseScsTd[dn])):
                     if self.ssbFirstSymbInBaseScsTd[dn][i] is None:
@@ -767,7 +765,7 @@ class NgNrGrid(object):
                     else:
                         self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid combination of ssbScs(=%d) and mibCommonScs(=%d) for FR2.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.nrSsbScs, self.nrMibCommonScs))
                         self.error = True
-                        return (hsfn, sfn)
+                        return (None, None, None)
                     
                     oc = [(hsfn, sfnc, i) for i in nc]
                     self.coreset0Occasions.append([oc, firstSymbCoreset0, ['OK']])
@@ -782,7 +780,6 @@ class NgNrGrid(object):
                     continue
                 
                 oc, firstSymb, valid = self.coreset0Occasions[i]
-                
                 for j in range(len(oc)):
                     hsfn, sfnc, nc = oc[j]
                     
@@ -804,7 +801,9 @@ class NgNrGrid(object):
                             #(2) if offset<0, offset <= -1 * #RB_SSB * (ssbScs / commonScs)
                             if k in coreset0SymbsInBaseScsTd and not (self.nrCoreset0Offset >= self.nrCoreset0NumRbs or self.nrCoreset0Offset <= -20*(self.nrSsbScs//self.nrMibCommonScs)):
                                 valid[j] = 'NOK' 
-                                break
+                                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: If the UE monitors the PDCCH candidate for a Type0-PDCCH CSS set on the serving cell, the UE may assume that no SS/PBCH block is transmitted in REs used for monitoring the PDCCH candidate on the serving cell. Victim PDCCH occasion is: i=%d, oc=%s, firstSymb=%s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), i, oc[j], firstSymb))
+                                self.error = True
+                                return (None, None, None)
                                     
                     #refer to 3GPP 38.213 vf30
                     #11.1 Slot configuration
@@ -826,6 +825,11 @@ class NgNrGrid(object):
                                 self.gridNrFddDl[dn2][coreset0FirstSc:coreset0FirstSc+self.nrCoreset0NumRbs*self.nrScPerPrb*scaleFd, k] = NrResType.NR_RES_CORESET0.value
                         
                 self.coreset0Occasions[i][2] = valid
+                if (len(valid) == 1 and valid[0] == 'NOK') or (len(valid) == 2 and valid[0] == 'NOK' and valid[1] == 'NOK'):
+                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid PDCCH occasion: i=%d, occasion=%s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), i, self.coreset0Occasions[i]))
+                    self.error = True
+                    return (None, None, None)
+                
                 self.ngwin.logEdit.append('PDCCH monitoring occasion for SSB index=%d(hrf=%d): %s' % (i % self.nrSsbMaxL, self.nrMibHrf if self.nrSsbPeriod >= 10 else i // self.nrSsbMaxL, self.coreset0Occasions[i]))
             
             #CORESET0 CCE-to-REG mapping
@@ -864,11 +868,10 @@ class NgNrGrid(object):
                         else:
                             self.gridNrFddDl[dn2][coreset0FirstSc+i*self.nrScPerPrb*scaleFd:coreset0FirstSc+(i+1)*self.nrScPerPrb*scaleFd, firstSymbInBaseScsTd+j*scaleTd:firstSymbInBaseScsTd+(j+1)*scaleTd] = NrResType.NR_RES_PDCCH.value
             
-            pass
+            return (hsfn, sfnc, nc)
         else:
-            pass
-        
-        return (hsfn, sfn)
+            #TODO
+            return (hsfn, sfn, 0)
         
     
     def coresetCce2RegMapping(self, numRbs=6, numSymbs=1, interleaved=False, L=6, R=None, nShift=None):
