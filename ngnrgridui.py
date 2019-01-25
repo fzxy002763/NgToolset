@@ -6300,6 +6300,8 @@ class NgNrGridUi(QDialog):
         self.coreset0Offset = 0
         #minimum channel bandwidth
         self.minChBw = 0
+        #minimum bandwidth of RMSI
+        self.coreset0StartRb = 0
         
         #initialize SLIV look-up tables 
         self.initPdschSliv()
@@ -6550,7 +6552,7 @@ class NgNrGridUi(QDialog):
         '''
         self.flagCoreset0 = self.validateCoreset0()
         if self.flagCoreset0:
-            self.updateKSsbAndNCrbSsb(offset=0 if self.coreset0Offset <= 0 else self.coreset0Offset)
+            self.updateKSsbAndNCrbSsb(offset=0 if self.coreset0Offset < 0 else self.coreset0Offset)
             self.flagCss0 = self.validateCss0()
         '''
         
@@ -6585,6 +6587,9 @@ class NgNrGridUi(QDialog):
         self.ngwin.logEdit.append('-->inside onMibScsCommonCombCurIndChanged, index=%d' % index)
         
         #(1) update scs for initial dl bwp; update u_pdcch/u_pdsch for sib1/msg2/msg4 
+        #refer to 3GPP 38.331 vf40
+        #subcarrierSpacing of BWP IE
+        #For the initial DL BWP this field has the same value as the field subCarrierSpacingCommon in MIB of the same serving cell.
         self.nrIniDlBwpGenericScsComb.setCurrentText(self.nrMibScsCommonComb.currentText())
         u = {'15KHz':0, '30KHz':1, '60KHz':2, '120KHz':3, '240KHz':4}[self.nrMibScsCommonComb.currentText()]
         self.nrDci10Sib1MuPdcchEdit.setText(str(u))
@@ -6618,7 +6623,7 @@ class NgNrGridUi(QDialog):
         else:
             self.flagCoreset0 = self.validateCoreset0()
             if self.flagCoreset0:
-                self.updateKSsbAndNCrbSsb(offset=0 if self.coreset0Offset <= 0 else self.coreset0Offset)
+                self.updateKSsbAndNCrbSsb(offset=0 if self.coreset0Offset < 0 else self.coreset0Offset)
                 self.flagCss0 = self.validateCss0()
 
     def onCarrierBwCombCurIndChanged(self, index):
@@ -6663,17 +6668,22 @@ class NgNrGridUi(QDialog):
         #(4) validate CORESET0 and update n_CRB_SSB when necessary
         self.flagCoreset0 = self.validateCoreset0()
         if self.flagCoreset0:
-            self.updateKSsbAndNCrbSsb(offset=0 if self.coreset0Offset <= 0 else self.coreset0Offset)
+            self.updateKSsbAndNCrbSsb(offset=0 if self.coreset0Offset < 0 else self.coreset0Offset)
             self.flagCss0 = self.validateCss0()
         
-        #(5) update 'L_RBs' and 'RB_start' labels for initial dl bwp tab
-        #FIXME L_RBs can't be 1, in which case the 'frequency domain assignment' field in DCIs is 0bits.
-        self.nrIniDlBwpGenericRbStartLabel.setText('RB_start[0-%d]:' % (numRbCommonScs -1))
-        self.nrIniDlBwpGenericLRbsLabel.setText('L_RBs[2-%d]:' % numRbCommonScs)
-        self.nrIniDlBwpGenericRbStartEdit.setText('0')
-        self.nrIniDlBwpGenericLRbsEdit.setText(str(numRbCommonScs))
-        self.nrIniDlBwpGenericRbStartEdit.setValidator(QIntValidator(0, numRbCommonScs-1))
-        self.nrIniDlBwpGenericLRbsEdit.setValidator(QIntValidator(2, numRbCommonScs))
+            #(5) update 'L_RBs' and 'RB_start' labels for initial dl bwp tab
+            #L_RBs can't be 1, in which case the 'frequency domain assignment' field in DCIs is 0bits.
+            if self.coreset0Offset >= 0:
+                self.nrIniDlBwpGenericRbStartLabel.setText('RB_start[0]:')
+                self.nrIniDlBwpGenericRbStartEdit.setText('0')
+                self.nrIniDlBwpGenericRbStartEdit.setValidator(QIntValidator(0, 0))
+            else:
+                self.nrIniDlBwpGenericRbStartLabel.setText('RB_start[0-%d]:' % (-self.coreset0Offset))
+                self.nrIniDlBwpGenericRbStartEdit.setText(str(-self.coreset0Offset))
+                self.nrIniDlBwpGenericRbStartEdit.setValidator(QIntValidator(0, -self.coreset0Offset))
+            self.nrIniDlBwpGenericLRbsLabel.setText('L_RBs[%d-%d]:' % (self.coreset0NumRbs, numRbCommonScs))
+            self.nrIniDlBwpGenericLRbsEdit.setText(str(self.coreset0NumRbs))
+            self.nrIniDlBwpGenericLRbsEdit.setValidator(QIntValidator(self.coreset0NumRbs, numRbCommonScs))
         
         #(6) update 'L_RBs' and 'RB_start' labels for initial ul bwp and dedicated ul/dl bwp tab
         self.nrIniUlBwpGenericRbStartLabel.setText('RB_start[0-%d]:' % (numRbCarrierScs -1))
@@ -6755,7 +6765,7 @@ class NgNrGridUi(QDialog):
         #(3) validate CORESET0 and update n_CRB_SSB when necessary
         self.flagCoreset0 = self.validateCoreset0()
         if self.flagCoreset0:
-            self.updateKSsbAndNCrbSsb(offset=0 if self.coreset0Offset <= 0 else self.coreset0Offset)
+            self.updateKSsbAndNCrbSsb(offset=0 if self.coreset0Offset < 0 else self.coreset0Offset)
             self.flagCss0 = self.validateCss0()
     
     def onUssPeriodicityCombCurIndChanged(self, index):
@@ -6859,17 +6869,17 @@ class NgNrGridUi(QDialog):
                 self.coreset0Offset = self.coreset0OffsetList[0]
                 
             '''
-            basic assumptions: If offset>0, then 1st RB of CORESET0 aligns with the carrier edge; if offset<=0, then 1st RB of SSB aligns with the carrier edge.
-            if offset > 0, min bw = max(self.coreset0NumRbs, offset + 20 * scsSsb / scsPdcch), and n_CRB_SSB needs update w.r.t to offset
-            if offset <= 0, min bw = self.coreset0NumRbs - offset, and don't have to update n_CRB_SSB
+            basic assumptions: If offset>=0, then 1st RB of CORESET0 aligns with the carrier edge; if offset<0, then 1st RB of SSB aligns with the carrier edge.
+            if offset >= 0, min bw = max(self.coreset0NumRbs, offset + 20 * scsSsb / scsPdcch), and n_CRB_SSB needs update w.r.t to offset
+            if offset < 0, min bw = self.coreset0NumRbs - offset, and don't have to update n_CRB_SSB
             '''
-            if self.coreset0Offset > 0:
-                #minBw = max(self.coreset0NumRbs, self.coreset0Offset + 20 * int(self.nrSsbScsComb.currentText()[:-3]) / int(self.nrCarrierScsComb.currentText()[:-3]))
+            if self.coreset0Offset >= 0:
                 minBw = max(self.coreset0NumRbs, self.coreset0Offset + 20 * int(self.nrSsbScsComb.currentText()[:-3]) / commonScs)
+                self.coreset0StartRb = 0 
             else:
                 minBw = self.coreset0NumRbs - self.coreset0Offset
-            
-            #if int(self.nrCarrierNumRbEdit.text()) < minBw:
+                self.coreset0StartRb = -self.coreset0Offset
+                
             if numRbCommonScs < minBw:
                 self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid CORESET0 setting: CORESET0 numRBs=%d, offset=%d, minBw = %d, while numRBs(common scs)=%s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.coreset0NumRbs, self.coreset0Offset, minBw, numRbCommonScs))
                 return False
@@ -6884,6 +6894,21 @@ class NgNrGridUi(QDialog):
         
         self.nrMibCoreset0InfoLabel.setText('<font color=blue>CORESET0: multiplexingPattern=%d, numRBs=%d, numSymbs=%d, offset=%d.</font>' % (self.coreset0MultiplexingPat, self.coreset0NumRbs, self.coreset0NumSymbs, self.coreset0Offset))
         
+        #update 'L_RBs' and 'RB_start' labels for initial dl bwp tab
+        #L_RBs can't be 1, in which case the 'frequency domain assignment' field in DCIs is 0bits.
+        if self.coreset0Offset >= 0:
+            self.nrIniDlBwpGenericRbStartLabel.setText('RB_start[0]:')
+            self.nrIniDlBwpGenericRbStartEdit.setText('0')
+            self.nrIniDlBwpGenericRbStartEdit.setValidator(QIntValidator(0, 0))
+        else:
+            self.nrIniDlBwpGenericRbStartLabel.setText('RB_start[0-%d]:' % (-self.coreset0Offset))
+            self.nrIniDlBwpGenericRbStartEdit.setText(str(-self.coreset0Offset))
+            self.nrIniDlBwpGenericRbStartEdit.setValidator(QIntValidator(0, -self.coreset0Offset))
+        self.nrIniDlBwpGenericLRbsLabel.setText('L_RBs[%d-%d]:' % (self.coreset0NumRbs, numRbCommonScs))
+        self.nrIniDlBwpGenericLRbsEdit.setText(str(self.coreset0NumRbs))
+        self.nrIniDlBwpGenericLRbsEdit.setValidator(QIntValidator(self.coreset0NumRbs, numRbCommonScs))
+        
+        
         #update 'frequency domain assignment' bitwidth for SIB1/Msg2/Msg4 w.r.t CORESET0 bandwidth
         self.bitwidthCoreset0 = math.ceil(math.log2(self.coreset0NumRbs * (self.coreset0NumRbs + 1) / 2))
         
@@ -6891,8 +6916,8 @@ class NgNrGridUi(QDialog):
         self.nrDci10Sib1FreqAllocFieldEdit.setValidator(QRegExpValidator(QRegExp('[0-1]{%d}' % self.bitwidthCoreset0)))
         self.nrDci10Sib1FreqAllocType1RbStartLabel.setText('RB_start(of RIV)[0-%d]:' % (self.coreset0NumRbs - 1))
         self.nrDci10Sib1FreqAllocType1RbStartEdit.setValidator(QIntValidator(0, self.coreset0NumRbs-1))
-        self.nrDci10Sib1FreqAllocType1LRbsLabel.setText('L_RBs(of RIV)[2-%d]:' % self.coreset0NumRbs)
-        self.nrDci10Sib1FreqAllocType1LRbsEdit.setValidator(QIntValidator(2, self.coreset0NumRbs))
+        self.nrDci10Sib1FreqAllocType1LRbsLabel.setText('L_RBs(of RIV)[1-%d]:' % self.coreset0NumRbs)
+        self.nrDci10Sib1FreqAllocType1LRbsEdit.setValidator(QIntValidator(1, self.coreset0NumRbs))
         self.nrDci10Sib1FreqAllocType1RbStartEdit.setText('0')
         self.nrDci10Sib1FreqAllocType1LRbsEdit.setText(str(self.coreset0NumRbs))
         self.nrDci10Sib1FreqAllocFieldEdit.setText('{:0{width}b}'.format(self.makeRiv(self.coreset0NumRbs, 0, self.coreset0NumRbs), width=self.bitwidthCoreset0))
@@ -6901,8 +6926,8 @@ class NgNrGridUi(QDialog):
         self.nrDci10Msg2FreqAllocFieldEdit.setValidator(QRegExpValidator(QRegExp('[0-1]{%d}' % self.bitwidthCoreset0)))
         self.nrDci10Msg2FreqAllocType1RbStartLabel.setText('RB_start(of RIV)[0-%d]:' % (self.coreset0NumRbs - 1))
         self.nrDci10Msg2FreqAllocType1RbStartEdit.setValidator(QIntValidator(0, self.coreset0NumRbs-1))
-        self.nrDci10Msg2FreqAllocType1LRbsLabel.setText('L_RBs(of RIV)[2-%d]:' % self.coreset0NumRbs)
-        self.nrDci10Msg2FreqAllocType1LRbsEdit.setValidator(QIntValidator(2, self.coreset0NumRbs))
+        self.nrDci10Msg2FreqAllocType1LRbsLabel.setText('L_RBs(of RIV)[1-%d]:' % self.coreset0NumRbs)
+        self.nrDci10Msg2FreqAllocType1LRbsEdit.setValidator(QIntValidator(1, self.coreset0NumRbs))
         self.nrDci10Msg2FreqAllocType1RbStartEdit.setText('0')
         self.nrDci10Msg2FreqAllocType1LRbsEdit.setText(str(self.coreset0NumRbs))
         self.nrDci10Msg2FreqAllocFieldEdit.setText('{:0{width}b}'.format(self.makeRiv(self.coreset0NumRbs, 0, self.coreset0NumRbs), width=self.bitwidthCoreset0))
@@ -6911,8 +6936,8 @@ class NgNrGridUi(QDialog):
         self.nrDci10Msg4FreqAllocFieldEdit.setValidator(QRegExpValidator(QRegExp('[0-1]{%d}' % self.bitwidthCoreset0)))
         self.nrDci10Msg4FreqAllocType1RbStartLabel.setText('RB_start(of RIV)[0-%d]:' % (self.coreset0NumRbs - 1))
         self.nrDci10Msg4FreqAllocType1RbStartEdit.setValidator(QIntValidator(0, self.coreset0NumRbs-1))
-        self.nrDci10Msg4FreqAllocType1LRbsLabel.setText('L_RBs(of RIV)[2-%d]:' % self.coreset0NumRbs)
-        self.nrDci10Msg4FreqAllocType1LRbsEdit.setValidator(QIntValidator(2, self.coreset0NumRbs))
+        self.nrDci10Msg4FreqAllocType1LRbsLabel.setText('L_RBs(of RIV)[1-%d]:' % self.coreset0NumRbs)
+        self.nrDci10Msg4FreqAllocType1LRbsEdit.setValidator(QIntValidator(1, self.coreset0NumRbs))
         self.nrDci10Msg4FreqAllocType1RbStartEdit.setText('0')
         self.nrDci10Msg4FreqAllocType1LRbsEdit.setText(str(self.coreset0NumRbs))
         self.nrDci10Msg4FreqAllocFieldEdit.setText('{:0{width}b}'.format(self.makeRiv(self.coreset0NumRbs, 0, self.coreset0NumRbs), width=self.bitwidthCoreset0))
@@ -6949,7 +6974,7 @@ class NgNrGridUi(QDialog):
         self.ngwin.logEdit.append('-->inside onMibCoreset0EditTextChanged')
         self.flagCoreset0 = self.validateCoreset0()
         if self.flagCoreset0:
-            self.updateKSsbAndNCrbSsb(offset=0 if self.coreset0Offset <= 0 else self.coreset0Offset)
+            self.updateKSsbAndNCrbSsb(offset=0 if self.coreset0Offset < 0 else self.coreset0Offset)
             self.flagCss0 = self.validateCss0()
             
     def onMibCss0EditTextChanged(self, text):
@@ -6966,7 +6991,7 @@ class NgNrGridUi(QDialog):
         self.ngwin.logEdit.append('-->inside onSsbKssbEditTextChanged')
         self.flagCoreset0 = self.validateCoreset0()
         if self.flagCoreset0:
-            self.updateKSsbAndNCrbSsb(offset=0 if self.coreset0Offset <= 0 else self.coreset0Offset)
+            self.updateKSsbAndNCrbSsb(offset=0 if self.coreset0Offset < 0 else self.coreset0Offset)
             
     def onMibDmrsTypeAPosCombCurIndChanged(self, index):
         if index < 0:
@@ -7138,10 +7163,9 @@ class NgNrGridUi(QDialog):
                 numRbCommonScs = self.nrNrbFr1[commonScs][self.nrBwSetFr1.index(self.nrCarrierBwComb.currentText())]
             else:
                 numRbCommonScs = self.nrNrbFr2[commonScs][self.nrBwSetFr2.index(self.nrCarrierBwComb.currentText())]
-            #numRbCarrierScs = int(self.nrCarrierNumRbEdit.text())
-            #FIXME initial dl bwp need to check against coreset0 bw
-            if L_RBs < 1 or L_RBs > (numRbCommonScs - RB_start):
-                self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: RIV = %s, L_RBs = %s, RB_start = %s with bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), riv, L_RBs, RB_start, numRbCommonScs))
+            #initial dl bwp need to check against coreset0 bw
+            if L_RBs < 1 or L_RBs > (numRbCommonScs - RB_start) or (RB_start + L_RBs) < (self.coreset0StartRb + self.coreset0NumRbs):
+                self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: RIV = %s, L_RBs = %s, RB_start = %s with bwRMSI = %s(coreset0StartRb=%s,coreset0NumRbs=%s)!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), riv, L_RBs, RB_start, numRbCommonScs, self.coreset0StartRb, self.coreset0NumRbs))
                 self.nrIniDlBwpGenericLRbsEdit.clear()
                 self.nrIniDlBwpGenericRbStartEdit.clear()
                 return
@@ -7170,10 +7194,9 @@ class NgNrGridUi(QDialog):
             numRbCommonScs = self.nrNrbFr1[commonScs][self.nrBwSetFr1.index(self.nrCarrierBwComb.currentText())]
         else:
             numRbCommonScs = self.nrNrbFr2[commonScs][self.nrBwSetFr2.index(self.nrCarrierBwComb.currentText())]
-        #numRbCarrierScs = int(self.nrCarrierNumRbEdit.text())
-        #FIXME initial dl bwp need to check against coreset0 bw
-        if L_RBs < 1 or L_RBs > (numRbCommonScs - RB_start):
-            self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: L_RBs = %s, RB_start = %s with bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), L_RBs, RB_start, numRbCommonScs))
+        #initial dl bwp need to check against coreset0 bw
+        if L_RBs < 1 or L_RBs > (numRbCommonScs - RB_start) or (RB_start + L_RBs) < (self.coreset0StartRb + self.coreset0NumRbs):
+            self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: L_RBs = %s, RB_start = %s with bwRMSI = %s(coreset0StartRb=%s,coreset0NumRbs=%s)!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), L_RBs, RB_start, numRbCommonScs, self.coreset0StartRb, self.coreset0NumRbs))
             self.nrIniDlBwpGenericLocAndBwEdit.clear()
             return
         
@@ -10210,7 +10233,7 @@ class NgNrGridUi(QDialog):
         hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci10', rnti='si-rnti')
         if hsfn is not None and sfn is not None and slot is not None:
             #receiving SIB1
-            hsfn, sfn = nrGrid.recvSib1(hsfn, sfn)
+            nrGrid.recvSib1(hsfn, sfn, slot)
         
         #sending Msg1(PRACH) 
         hsfn, sfn = nrGrid.sendMsg1(hsfn, sfn)
@@ -10286,6 +10309,7 @@ class NgNrGridUi(QDialog):
         self.args['mib']['coreset0NumSymbs'] = self.coreset0NumSymbs
         self.args['mib']['coreset0OffsetList'] = self.coreset0OffsetList
         self.args['mib']['coreset0Offset'] = self.coreset0Offset
+        self.args['mib']['coreset0StartRb'] = self.coreset0StartRb
         
         self.args['carrierGrid'] = dict()
         self.args['carrierGrid']['scs'] = self.nrCarrierScsComb.currentText()
@@ -10318,7 +10342,7 @@ class NgNrGridUi(QDialog):
         self.args['dci10Sib1']['muPdcch'] = self.nrDci10Sib1MuPdcchEdit.text()
         self.args['dci10Sib1']['muPdsch'] = self.nrDci10Sib1MuPdschEdit.text()
         self.args['dci10Sib1']['tdRa'] = self.nrDci10Sib1TimeAllocFieldEdit.text()
-        self.args['dci10Sib1']['tdMapppingType'] = self.nrDci10Sib1TimeAllocMappingTypeComb.currentText()
+        self.args['dci10Sib1']['tdMappingType'] = self.nrDci10Sib1TimeAllocMappingTypeComb.currentText()
         self.args['dci10Sib1']['tdK0'] = self.nrDci10Sib1TimeAllocK0Edit.text()
         self.args['dci10Sib1']['tdSliv'] = self.nrDci10Sib1TimeAllocSlivEdit.text()
         self.args['dci10Sib1']['tdStartSymb'] = self.nrDci10Sib1TimeAllocSEdit.text()
