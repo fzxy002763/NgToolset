@@ -7593,10 +7593,11 @@ class NgNrGridUi(QDialog):
             return
         val = self.nrDmrsPdschPosOneSymb[key]
         
-        #refer to 3GPP 38.211 vf30
-        #For PDSCH mapping type A, duration of 3 and 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to 'pos2'.
-        if self.nrDci10Sib1TimeAllocMappingTypeComb.currentText() == 'Type A' and td in (3, 4) and self.nrMibDmRsTypeAPosComb.currentText() != 'pos2':
-            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PDSCH mapping type A, duration of 3 and 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to "pos2".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+        #refer to 3GPP 38.211 vf40
+        #For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to 'pos2'.
+        ld = int(self.nrDci10Sib1TimeAllocSEdit.text()) + int(self.nrDci10Sib1TimeAllocLEdit.text())
+        if self.nrDci10Sib1TimeAllocMappingTypeComb.currentText() == 'Type A' and ld in (3, 4) and self.nrMibDmRsTypeAPosComb.currentText() != 'pos2':
+            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to "pos2".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
             return
         
         #FIXME For PDSCH mapping type B, when PDSCH allocation collides with CORESET/SearchSpace
@@ -7682,10 +7683,11 @@ class NgNrGridUi(QDialog):
             return
         val = self.nrDmrsPdschPosOneSymb[key]
         
-        #refer to 3GPP 38.211 vf30
-        #For PDSCH mapping type A, duration of 3 and 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to 'pos2'.
-        if self.nrDci10Msg2TimeAllocMappingTypeComb.currentText() == 'Type A' and td in (3, 4) and self.nrMibDmRsTypeAPosComb.currentText() != 'pos2':
-            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PDSCH mapping type A, duration of 3 and 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to "pos2".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+        #refer to 3GPP 38.211 vf40
+        #For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to 'pos2'.
+        ld = int(self.nrDci10Msg2TimeAllocSEdit.text()) + int(self.nrDci10Msg2TimeAllocLEdit.text())
+        if self.nrDci10Msg2TimeAllocMappingTypeComb.currentText() == 'Type A' and ld in (3, 4) and self.nrMibDmRsTypeAPosComb.currentText() != 'pos2':
+            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to "pos2".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
             return
         
         #FIXME For PDSCH mapping type B, when PDSCH allocation collides with CORESET/SearchSpace
@@ -7765,10 +7767,11 @@ class NgNrGridUi(QDialog):
             return
         val = self.nrDmrsPdschPosOneSymb[key]
         
-        #refer to 3GPP 38.211 vf30
-        #For PDSCH mapping type A, duration of 3 and 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to 'pos2'.
-        if self.nrDci10Msg4TimeAllocMappingTypeComb.currentText() == 'Type A' and td in (3, 4) and self.nrMibDmRsTypeAPosComb.currentText() != 'pos2':
-            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PDSCH mapping type A, duration of 3 and 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to "pos2".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+        #refer to 3GPP 38.211 vf40
+        #For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to 'pos2'.
+        ld = int(self.nrDci10Msg4TimeAllocSEdit.text()) + int(self.nrDci10Msg4TimeAllocLEdit.text())
+        if self.nrDci10Msg4TimeAllocMappingTypeComb.currentText() == 'Type A' and ld in (3, 4) and self.nrMibDmRsTypeAPosComb.currentText() != 'pos2':
+            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to "pos2".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
             return
         
         #FIXME For PDSCH mapping type B, when PDSCH allocation collides with CORESET/SearchSpace
@@ -8487,16 +8490,18 @@ class NgNrGridUi(QDialog):
                 return
             val = self.nrDmrsPdschPosOneSymb[key]
         
-        #refer to 3GPP 38.211 vf30
-        #For PDSCH mapping type A, duration of 3 and 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to 'pos2'.
-        if self.nrDci11PdschTimeAllocMappingTypeComb.currentText() == 'Type A' and td in (3, 4) and self.nrMibDmRsTypeAPosComb.currentText() != 'pos2':
-            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PDSCH mapping type A, duration of 3 and 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to "pos2".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+        #refer to 3GPP 38.211 vf40
+        #For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to 'pos2'.
+        ld = int(self.nrDci11PdschTimeAllocSEdit.text()) + int(self.nrDci11PdschTimeAllocLEdit.text())
+        if self.nrDci11PdschTimeAllocMappingTypeComb.currentText() == 'Type A' and ld in (3, 4) and self.nrMibDmRsTypeAPosComb.currentText() != 'pos2':
+            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to "pos2".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
             return
         
         #FIXME For PDSCH mapping type B, when PDSCH allocation collides with CORESET/SearchSpace
-        #For PDSCH mapping type B, if the PDSCH duration is 2 or 4 OFDM symbols, only single-symbol DM-RS is supported.
+        #For PDSCH mapping type B, if the PDSCH duration ld is 2 or 4 OFDM symbols, only single-symbol DM-RS is supported.
+        #note: for mapping type B, ld = td
         if self.nrDci11PdschTimeAllocMappingTypeComb.currentText() == 'Type B' and td in (2, 4) and numDmrsSymbs != 1:
-            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PDSCH mapping type B, if the PDSCH duration is 2 or 4 OFDM symbols, only single-symbol DM-RS is supported.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PDSCH mapping type B, if the PDSCH duration ld is 2 or 4 OFDM symbols, only single-symbol DM-RS is supported.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
             return
         
         dmrsOh = (2 * cdmGroups) * len(val)
@@ -10365,6 +10370,17 @@ class NgNrGridUi(QDialog):
         self.args['dmrsSib1']['cdmGroupsWoData'] = self.nrDmrsSib1CdmGroupsWoDataEdit.text()
         self.args['dmrsSib1']['numFrontLoadSymbs'] = self.nrDmrsSib1FrontLoadSymbsEdit.text()
         
+        dmrsType = self.nrDmrsSib1DmrsTypeComb.currentText()
+        tdmappingType = self.nrDci10Sib1TimeAllocMappingTypeComb.currentText()
+        slivS = int(self.nrDci10Sib1TimeAllocSEdit.text())
+        slivL = int(self.nrDci10Sib1TimeAllocLEdit.text())
+        numFrontLoadSymbs = int(self.nrDmrsSib1FrontLoadSymbsEdit.text())
+        dmrsAddPos = self.nrDmrsSib1AddPosComb.currentText()
+        cdmGroupsWoData = int(self.nrDmrsSib1CdmGroupsWoDataEdit.text())
+        tdL, fdK = self.getDmrsPdschTdFdPattern(dmrsType, tdmappingType, slivS, slivL, numFrontLoadSymbs, dmrsAddPos, cdmGroupsWoData)
+        self.args['dmrsSib1']['tdL'] = tdL
+        self.args['dmrsSib1']['fdK'] = fdK
+        
         #print dict info
         for key in self.args.keys():
             self.ngwin.logEdit.append('contents of ["%s"]: %s' % (key, self.args[key]))
@@ -10372,6 +10388,53 @@ class NgNrGridUi(QDialog):
         
         return True
     
+    def getDmrsPdschTdFdPattern(self, dmrsType, tdMappingType, slivS, slivL, numFrontLoadSymbs, dmrsAddPos, cdmGroupsWoData):
+        if tdMappingType == 'Type A':
+            tdL0 = 3 if self.nrMibDmRsTypeAPosComb.currentText() == 'pos3' else 2
+            tdLd = slivS + slivL
+        else:
+            tdL0 = 0
+            tdLd = slivL
+        if numFrontLoadSymbs == 1:
+            tdLbar = self.nrDmrsPdschPosOneSymb['%s_%s_%s' % (tdLd, tdMappingType, dmrsAddPos)]
+            tdLap = [0] #ap for apostrophe, the (' or ’) character
+        else:
+            tdLbar = self.nrDmrsPdschPosTwoSymbs['%s_%s_%s' % (tdLd, tdMappingType, dmrsAddPos)]
+            tdLap = [0, 1] #ap for apostrophe, the (' or ’) character
+        tdLbar = list(tdLbar)
+        tdLbar[0] = tdL0
+        tdL = []
+        for i in tdLbar:
+            for j in tdLap:
+                tdL.append(i+j)
+        
+        #freq-domain DM-RS pattern in a single PRB
+        if dmrsType == 'Type 1':
+            fdN = [0, 1, 2]
+            fdKap = [0, 1]
+            if cdmGroupsWoData == 1:
+                fdDelta = [0]
+            else:
+                fdDelta = [0, 1]
+        else:
+            fdN = [0, 1]
+            fdKap = [0, 1]
+            if cdmGroupsWoData == 1:
+                fdDelta = [0]
+            elif cdmGroupsWoData == 2:
+                fdDelta = [0, 2]
+            else:
+                fdDelta = [0, 2, 4]
+        
+        fdK = [0] * self.numScPerPrb 
+        for i in fdN:
+            for j in fdKap:
+                for k in fdDelta:
+                    isc = 4*i+2*j+k if dmrsType == 'Type 1' else 6*i+j+k
+                    fdK[isc] = 1
+        
+        return (tdL, fdK)
+                    
     def parseRiv(self, riv, N_BWP_size):
         div = riv // N_BWP_size
         rem = riv % N_BWP_size

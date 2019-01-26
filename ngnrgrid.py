@@ -227,6 +227,8 @@ class NgNrGrid(object):
         self.nrSib1DmrsPorts = self.args['dmrsSib1']['dmrsPorts']
         self.nrSib1DmrsCdmGroupsWoData = int(self.args['dmrsSib1']['cdmGroupsWoData'])
         self.nrSib1DmrsNumFrontLoadSymbs = int(self.args['dmrsSib1']['numFrontLoadSymbs'])
+        self.nrSib1DmrsTdL = self.args['dmrsSib1']['tdL']
+        self.nrSib1DmrsFdK = self.args['dmrsSib1']['fdK']
         
         #DCI 1_0 with CSS interleaved VRB-to-PRB mapping
         if self.nrSib1FdVrbPrbMappingType == 'interleaved':
@@ -993,6 +995,17 @@ class NgNrGrid(object):
         slotSib1 = math.floor(slot * 2 ** (self.nrSib1MuPdsch - self.nrSib1MuPdcch)) + self.nrSib1TdK0
         firstSymbSib1InBaseScsTd = (slotSib1 * self.nrSymbPerSlotNormCp + self.nrSib1TdStartSymb) * scaleTd
         sib1SymbsInBaseScsTd = [firstSymbSib1InBaseScsTd+k for k in range(self.nrSib1TdNumSymbs*scaleTd)]
+        
+        sib1DmrsSymbs = []
+        for i in self.nrSib1DmrsTdL:
+            if self.nrSib1TdMappingType == 'Type A':
+                #for PDSCH mapping type A, tdL is defined relative to the start of the slot
+                sib1DmrsSymbs.append(i - self.nrSib1TdStartSymb)
+            else:
+                #for PDSCH mapping type B, tdL is defined relative to the start of the scheduled PDSCH resources
+                sib1DmrsSymbs.append(i)
+        self.ngwin.logEdit.append('contents of sib1DmrsSymbs(w.r.t to slivS): %s' % sib1DmrsSymbs)
+        
         if self.nrSib1FdVrbPrbMappingType == 'nonInterleaved':
             firstScSib1InBaseScsFd = self.coreset0FirstSc + self.nrSib1FdStartRb * self.nrScPerPrb * scaleFd
             sib1ScsInBaseScsFd = [firstScSib1InBaseScsFd+k for k in range(self.nrSib1FdNumRbs*self.nrScPerPrb*scaleFd)]
@@ -1024,6 +1037,14 @@ class NgNrGrid(object):
             
             if self.nrDuplexMode == 'TDD':
                 self.gridNrTdd[dn][sib1ScsInBaseScsFd, firstSymbSib1InBaseScsTd+i*scaleTd:firstSymbSib1InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_SIB1.value
+                if i in sib1DmrsSymbs:
+                    for j in range(self.nrSib1FdNumRbs):
+                        for k in range(self.nrScPerPrb):
+                            if self.nrSib1DmrsFdK[k] == 1:
+                                self.gridNrTdd[dn][sib1ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbSib1InBaseScsTd+i*scaleTd:firstSymbSib1InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DMRS_SIB1.value
+                            else:
+                                if not (self.nrSib1TdMappingType == 'Type B' and self.nrSib1TdNumSymbs == 2):
+                                    self.gridNrTdd[dn][sib1ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbSib1InBaseScsTd+i*scaleTd:firstSymbSib1InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DTX.value
             else:
                 self.gridNrFddDl[dn][sib1ScsInBaseScsFd, firstSymbSib1InBaseScsTd+i*scaleTd:firstSymbSib1InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_SIB1.value
     
@@ -1055,8 +1076,6 @@ class NgNrGrid(object):
                 fj = r * C + c
                 prbBundles.append(fj)
         
-        
-        
         #indexing vrbs and prbs
         prbs = []
         for j in range(numBundles):
@@ -1067,7 +1086,7 @@ class NgNrGrid(object):
         self.ngwin.logEdit.append('contents of rbBundleSize: %s' % rbBundleSize)
         self.ngwin.logEdit.append('contents of vrbBundles: %s' % vrbBundles)
         self.ngwin.logEdit.append('contents of prbBundles: %s' % prbBundles)
-        self.ngwin.logEdit.append('contents of prbs2: %s' % prbs)
+        self.ngwin.logEdit.append('contents of prbs: %s' % prbs)
         
         return prbs
     
