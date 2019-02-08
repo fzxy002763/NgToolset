@@ -10362,6 +10362,7 @@ class NgNrGridUi(QDialog):
         self.args['dci10Sib1']['tbs'] = self.nrDci10Sib1TbsEdit.text()
         
         #(4) 'bwp settings' tab
+        #DMRS for SIB1
         self.args['dmrsSib1'] = dict()
         self.args['dmrsSib1']['dmrsType'] = self.nrDmrsSib1DmrsTypeComb.currentText()
         self.args['dmrsSib1']['dmrsAddPos'] = self.nrDmrsSib1AddPosComb.currentText()
@@ -10380,6 +10381,33 @@ class NgNrGridUi(QDialog):
         tdL, fdK = self.getDmrsPdschTdFdPattern(dmrsType, tdmappingType, slivS, slivL, numFrontLoadSymbs, dmrsAddPos, cdmGroupsWoData)
         self.args['dmrsSib1']['tdL'] = tdL
         self.args['dmrsSib1']['fdK'] = fdK
+        
+        #initial ul bwp and PRACH
+        self.args['iniUlBwp'] = dict()
+        self.args['iniUlBwp']['bwpId'] = self.nrIniUlBwpGenericBwpIdEdit.text()
+        self.args['iniUlBwp']['scs'] = self.nrIniUlBwpGenericScsComb.currentText()
+        self.args['iniUlBwp']['cp'] = self.nrIniUlBwpGenericCpComb.currentText()
+        self.args['iniUlBwp']['locAndBw'] = self.nrIniUlBwpGenericLocAndBwEdit.text()
+        self.args['iniUlBwp']['startRb'] = self.nrIniUlBwpGenericRbStartEdit.text()
+        self.args['iniUlBwp']['numRbs'] = self.nrIniUlBwpGenericLRbsEdit.text()
+        
+        self.args['rach'] = dict()
+        self.args['rach']['prachConfId'] = self.nrRachGenericPrachConfIdEdit.text()
+        self.args['rach']['raFormat'] = self.raFormat
+        self.args['rach']['raX'] = self.raX
+        self.args['rach']['raY'] = self.raY
+        self.args['rach']['raSubfNumFr1SlotNumFr2'] = self.raSubfNumFr1SlotNumFr2
+        self.args['rach']['raStartingSymb'] = self.raStartingSymb
+        self.args['rach']['raNumSlotsPerSubfFr1Per60KSlotFr2'] = self.raNumSlotsPerSubfFr1Per60KSlotFr2
+        self.args['rach']['raNumOccasionsPerSlot'] = self.raNumOccasionsPerSlot
+        self.args['rach']['raDuration'] = self.raDuration
+        self.args['rach']['scs'] = self.nrRachGenericScsComb.currentText()
+        self.args['rach']['msg1Fdm'] = self.nrRachGenericMsg1FdmComb.currentText()
+        self.args['rach']['msg1FreqStart'] = self.nrRachGenericMsg1FreqStartEdit.text()
+        self.args['rach']['totNumPreambs'] = self.nrRachNumRaPreamblesEdit.text()
+        self.args['rach']['ssbPerRachOccasion'] = self.nrRachSsbPerRachOccasionComb.currentText()
+        self.args['rach']['cbPreambsPerSsb'] = self.nrRachCbPreamblesPerSsbComb.currentText()
+        self.args['rach']['msg3Tp'] = self.nrRachMsg3TpComb.currentText()
         
         #print dict info
         for key in self.args.keys():
