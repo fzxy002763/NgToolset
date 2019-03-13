@@ -279,6 +279,15 @@ class NgNrGrid(object):
         
         self.ngwin.logEdit.append('PRACH association period info: numTxSsb=%d, configuration period x=%d, numSsbPerPeriod=%.2f, association period=%d with #slots=%d and #occasions=%d' % (self.numTxSsb, self.nrRachCfgPeriodx, self.numSsbPerPeriod, self.prachAssociationPeriod, self.numPrachSlotPerAssociationPeriod, self.numPrachOccasionPerAssociationPeriod))
         
+        self.prachOccasionSet = []
+        for s in range(self.numPrachSlotPerAssociationPeriod):
+            for t in range(self.nrRachCfgNumOccasionsPerSlot):
+                for f in range(self.nrRachMsg1Fdm):
+                    self.prachOccasionSet.append([s, t, f])
+        
+        rachSsbMapStartSfn = self.nrMibSfn if self.nrMibSfn % self.prachAssociationPeriod == 0 else self.prachAssociationPeriod * math.floor(self.nrMibSfn / self.prachAssociationPeriod)
+        #TODO replace the 's' field of prachOccasionSet with 'hsfn-sfn-slot'
+        
         return True
         
     def initTddUlDlConfig(self):
