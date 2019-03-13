@@ -67,9 +67,10 @@ class NgNrGrid(object):
     def __init__(self, ngwin, args):
         self.ngwin = ngwin
         self.args = args
-        if not self.init():
-            return
         self.error = False
+        if not self.init():
+            self.error = True
+            return
     
     def init(self):
         self.ngwin.logEdit.append('---->inside init')
@@ -233,6 +234,50 @@ class NgNrGrid(object):
         #DCI 1_0 with CSS interleaved VRB-to-PRB mapping
         if self.nrSib1FdVrbPrbMappingType == 'interleaved':
             self.dci10CssPrbs = self.dci10CssVrb2PrbMapping(coreset0Size=self.nrCoreset0NumRbs, iniDlBwpStart=0, coreset0Start=0, L=self.nrSib1FdBundleSize)
+        
+        self.nrIniUlBwpId = int(self.args['iniUlBwp']['bwpId'])
+        self.nrIniUlBwpScs = int(self.args['iniUlBwp']['scs'][:-3])
+        self.nrIniUlBwpCp = self.args['iniUlBwp']['cp']
+        self.nrIniUlBwpLocAndBw = int(self.args['iniUlBwp']['locAndBw'])
+        self.nrIniUlBwpStartRb = int(self.args['iniUlBwp']['startRb'])
+        self.nrIniUlBwpNumRbs = int(self.args['iniUlBwp']['numRbs'])
+        
+        self.nrRachCfgId = int(self.args['rach']['prachConfId'])
+        self.nrRachCfgFormat = self.args['rach']['raFormat']
+        self.nrRachCfgPeriodx = self.args['rach']['raX']
+        self.nrRachCfgOffsety = self.args['rach']['raY']
+        self.nrRachCfgSubfNumFr1SlotNumFr2 = self.args['rach']['raSubfNumFr1SlotNumFr2']
+        self.nrRachCfgStartSymb = int(self.args['rach']['raStartingSymb'])
+        self.nrRachCfgNumSlotsPerSubfFr1Per60KSlotFR2 = int(self.args['rach']['raNumSlotsPerSubfFr1Per60KSlotFr2'])
+        self.nrRachCfgNumOccasionsPerSlot = int(self.args['rach']['raNumOccasionsPerSlot'])
+        self.nrRachCfgDuration = int(self.args['rach']['raDuration'])
+        self.nrRachScs = self.args['rach']['scs'][:-3] #value range: {'1.25', '5', '15', '30', '120'}
+        self.nrRachMsg1Fdm = int(self.args['rach']['msg1Fdm'])
+        self.nrRachMsg1FreqStart = int(self.args['rach']['msg1FreqStart'])
+        self.nrRachTotNumPreambs = int(self.args['rach']['totNumPreambs'])
+        ssbPerRachOccasionMap = {'oneEighth':1, 'oneFourth':2, 'oneHalf':4, 'one':8, 'two':16, 'four':32, 'eight':64, 'sixteen':128} 
+        self.nrRachSsbPerRachOccasionM8 = ssbPerRachOccasionMap[self.args['rach']['ssbPerRachOccasion']]
+        self.nrRachCbPreambsPerSsb = int(self.args['rach']['cbPreambsPerSsb'])
+        self.nrRachMsg3Tp = self.args['rach']['msg3Tp']
+        
+        self.numTxSsb = len([c for c in self.ssbSet if c == '1'])
+        self.numPrachSlotPerPeriod = len(self.nrRachCfgOffsety) * len(self.nrRachCfgSubfNumFr1SlotNumFr2) * self.nrRachCfgNumSlotsPerSubfFr1Per60KSlotFR2
+        self.numPrachOccasionPerPeriod = self.numPrachSlotPerPeriod * self.nrRachCfgNumOccasionsPerSlot
+        self.numSsbPerPeriod = self.numPrachOccasionPerPeriod * self.nrRachSsbPerRachOccasionM8 / 8
+        kSet = {16:[1,], 8:[1,2], 4:[1,2,4], 2:[1,2,4,8], 1:[1,2,4,8,16]}[self.nrRachCfgPeriodx]
+        k2 = self.numTxSsb / self.numSsbPerPeriod
+        self.prachAssociationPeriod = None
+        for k in kSet:
+            if k >= k2:
+                self.prachAssociationPeriod = k * self.nrRachCfgPeriodx
+                self.numPrachSlotPerAssociationPeriod = k * self.numPrachSlotPerPeriod
+                self.numPrachOccasionPerAssociationPeriod = k * self.numPrachOccasionPerPeriod
+                break
+        if self.prachAssociationPeriod is None:
+            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid PRACH configuration(numTxSsb=%d,period=%d,numSsbPerPeriod=%.2f): PRACH association period is at most 160ms!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.numTxSsb, self.nrRachCfgPeriodx, self.numSsbPerPeriod))
+            return False
+        
+        self.ngwin.logEdit.append('PRACH association period info: numTxSsb=%d, configuration period x=%d, numSsbPerPeriod=%.2f, association period=%d with #slots=%d and #occasions=%d' % (self.numTxSsb, self.nrRachCfgPeriodx, self.numSsbPerPeriod, self.prachAssociationPeriod, self.numPrachSlotPerAssociationPeriod, self.numPrachOccasionPerAssociationPeriod))
         
         return True
         
@@ -987,6 +1032,9 @@ class NgNrGrid(object):
         return (regBundles, cces)
     
     def recvSib1(self, hsfn, sfn, slot):
+        if self.error:
+            return
+        
         self.ngwin.logEdit.append('---->inside recvSib1(hsfn=%d,sfn=%d,dci slot=%d)' % (hsfn, sfn, slot))
         
         scaleTd = self.baseScsTd // self.nrMibCommonScs
@@ -1091,6 +1139,9 @@ class NgNrGrid(object):
         return prbs
     
     def sendMsg1(self, hsfn, sfn):
+        if self.error:
+            return (None, None)
+        
         self.ngwin.logEdit.append('---->inside sendMsg1')
         return (hsfn, sfn)
     
