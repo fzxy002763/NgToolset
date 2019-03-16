@@ -251,7 +251,10 @@ class NgNrGrid(object):
         self.nrRachCfgNumSlotsPerSubfFr1Per60KSlotFR2 = int(self.args['rach']['raNumSlotsPerSubfFr1Per60KSlotFr2'])
         self.nrRachCfgNumOccasionsPerSlot = int(self.args['rach']['raNumOccasionsPerSlot'])
         self.nrRachCfgDuration = int(self.args['rach']['raDuration'])
-        self.nrRachScs = self.args['rach']['scs'][:-3] #value range: {'1.25', '5', '15', '30', '120'}
+        if self.nrRachCfgFormat in ('0', '1', '2', '3'):
+            self.nrRachCfgDuration = {'0':14, '1':42, '2':49, '3':14}[self.nrRachCfgFormat]
+        self.nrRachScs = self.args['rach']['scs'][:-3] #value range: {'1.25', '5', '15', '30', '60', '120'}
+        self.prachScs = 15 if self.nrRachScs in ('1.25', '5') else int(self.nrRachScs)
         self.nrRachMsg1Fdm = int(self.args['rach']['msg1Fdm'])
         self.nrRachMsg1FreqStart = int(self.args['rach']['msg1FreqStart'])
         self.nrRachTotNumPreambs = int(self.args['rach']['totNumPreambs'])
@@ -262,7 +265,7 @@ class NgNrGrid(object):
 
         self.numTxSsb = len([c for c in self.ssbSet if c == '1'])
         self.numPrachSlotPerPeriod = len(self.nrRachCfgOffsety) * len(self.nrRachCfgSubfNumFr1SlotNumFr2) * self.nrRachCfgNumSlotsPerSubfFr1Per60KSlotFR2
-        self.numPrachOccasionPerPeriod = self.numPrachSlotPerPeriod * self.nrRachCfgNumOccasionsPerSlot
+        self.numPrachOccasionPerPeriod = self.nrRachMsg1Fdm * self.numPrachSlotPerPeriod * self.nrRachCfgNumOccasionsPerSlot
         self.numSsbPerPeriod = self.numPrachOccasionPerPeriod * self.nrRachSsbPerRachOccasionM8 / 8
         kSet = {16:[1,], 8:[1,2], 4:[1,2,4], 2:[1,2,4,8], 1:[1,2,4,8,16]}[self.nrRachCfgPeriodx]
         k2 = self.numTxSsb / self.numSsbPerPeriod
@@ -278,15 +281,8 @@ class NgNrGrid(object):
             return False
 
         self.ngwin.logEdit.append('PRACH association period info: numTxSsb=%d, configuration period x=%d, numSsbPerPeriod=%.2f, association period=%d with #slots=%d and #occasions=%d' % (self.numTxSsb, self.nrRachCfgPeriodx, self.numSsbPerPeriod, self.prachAssociationPeriod, self.numPrachSlotPerAssociationPeriod, self.numPrachOccasionPerAssociationPeriod))
-
-        self.prachOccasionSet = []
-        for s in range(self.numPrachSlotPerAssociationPeriod):
-            for t in range(self.nrRachCfgNumOccasionsPerSlot):
-                for f in range(self.nrRachMsg1Fdm):
-                    self.prachOccasionSet.append([s, t, f])
-
-        rachSsbMapStartSfn = self.nrMibSfn if self.nrMibSfn % self.prachAssociationPeriod == 0 else self.prachAssociationPeriod * math.floor(self.nrMibSfn / self.prachAssociationPeriod)
-        #TODO replace the 's' field of prachOccasionSet with 'hsfn-sfn-slot'
+        
+        self.minNumValidPrachOccasionPerAssociationPeriod = math.ceil(self.numTxSsb / self.nrRachSsbPerRachOccasionM8 * 8)
 
         return True
 
@@ -1100,6 +1096,8 @@ class NgNrGrid(object):
                                     self.gridNrTdd[dn][sib1ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbSib1InBaseScsTd+i*scaleTd:firstSymbSib1InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DTX.value
             else:
                 self.gridNrFddDl[dn][sib1ScsInBaseScsFd, firstSymbSib1InBaseScsTd+i*scaleTd:firstSymbSib1InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_SIB1.value
+        
+        return (hsfn, sfn, slotSib1)
 
     def dci10CssVrb2PrbMapping(self, coreset0Size=48, iniDlBwpStart=0, coreset0Start=0, L=2):
         #FIXME The UE is not expected to be configured with Li=2 simultaneously with a PRG size of 4 as defined in [6, TS 38.214].
@@ -1143,12 +1141,128 @@ class NgNrGrid(object):
 
         return prbs
 
-    def sendMsg1(self, hsfn, sfn):
+    def sendMsg1(self, hsfn, sfn, slot):
         if self.error:
-            return (None, None)
+            return (None, None, None)
 
-        self.ngwin.logEdit.append('---->inside sendMsg1')
-        return (hsfn, sfn)
+        self.ngwin.logEdit.append('---->inside sendMsg1(hsfn=%s,sfn=%s,slot=%s)' % (hsfn, sfn, slot))
+        #rachSsbMapStartSfn = sfn if sfn % self.prachAssociationPeriod == 0 else self.prachAssociationPeriod * math.floor(sfn / self.prachAssociationPeriod)
+        rachSsbMapStartSfn = sfn if sfn % 16 == 0 else 16 * math.floor(sfn / 16)
+        if rachSsbMapStartSfn >= 1024:
+            rachSsbMapStartSfn = rachSsbMapStartSfn % 1024
+            curHsfn = hsfn + 1
+        
+        #find all valid PRACH occasions within a PRACH association period which is at most 160ms
+        validPrachOccasionsPerAssociationPeriod = []
+        isfn = 0
+        while isfn < 16 and len(validPrachOccasionsPerAssociationPeriod) < self.minNumValidPrachOccasionPerAssociationPeriod:
+            curSfn = rachSsbMapStartSfn + isfn
+            if curSfn < sfn:
+                isfn = isfn + 1
+                continue
+            
+            if curSfn % self.nrRachCfgPeriodx in self.nrRachCfgOffsety:
+                raSlots = []
+                if self.nrRachScs in ('30', '120'):
+                    if self.nrRachCfgNumSlotsPerSubfFr1Per60KSlotFR2 == 1:
+                        for m in self.nrRachCfgSubfNumFr1SlotNumFr2:
+                            raSlots.append(2*m+1)
+                    else:
+                        for m in self.nrRachCfgSubfNumFr1SlotNumFr2:
+                            raSlots.extend([2*m, 2*m+1])
+                else:
+                    raSlots.extend(self.nrRachCfgSubfNumFr1SlotNumFr2)
+                    
+                #'slot' from args are based on commonScs, while PRACH slot based on prachScs
+                if curSfn == sfn:
+                    if self.prachScs > self.nrMibCommonScs:
+                        scaleTd = self.prachScs // self.nrMibCommonScs
+                        firstSlotAfterSib1 = (slot + 1) * scaleTd
+                    else:
+                        scaleTd = self.nrMibCommonScs // self.prachScs
+                        firstSlotAfterSib1 = slot // scaleTd + 1
+                        
+                    while True:
+                        if len(raSlots) > 0 and raSlots[0] < firstSlotAfterSib1:
+                            raSlots.pop(0)
+                        else:
+                            break
+                
+                #init current frame
+                if self.nrDuplexMode == 'TDD':
+                    tdGrid = np.full(self.nrSymbPerRfNormCp, 'F')
+                    scaleTd = self.baseScsTd // self.nrTddCfgRefScs
+                    if curSfn % 2 == 0:
+                        for i in range(len(self.tddPatEvenRf)):
+                            for j in range(scaleTd):
+                                tdGrid[i*scaleTd+j] = self.tddPatEvenRf[i]
+                    else:
+                        for i in range(len(self.tddPatOddRf)):
+                            for j in range(scaleTd):
+                                tdGrid[i*scaleTd+j] = self.tddPatOddRf[i]
+                else:
+                    tdGrid = np.full(self.nrSymbPerRfNormCp, 'U')
+                
+                #init ssb in current frame
+                if self.nrSsbPeriod >= 10 and self.deltaSfn(self.hsfn, self.nrMibSfn, curHsfn, curSfn) % (self.nrSsbPeriod // 10) != 0:
+                    pass
+                else:
+                    ssbHrfSet = [0, 1] if self.nrSsbPeriod < 10 else [self.nrMibHrf]
+                    for hrf in ssbHrfSet:
+                        for issb in range(self.nrSsbMaxL):
+                            if self.ssbSet[issb] == '0':
+                                continue
+                            scaleTd = self.baseScsTd // self.nrSsbScs
+                            ssbFirstSymb = hrf * (self.nrSymbPerRfNormCp // 2) + self.ssbFirstSymbSet[issb] * scaleTd
+                            for k in range(4*scaleTd):
+                                tdGrid[ssbFirstSymb+k] = 'SSB'
+                
+                #init sib1 if any
+                if curHsfn == hsfn and curSfn == sfn:
+                    scaleTd = self.baseScsTd // self.nrMibCommonScs
+                    firstSymbSib1InBaseScsTd = (slot * self.nrSymbPerSlotNormCp + self.nrSib1TdStartSymb) * scaleTd
+                    for k in range(self.nrSib1TdNumSymbs*scaleTd):
+                        tdGrid[firstSymbSib1InBaseScsTd+k] = 'SIB1'
+                                    
+                for s in raSlots:
+                    for t in range(self.nrRachCfgNumOccasionsPerSlot):
+                        scaleTd = self.baseScsTd // self.prachScs
+                        rachFirstSymbInBaseScsTd = (s * self.nrSymbPerSlotNormCp + self.nrRachCfgStartSymb + t * self.nrRachCfgDuration) * scaleTd
+                        rachSymbsInbaseScsTd = [rachFirstSymbInBaseScsTd+k for k in range(self.nrRachCfgDuration*scaleTd)]
+                        
+                        #refer to 3GPP 38.213 vf40 8.1
+                        #For paired spectrum all PRACH occasions are valid.
+                        #If a UE is provided TDD-UL-DL-ConfigurationCommon, a PRACH occasion in a PRACH slot is valid if 
+                        #-	it is within UL symbols, or 
+                        #-	it does not precede a SS/PBCH block in the PRACH slot and starts at least N_gap symbols after a last downlink symbol and at least N_gap symbols after a last SS/PBCH block transmission symbol, where N_gap is provided in Table 8.1-2.
+                        valid = True
+                        nGapInBaseScsTd = 0 if self.nrRachScs in ('1.25', '5') or self.nrRachCfgFormat == 'B4' else 2*(self.baseScsTd//self.prachScs)
+                        for k in rachSymbsInbaseScsTd:
+                            if tdGrid[k] != 'U':
+                                valid = False
+                                break
+                            
+                        if valid:    
+                            for f in range(self.nrRachMsg1Fdm):
+                                validPrachOccasionsPerAssociationPeriod.append([[curHsfn, curSfn, s], t, f])
+                
+            isfn = isfn + 1
+        
+        self.ngwin.logEdit.append('contents of validPrachOccasionsPerAssociationPeriod(size=%d,expectedSize=%d):' % (len(validPrachOccasionsPerAssociationPeriod), self.numPrachSlotPerAssociationPeriod))
+        for s in validPrachOccasionsPerAssociationPeriod:
+            self.ngwin.logEdit.append(str(s))
+            
+        self.prachOccasionsPerAssociationPeriod = []
+        for s in validPrachOccasionsPerAssociationPeriod:
+            for t in range(self.nrRachCfgNumOccasionsPerSlot):
+                for f in range(self.nrRachMsg1Fdm):
+                    self.prachOccasionsPerAssociationPeriod.append([s, t, f])
+                    
+        self.ngwin.logEdit.append('contents of prachOccasionsPerAssociationPeriod(size=%d,expectedSize=%d):' % (len(self.prachOccasionsPerAssociationPeriod), self.numPrachOccasionPerAssociationPeriod))
+        for o in self.prachOccasionsPerAssociationPeriod:
+            self.ngwin.logEdit.append(str(o))
+        
+        return (hsfn, sfn, slot)
 
     def recvMsg2(self, hsfn, sfn):
         self.ngwin.logEdit.append('---->inside recvMsg2')

@@ -10256,7 +10256,8 @@ class NgNrGridUi(QDialog):
             nrGrid.recvSib1(hsfn, sfn, slot)
 
         #sending Msg1(PRACH)
-        hsfn, sfn = nrGrid.sendMsg1(hsfn, sfn)
+        if hsfn is not None and sfn is not None and slot is not None:
+            hsfn, sfn, slot = nrGrid.sendMsg1(hsfn, sfn, slot)
         #monitoring PDCCH for Msg2
         hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci10', rnti='ra-rnti')
         #receiving Msg2(RAR)
@@ -10289,7 +10290,8 @@ class NgNrGridUi(QDialog):
 
         #export grid to excel
         if not nrGrid.error:
-            nrGrid.exportToExcel()
+            #nrGrid.exportToExcel()
+            pass
 
         self.accept()
 
