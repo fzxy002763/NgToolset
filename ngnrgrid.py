@@ -264,6 +264,7 @@ class NgNrGrid(object):
         self.nrRachMsg3Tp = self.args['rach']['msg3Tp']
 
         self.numTxSsb = len([c for c in self.ssbSet if c == '1'])
+        '''
         self.numPrachSlotPerPeriod = len(self.nrRachCfgOffsety) * len(self.nrRachCfgSubfNumFr1SlotNumFr2) * self.nrRachCfgNumSlotsPerSubfFr1Per60KSlotFR2
         self.numPrachOccasionPerPeriod = self.nrRachMsg1Fdm * self.numPrachSlotPerPeriod * self.nrRachCfgNumOccasionsPerSlot
         self.numSsbPerPeriod = self.numPrachOccasionPerPeriod * self.nrRachSsbPerRachOccasionM8 / 8
@@ -281,6 +282,7 @@ class NgNrGrid(object):
             return False
 
         self.ngwin.logEdit.append('PRACH association period info: numTxSsb=%d, configuration period x=%d, numSsbPerPeriod=%.2f, association period=%d with #slots=%d and #occasions=%d' % (self.numTxSsb, self.nrRachCfgPeriodx, self.numSsbPerPeriod, self.prachAssociationPeriod, self.numPrachSlotPerAssociationPeriod, self.numPrachOccasionPerAssociationPeriod))
+        '''
         
         self.minNumValidPrachOccasionPerAssociationPeriod = math.ceil(self.numTxSsb / self.nrRachSsbPerRachOccasionM8 * 8)
 
@@ -1151,9 +1153,12 @@ class NgNrGrid(object):
         if rachSsbMapStartSfn >= 1024:
             rachSsbMapStartSfn = rachSsbMapStartSfn % 1024
             curHsfn = hsfn + 1
+        else:
+            curHsfn = hsfn
         
         #find all valid PRACH occasions within a PRACH association period which is at most 160ms
         validPrachOccasionsPerAssociationPeriod = []
+        invalidPrachOccasionsPerAssociationPeriod = []
         isfn = 0
         while isfn < 16 and len(validPrachOccasionsPerAssociationPeriod) < self.minNumValidPrachOccasionPerAssociationPeriod:
             curSfn = rachSsbMapStartSfn + isfn
@@ -1188,7 +1193,7 @@ class NgNrGrid(object):
                         else:
                             break
                 
-                #init current frame
+                #init current frame for TDD
                 if self.nrDuplexMode == 'TDD':
                     tdGrid = np.full(self.nrSymbPerRfNormCp, 'F')
                     scaleTd = self.baseScsTd // self.nrTddCfgRefScs
@@ -1200,67 +1205,81 @@ class NgNrGrid(object):
                         for i in range(len(self.tddPatOddRf)):
                             for j in range(scaleTd):
                                 tdGrid[i*scaleTd+j] = self.tddPatOddRf[i]
-                else:
-                    tdGrid = np.full(self.nrSymbPerRfNormCp, 'U')
+                    
+                    #init ssb in current frame
+                    if self.nrSsbPeriod >= 10 and self.deltaSfn(self.hsfn, self.nrMibSfn, curHsfn, curSfn) % (self.nrSsbPeriod // 10) != 0:
+                        pass
+                    else:
+                        ssbHrfSet = [0, 1] if self.nrSsbPeriod < 10 else [self.nrMibHrf]
+                        for hrf in ssbHrfSet:
+                            for issb in range(self.nrSsbMaxL):
+                                if self.ssbSet[issb] == '0':
+                                    continue
+                                scaleTd = self.baseScsTd // self.nrSsbScs
+                                ssbFirstSymb = hrf * (self.nrSymbPerRfNormCp // 2) + self.ssbFirstSymbSet[issb] * scaleTd
+                                for k in range(4*scaleTd):
+                                    tdGrid[ssbFirstSymb+k] = 'SSB'
+                    
+                    #init sib1 if any
+                    if curHsfn == hsfn and curSfn == sfn:
+                        scaleTd = self.baseScsTd // self.nrMibCommonScs
+                        firstSymbSib1InBaseScsTd = (slot * self.nrSymbPerSlotNormCp + self.nrSib1TdStartSymb) * scaleTd
+                        for k in range(self.nrSib1TdNumSymbs*scaleTd):
+                            tdGrid[firstSymbSib1InBaseScsTd+k] = 'SIB1'
                 
-                #init ssb in current frame
-                if self.nrSsbPeriod >= 10 and self.deltaSfn(self.hsfn, self.nrMibSfn, curHsfn, curSfn) % (self.nrSsbPeriod // 10) != 0:
-                    pass
-                else:
-                    ssbHrfSet = [0, 1] if self.nrSsbPeriod < 10 else [self.nrMibHrf]
-                    for hrf in ssbHrfSet:
-                        for issb in range(self.nrSsbMaxL):
-                            if self.ssbSet[issb] == '0':
-                                continue
-                            scaleTd = self.baseScsTd // self.nrSsbScs
-                            ssbFirstSymb = hrf * (self.nrSymbPerRfNormCp // 2) + self.ssbFirstSymbSet[issb] * scaleTd
-                            for k in range(4*scaleTd):
-                                tdGrid[ssbFirstSymb+k] = 'SSB'
-                
-                #init sib1 if any
-                if curHsfn == hsfn and curSfn == sfn:
-                    scaleTd = self.baseScsTd // self.nrMibCommonScs
-                    firstSymbSib1InBaseScsTd = (slot * self.nrSymbPerSlotNormCp + self.nrSib1TdStartSymb) * scaleTd
-                    for k in range(self.nrSib1TdNumSymbs*scaleTd):
-                        tdGrid[firstSymbSib1InBaseScsTd+k] = 'SIB1'
-                                    
+                #refer to 3GPP 38.213 vf40 8.1
+                #For paired spectrum all PRACH occasions are valid.
+                #If a UE is provided TDD-UL-DL-ConfigurationCommon, a PRACH occasion in a PRACH slot is valid if 
+                #-	it is within UL symbols, or 
+                #-	it does not precede a SS/PBCH block in the PRACH slot and starts at least N_gap symbols after a last downlink symbol and at least N_gap symbols after a last SS/PBCH block transmission symbol, where N_gap is provided in Table 8.1-2.
                 for s in raSlots:
                     for t in range(self.nrRachCfgNumOccasionsPerSlot):
-                        scaleTd = self.baseScsTd // self.prachScs
-                        rachFirstSymbInBaseScsTd = (s * self.nrSymbPerSlotNormCp + self.nrRachCfgStartSymb + t * self.nrRachCfgDuration) * scaleTd
-                        rachSymbsInbaseScsTd = [rachFirstSymbInBaseScsTd+k for k in range(self.nrRachCfgDuration*scaleTd)]
-                        
-                        #refer to 3GPP 38.213 vf40 8.1
-                        #For paired spectrum all PRACH occasions are valid.
-                        #If a UE is provided TDD-UL-DL-ConfigurationCommon, a PRACH occasion in a PRACH slot is valid if 
-                        #-	it is within UL symbols, or 
-                        #-	it does not precede a SS/PBCH block in the PRACH slot and starts at least N_gap symbols after a last downlink symbol and at least N_gap symbols after a last SS/PBCH block transmission symbol, where N_gap is provided in Table 8.1-2.
-                        valid = True
-                        nGapInBaseScsTd = 0 if self.nrRachScs in ('1.25', '5') or self.nrRachCfgFormat == 'B4' else 2*(self.baseScsTd//self.prachScs)
-                        for k in rachSymbsInbaseScsTd:
-                            if tdGrid[k] != 'U':
-                                valid = False
-                                break
-                            
-                        if valid:    
+                        if self.nrDuplexMode == 'FDD':
                             for f in range(self.nrRachMsg1Fdm):
                                 validPrachOccasionsPerAssociationPeriod.append([[curHsfn, curSfn, s], t, f])
-                
+                        else:
+                            scaleTd = self.baseScsTd // self.prachScs
+                            rachFirstSymbInBaseScsTd = (s * self.nrSymbPerSlotNormCp + self.nrRachCfgStartSymb + t * self.nrRachCfgDuration) * scaleTd
+                            rachSymbsInbaseScsTd = [rachFirstSymbInBaseScsTd+k for k in range(self.nrRachCfgDuration*scaleTd)]
+                            
+                            nGapInBaseScsTd = 0 if self.nrRachScs in ('1.25', '5') or self.nrRachCfgFormat == 'B4' else 2*(self.baseScsTd//self.prachScs)
+                            
+                            valid = True
+                            for k in rachSymbsInbaseScsTd:
+                                if tdGrid[k] != 'U':
+                                    valid = False
+                                    break
+                            
+                            for k in range(rachFirstSymbInBaseScsTd, (s+1)*self.nrSymbPerSlotNormCp):
+                                if tdGrid[k] == 'SSB':
+                                    valid = False
+                                    break
+                            
+                            for k in range(max(0, rachFirstSymbInBaseScsTd - nGapInBaseScsTd), rachFirstSymbInBaseScsTd):
+                                if tdGrid[k] in ('SSB', 'SIB1'):
+                                    valid = False
+                                    break
+                                
+                            if valid:
+                                for f in range(self.nrRachMsg1Fdm):
+                                    validPrachOccasionsPerAssociationPeriod.append([[curHsfn, curSfn, s], t, f])
+                            else:
+                                for f in range(self.nrRachMsg1Fdm):
+                                    invalidPrachOccasionsPerAssociationPeriod.append([[curHsfn, curSfn, s], t, f])
+                                
             isfn = isfn + 1
         
-        self.ngwin.logEdit.append('contents of validPrachOccasionsPerAssociationPeriod(size=%d,expectedSize=%d):' % (len(validPrachOccasionsPerAssociationPeriod), self.numPrachSlotPerAssociationPeriod))
-        for s in validPrachOccasionsPerAssociationPeriod:
-            self.ngwin.logEdit.append(str(s))
+        self.ngwin.logEdit.append('contents of validPrachOccasionsPerAssociationPeriod(size=%d,minSize=%d):' % (len(validPrachOccasionsPerAssociationPeriod), self.minNumValidPrachOccasionPerAssociationPeriod))
+        self.ngwin.logEdit.append(','.join([str(occ) for occ in validPrachOccasionsPerAssociationPeriod]))
             
-        self.prachOccasionsPerAssociationPeriod = []
-        for s in validPrachOccasionsPerAssociationPeriod:
-            for t in range(self.nrRachCfgNumOccasionsPerSlot):
-                for f in range(self.nrRachMsg1Fdm):
-                    self.prachOccasionsPerAssociationPeriod.append([s, t, f])
-                    
-        self.ngwin.logEdit.append('contents of prachOccasionsPerAssociationPeriod(size=%d,expectedSize=%d):' % (len(self.prachOccasionsPerAssociationPeriod), self.numPrachOccasionPerAssociationPeriod))
-        for o in self.prachOccasionsPerAssociationPeriod:
-            self.ngwin.logEdit.append(str(o))
+        self.ngwin.logEdit.append('contents of invalidPrachOccasionsPerAssociationPeriod(size=%d):' % len(invalidPrachOccasionsPerAssociationPeriod))
+        self.ngwin.logEdit.append(','.join([str(occ) for occ in invalidPrachOccasionsPerAssociationPeriod]))
+        
+        if isfn >= 16 and len(validPrachOccasionsPerAssociationPeriod) < self.minNumValidPrachOccasionPerAssociationPeriod:
+            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid PRACH configuration(numTxSsb=%d,ssbPerOccasionM8=%d,x=%d,y=%s,subfFr1SlotFr2=%s,#prachSlots=%d,#prachOccasion=%d,msg1Fdm=%d): PRACH association period is at most 160ms!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.numTxSsb, self.nrRachSsbPerRachOccasionM8,  self.nrRachCfgPeriodx, self.nrRachCfgOffsety, self.nrRachCfgSubfNumFr1SlotNumFr2, self.nrRachCfgNumSlotsPerSubfFr1Per60KSlotFR2, self.nrRachCfgNumOccasionsPerSlot, self.nrRachMsg1Fdm))
+            return (None, None, None)
+            
+        #TODO
         
         return (hsfn, sfn, slot)
 
