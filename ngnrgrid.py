@@ -938,6 +938,9 @@ class NgNrGrid(object):
             pdcchCandidate = np.random.randint(0, numCandidates)
 
             self.ngwin.logEdit.append('randomly selecting pdcch candidate: bestSsb=%d(hrf=%d,issb=%d), pdcchSlot=%d, pdcchCandidate=%d' % (bestSsb, self.nrMibHrf if self.nrSsbPeriod >= 10 else bestSsb // self.nrSsbMaxL, bestSsb % self.nrSsbMaxL, pdcchSlot, pdcchCandidate))
+            
+            #save bestSsb index for later ssb-prach mapping
+            self.bestSsbInd = bestSsb % self.nrSsbMaxL
 
             hsfn, sfnc, nc = oc[pdcchSlot]
             dn2 = '%s_%s' % (hsfn, sfnc)
@@ -1279,7 +1282,51 @@ class NgNrGrid(object):
             self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid PRACH configuration(numTxSsb=%d,ssbPerOccasionM8=%d,x=%d,y=%s,subfFr1SlotFr2=%s,#prachSlots=%d,#prachOccasion=%d,msg1Fdm=%d): PRACH association period is at most 160ms!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.numTxSsb, self.nrRachSsbPerRachOccasionM8,  self.nrRachCfgPeriodx, self.nrRachCfgOffsety, self.nrRachCfgSubfNumFr1SlotNumFr2, self.nrRachCfgNumSlotsPerSubfFr1Per60KSlotFR2, self.nrRachCfgNumOccasionsPerSlot, self.nrRachMsg1Fdm))
             return (None, None, None)
             
-        #TODO
+        #SSB and PRACH occasion mapping
+        ssb2RachOccasionMap = dict()
+        if self.nrRachSsbPerRachOccasionM8 < 8:
+            numRachOccasionPerSsb = 8 // self.nrRachSsbPerRachOccasionM8
+            count = 0
+            for issb in range(len(self.ssbSet)):
+                if self.ssbSet[issb] == '1':
+                    rachOccasions = [validPrachOccasionsPerAssociationPeriod[numRachOccasionPerSsb*count+k] for k in range(numRachOccasionPerSsb)]
+                    cbPreambs = list(range(0, self.nrRachCbPreambsPerSsb))
+                    ssb2RachOccasionMap[issb] = [rachOccasions, cbPreambs]
+                    count = count + 1
+        else:
+            numSsbPerRachOccasion = self.nrRachSsbPerRachOccasionM8 // 8
+            availCbPreambsPerSsb = self.nrRachTotNumPreambs // numSsbPerRachOccasion
+            count = 0
+            for issb in range(len(self.ssbSet)):
+                if self.ssbSet[issb] == '1':
+                    rachOccasions = [validPrachOccasionsPerAssociationPeriod[count // numSsbPerRachOccasion]]
+                    cbPreambs = [availCbPreambsPerSsb*(count%numSsbPerRachOccasion)+k for k in range(self.nrRachCbPreambsPerSsb)]
+                    ssb2RachOccasionMap[issb] = [rachOccasions, cbPreambs]
+                    count = count + 1
+        
+        self.ngwin.logEdit.append('contents of ssb2RachOccasionMap:')
+        for key,val in ssb2RachOccasionMap.items():
+            self.ngwin.logEdit.append('issb=%d: rachOccasion=%s, cbPreambs=%s' % (key, val[0], val[1]))
+        
+        #assume the first valid prach occasion is used
+        bestSsbRachOccasion = ssb2RachOccasionMap[self.bestSsbInd][0]
+        self.ngwin.logEdit.append('selecting prach occasion(=%s) with cbPreambs=%s corresponding to best SSB(with issb=%d)' % (bestSsbRachOccasion, ssb2RachOccasionMap[self.bestSsbInd][1], self.bestSsbInd))
+        
+        #PRACH time/freq domain RE mapping
+        msg1Hsfn, msg1Sfn, msg1Slot = bestSsbRachOccasion[0]
+        msg1OccasionInd = bestSsbRachOccasion[1]
+        msg1FdmInd = bestSsbRachOccasion[2]
+        
+        dn = '%s_%s' % (msg1Hsfn, msg1Sfn)
+        if (self.nrDuplexMode == 'TDD' and not dn in self.gridNrTdd) or (self.nrDuplexMode == 'FDD' and not dn in self.gridNrFddUl):
+            self.recvSib1(msg1Hsfn, msg1Sfn)
+        
+        scaleTd = self.baseScsTd // self.prachScs
+        msg1SymbsInBaseScsTd = [(msg1Slot*self.nrSymbPerSlotNormCp+self.nrRachCfgStartSymb+msg1OccasionInd*self.nrRachCfgDuration)*scaleTd+k for k in range(self.nrRachCfgDuration*scaleTd)]
+        
+        #TODO determine freq-domain
+        
+        
         
         return (hsfn, sfn, slot)
 
