@@ -10293,8 +10293,9 @@ class NgNrGridUi(QDialog):
 
         #export grid to excel
         if not nrGrid.error:
-            #nrGrid.exportToExcel()
-            pass
+            qApp.processEvents()
+            nrGrid.exportToExcel()
+            #pass
 
         self.accept()
 
@@ -10428,6 +10429,15 @@ class NgNrGridUi(QDialog):
         self.args['rach']['ssbPerRachOccasion'] = self.nrRachSsbPerRachOccasionComb.currentText()
         self.args['rach']['cbPreambsPerSsb'] = self.nrRachCbPreamblesPerSsbComb.currentText()
         self.args['rach']['msg3Tp'] = self.nrRachMsg3TpComb.currentText()
+        if self.raFormat in ('0', '1', '2'):
+            self.args['rach']['raLen'] = 839
+            self.args['rach']['raNumRbs'], self.args['rach']['raKBar'] = self.nrNumRbRaAndKBar['839_1.25_%s' % self.nrIniUlBwpGenericScsComb.currentText()[:-3]]
+        elif self.raFormat in ('3'):
+            self.args['rach']['raLen'] = 839
+            self.args['rach']['raNumRbs'], self.args['rach']['raKBar'] = self.nrNumRbRaAndKBar['839_5_%s' % self.nrIniUlBwpGenericScsComb.currentText()[:-3]]
+        else:
+            self.args['rach']['raLen'] = 139 
+            self.args['rach']['raNumRbs'], self.args['rach']['raKBar'] = self.nrNumRbRaAndKBar['139_%s_%s' % (self.nrRachGenericScsComb.currentText()[:-3], self.nrIniUlBwpGenericScsComb.currentText()[:-3])]
 
         #print dict info
         for key in self.args.keys():

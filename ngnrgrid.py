@@ -262,6 +262,9 @@ class NgNrGrid(object):
         self.nrRachSsbPerRachOccasionM8 = ssbPerRachOccasionMap[self.args['rach']['ssbPerRachOccasion']]
         self.nrRachCbPreambsPerSsb = int(self.args['rach']['cbPreambsPerSsb'])
         self.nrRachMsg3Tp = self.args['rach']['msg3Tp']
+        self.nrRachPreambLen = self.args['rach']['raLen']
+        self.nrRachNumRbs = self.args['rach']['raNumRbs']
+        self.nrRachKBar = self.args['rach']['raKBar']
 
         self.numTxSsb = len([c for c in self.ssbSet if c == '1'])
         '''
@@ -1308,8 +1311,8 @@ class NgNrGrid(object):
         for key,val in ssb2RachOccasionMap.items():
             self.ngwin.logEdit.append('issb=%d: rachOccasion=%s, cbPreambs=%s' % (key, val[0], val[1]))
         
-        #assume the first valid prach occasion is used
-        bestSsbRachOccasion = ssb2RachOccasionMap[self.bestSsbInd][0]
+        #assume valid prach occasion is randomly selected 
+        bestSsbRachOccasion = ssb2RachOccasionMap[self.bestSsbInd][0][np.random.randint(0, len(ssb2RachOccasionMap[self.bestSsbInd][0]))]
         self.ngwin.logEdit.append('selecting prach occasion(=%s) with cbPreambs=%s corresponding to best SSB(with issb=%d)' % (bestSsbRachOccasion, ssb2RachOccasionMap[self.bestSsbInd][1], self.bestSsbInd))
         
         #PRACH time/freq domain RE mapping
@@ -1319,16 +1322,28 @@ class NgNrGrid(object):
         
         dn = '%s_%s' % (msg1Hsfn, msg1Sfn)
         if (self.nrDuplexMode == 'TDD' and not dn in self.gridNrTdd) or (self.nrDuplexMode == 'FDD' and not dn in self.gridNrFddUl):
-            self.recvSib1(msg1Hsfn, msg1Sfn)
+            self.recvSsb(msg1Hsfn, msg1Sfn)
         
         scaleTd = self.baseScsTd // self.prachScs
-        msg1SymbsInBaseScsTd = [(msg1Slot*self.nrSymbPerSlotNormCp+self.nrRachCfgStartSymb+msg1OccasionInd*self.nrRachCfgDuration)*scaleTd+k for k in range(self.nrRachCfgDuration*scaleTd)]
+        msg1FirstSymbInBaseScsTd = (msg1Slot * self.nrSymbPerSlotNormCp + self.nrRachCfgStartSymb + msg1OccasionInd * self.nrRachCfgDuration) * scaleTd
+        msg1SymbsInBaseScsTd = [msg1FirstSymbInBaseScsTd+k for k in range(self.nrRachCfgDuration*scaleTd)]
         
-        #TODO determine freq-domain
+        #determine freq-domain
+        scaleFd = self.nrIniUlBwpScs // self.baseScsFd
+        msg1FirstScInBaseScsFd = self.nrCarrierMinGuardBand * self.nrScPerPrb * (self.nrCarrierScs // self.baseScsFd) + self.nrIniUlBwpStartRb * self.nrScPerPrb * scaleFd + (self.nrRachMsg1FreqStart + msg1FdmInd * self.nrRachNumRbs) * self.nrScPerPrb * scaleFd
+        msg1ScsInBaseScsFd = [msg1FirstScInBaseScsFd+k for k in range(self.nrRachNumRbs*self.nrScPerPrb*scaleFd)]
         
+        if self.nrDuplexMode == 'TDD':
+            for fd in msg1ScsInBaseScsFd:
+                for td in msg1SymbsInBaseScsTd:
+                    self.gridNrTdd[dn][fd, td] = NrResType.NR_RES_PRACH.value
+        else:
+            for fd in msg1ScsInBaseScsFd:
+                for td in msg1SymbsInBaseScsTd:
+                    self.gridNrFddUl[dn][fd, td] = NrResType.NR_RES_PRACH.value
         
-        
-        return (hsfn, sfn, slot)
+        return (msg1Hsfn, msg1Sfn, msg1Slot)
+        #return (hsfn, sfn, slot)
 
     def recvMsg2(self, hsfn, sfn):
         self.ngwin.logEdit.append('---->inside recvMsg2')
