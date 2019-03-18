@@ -700,7 +700,7 @@ class NgNrGrid(object):
         if not rnti in ('si-rnti', 'ra-rnti', 'tc-rnti', 'c-rnti'):
             return (None, None, None)
 
-        self.ngwin.logEdit.append('---->inside recvPdcch(hsfn=%d, sfn=%d, dci="%s",rnti="%s", scaleTdSsb=%d, scaleTdRmsiScs=%d)' % (hsfn, sfn, dci, rnti, self.baseScsTd // self.nrSsbScs, self.baseScsTd // self.nrMibCommonScs))
+        self.ngwin.logEdit.append('---->inside recvPdcch(hsfn=%d, sfn=%d, slot=%d, dci="%s",rnti="%s", scaleTdSsb=%d, scaleTdRmsiScs=%d)' % (hsfn, sfn, slot, dci, rnti, self.baseScsTd // self.nrSsbScs, self.baseScsTd // self.nrMibCommonScs))
 
         if dci == 'dci10' and rnti == 'si-rnti':
             ret = self.detCss0(hsfn, sfn)
@@ -765,6 +765,8 @@ class NgNrGrid(object):
             tmpStr = tmpStr + '[hsfn=%d, sfn=%d, slot=%d, symb=%d]' % (hsfn, sfn, firstSlotMonitoring, firstSymbMonitoring)
             self.ngwin.logEdit.append(tmpStr)
             
+            oldHsfn, oldSfn = hsfn, sfn
+            
             #refer to 3GPP 38.213 vf40 8.2
             #The window starts at the first symbol of the earliest CORESET the UE is configured to receive PDCCH for Type1-PDCCH CSS set, as defined in Subclause 10.1, that is at least one symbol, after the last symbol of the PRACH occasion corresponding to the PRACH transmission, where the symbol duration corresponds to the SCS for Type1-PDCCH CSS set as defined in Subclause 10.1.
             firstSymbMonitoring = firstSymbMonitoring + 1
@@ -783,6 +785,14 @@ class NgNrGrid(object):
             while True:
                 ret = self.detCss0(hsfn, sfn)
                 if not ret:
+                    #remove 'not-used' HSFN+SFN from gridNrTdd/gridNrFddUl/gridNrFddDl
+                    if not (hsfn == oldHsfn and sfn == oldSfn):
+                        if self.nrDuplexMode == 'TDD':
+                            self.gridNrTdd.pop('%s_%s' % (hsfn, sfn))
+                        else:
+                            self.gridNrFddUl.pop('%s_%s' % (hsfn, sfn))
+                            self.gridNrFddDl.pop('%s_%s' % (hsfn, sfn))
+                            
                     hsfn, sfn = self.incSfn(hsfn, sfn, 1)
                     self.recvSsb(hsfn, sfn)
                 else:
@@ -817,6 +827,30 @@ class NgNrGrid(object):
             self.ngwin.logEdit.append('contents of validCss0Msg2(raRespWin=%d slots):' % self.nrRachRaRespWin)
             for i in range(len(validCss0Msg2)):
                 self.ngwin.logEdit.append('PDCCH occasion #%d: %s' % (i, validCss0Msg2[i]))
+            
+            #randomly select from validCss0Msg2 pdcch occasion for msg2 scheduling
+            pdcchOccasion = np.random.randint(0, len(validCss0Msg2))
+            hsfn, sfn, slot, firstSymb = validCss0Msg2[pdcchOccasion]
+            
+            numCandidates = min(self.nrCss0MaxNumCandidates, self.coreset0NumCces // self.nrCss0AggLevel)
+            pdcchCandidate = np.random.randint(0, numCandidates)
+            
+            self.ngwin.logEdit.append('randomly selecting pdcch candidate: pdcchOccasion=%d(numPdcchOccasions=%d), pdcchCandidate=%d(numPdcchCandidates=%d)' % (pdcchOccasion, len(validCss0Msg2), pdcchCandidate, numCandidates))
+            
+            scaleTd = self.baseScsTd // self.nrMibCommonScs
+            scaleFd = self.nrMibCommonScs // self.baseScsFd
+            dn2 = '%s_%s' % (hsfn, sfn)
+            firstSymbInBaseScsTd = (slot * self.nrSymbPerSlotNormCp + firstSymb) * scaleTd
+            cceSet = [pdcchCandidate * self.nrCss0AggLevel + k for k in range(self.nrCss0AggLevel)]
+            for i in range(self.coreset0Cces.shape[0]):
+                for j in range(self.coreset0Cces.shape[1]):
+                    if self.coreset0Cces[i, j] in cceSet:
+                        if self.nrDuplexMode == 'TDD':
+                            self.gridNrTdd[dn2][self.coreset0FirstSc+i*self.nrScPerPrb*scaleFd:self.coreset0FirstSc+(i+1)*self.nrScPerPrb*scaleFd, firstSymbInBaseScsTd+j*scaleTd:firstSymbInBaseScsTd+(j+1)*scaleTd] = NrResType.NR_RES_PDCCH.value
+                            self.gridNrTdd[dn2][self.coreset0FirstSc+(i*self.nrScPerPrb+1)*scaleFd:self.coreset0FirstSc+(i+1)*self.nrScPerPrb*scaleFd:4, firstSymbInBaseScsTd+j*scaleTd:firstSymbInBaseScsTd+(j+1)*scaleTd] = NrResType.NR_RES_DMRS_PDCCH.value
+                        else:
+                            self.gridNrFddDl[dn2][self.coreset0FirstSc+i*self.nrScPerPrb*scaleFd:self.coreset0FirstSc+(i+1)*self.nrScPerPrb*scaleFd, firstSymbInBaseScsTd+j*scaleTd:firstSymbInBaseScsTd+(j+1)*scaleTd] = NrResType.NR_RES_PDCCH.value
+                            self.gridNrFddDl[dn2][self.coreset0FirstSc+(i*self.nrScPerPrb+1)*scaleFd:self.coreset0FirstSc+(i+1)*self.nrScPerPrb*scaleFd:4, firstSymbInBaseScsTd+j*scaleTd:firstSymbInBaseScsTd+(j+1)*scaleTd] = NrResType.NR_RES_DMRS_PDCCH.value
             
             return (hsfn, sfn, slot)
         else:
