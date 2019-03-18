@@ -257,6 +257,7 @@ class NgNrGrid(object):
         self.prachScs = 15 if self.nrRachScs in ('1.25', '5') else int(self.nrRachScs)
         self.nrRachMsg1Fdm = int(self.args['rach']['msg1Fdm'])
         self.nrRachMsg1FreqStart = int(self.args['rach']['msg1FreqStart'])
+        self.nrRachRaRespWin = int(self.args['rach']['raRespWin'][2:])
         self.nrRachTotNumPreambs = int(self.args['rach']['totNumPreambs'])
         ssbPerRachOccasionMap = {'oneEighth':1, 'oneFourth':2, 'oneHalf':4, 'one':8, 'two':16, 'four':32, 'eight':64, 'sixteen':128}
         self.nrRachSsbPerRachOccasionM8 = ssbPerRachOccasionMap[self.args['rach']['ssbPerRachOccasion']]
@@ -686,7 +687,7 @@ class NgNrGrid(object):
 
         return (hsfn, sfn)
 
-    def monitorPdcch(self, hsfn, sfn, dci=None, rnti=None):
+    def monitorPdcch(self, hsfn, sfn, slot, dci=None, rnti=None):
         if self.error:
             return (None, None, None)
 
@@ -702,225 +703,14 @@ class NgNrGrid(object):
         self.ngwin.logEdit.append('---->inside recvPdcch(hsfn=%d, sfn=%d, dci="%s",rnti="%s", scaleTdSsb=%d, scaleTdRmsiScs=%d)' % (hsfn, sfn, dci, rnti, self.baseScsTd // self.nrSsbScs, self.baseScsTd // self.nrMibCommonScs))
 
         if dci == 'dci10' and rnti == 'si-rnti':
-            self.coreset0Occasions = []
-            if self.nrCoreset0MultiplexingPat == 1:
-                #refer to 3GPP 38.213 vf30
-                #Table 13-11: Parameters for PDCCH monitoring occasions for Type0-PDCCH CSS set - SS/PBCH block and CORESET multiplexing pattern 1 and FR1
-                #Table 13-12: Parameters for PDCCH monitoring occasions for Type0-PDCCH CSS set - SS/PBCH block and CORESET multiplexing pattern 1 and FR2
-                css0OccasionsPat1Fr1 = {
-                    0 : (0,1,2,(0,)),
-                    1 : (0,2,1,(0, self.nrCoreset0NumSymbs)),
-                    2 : (4,1,2,(0,)),
-                    3 : (4,2,1,(0, self.nrCoreset0NumSymbs)),
-                    4 : (10,1,2,(0,)),
-                    5 : (10,2,1,(0, self.nrCoreset0NumSymbs)),
-                    6 : (14,1,2,(0,)),
-                    7 : (14,2,1,(0, self.nrCoreset0NumSymbs)),
-                    8 : (0,1,4,(0,)),
-                    9 : (10,1,4,(0,)),
-                    10 : (0,1,2,(1,)),
-                    11 : (0,1,2,(2,)),
-                    12 : (4,1,2,(1,)),
-                    13 : (4,1,2,(2,)),
-                    14 : (10,1,2,(1,)),
-                    15 : (10,1,2,(2,)),
-                    }
-                css0OccasionsPat1Fr2 = {
-                    0 : (0,1,2,(0,)),
-                    1 : (0,2,1,(0,7),),
-                    2 : (5,1,2,(0,)),
-                    3 : (5,2,1,(0,7),),
-                    4 : (10,1,2,(0,)),
-                    5 : (10,2,1,(0,7),),
-                    6 : (0,2,1,(0, self.nrCoreset0NumSymbs)),
-                    7 : (5,2,1,(0, self.nrCoreset0NumSymbs)),
-                    8 : (10,2,1,(0, self.nrCoreset0NumSymbs)),
-                    9 : (15,1,2,(0,)),
-                    10 : (15,2,1,(0,7),),
-                    11 : (15,2,1,(0, self.nrCoreset0NumSymbs)),
-                    12 : (0,1,4,(0,)),
-                    13 : (10,1,4,(0,)),
-                    14 : None,
-                    15 : None,
-                    }
-
-                if css0OccasionsPat1Fr2[self.nrRmsiCss0] is None:
-                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(=%d) when referring css0OccasionsPat1Fr2.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.nrRmsiCss0))
-                    self.error = True
-                    return (None, None, None)
-                else:
-                    O2, numSetsPerSlot, M2, firstSymbSet = css0OccasionsPat1Fr1[self.nrRmsiCss0] if self.nrFreqRange == 'FR1' else css0OccasionsPat1Fr2[self.nrRmsiCss0]
-
-                dn = '%s_%s' % (hsfn, sfn)
-                if not dn in self.ssbFirstSymbInBaseScsTd:
-                    return (None, None, None)
-
-                for i in range(len(self.ssbFirstSymbInBaseScsTd[dn])):
-                    if self.ssbFirstSymbInBaseScsTd[dn][i] is None:
-                        self.coreset0Occasions.append(None)
-                        continue
-
-                    issb = i % self.nrSsbMaxL
-                    #determine pdcch monitoring occasion (sfnc + nc) for ssb with index issb
-                    val = (O2 * 2 ** self.nrScs2Mu[self.nrMibCommonScs]) // 2 + math.floor(issb * M2 / 2)
-                    valSfnc = math.floor(val / self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]])
-                    if (valSfnc % 2 == 0 and sfn % 2 == 0) or (valSfnc % 2 == 1 and sfn % 2 == 1):
-                        sfnc = sfn
-                    else:
-                        hsfn, sfn = self.incSfn(hsfn, sfn, 1)
-                        self.recvSsb(hsfn, sfn)
-                        sfnc = sfn
-
-                    n0 = val % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]
-                    if n0 == self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] - 1:
-                        oc = [(hsfn, sfnc, n0)]
-                        hsfn, sfn = self.incSfn(hsfn, sfn, 1)
-                        self.recvSsb(hsfn, sfn)
-                        sfnc = sfn
-                        oc.append((hsfn, sfnc, 0))
-                    else:
-                        nc = [n0, n0+1]
-                        oc = [(hsfn, sfnc, i) for i in nc]
-
-                    #determine first symbol of coreset0
-                    if len(firstSymbSet) == 2:
-                        firstSymbCoreset0 = firstSymbSet[0] if issb % 2 == 0 else firstSymbSet[1]
-                    else:
-                        firstSymbCoreset0 = firstSymbSet[0]
-
-                    self.coreset0Occasions.append([oc, firstSymbCoreset0, ['OK', 'OK']])
-
-            elif self.nrCoreset0MultiplexingPat == 2:
-                dn = '%s_%s' % (hsfn, sfn)
-                if not dn in self.ssbFirstSymbInBaseScsTd:
-                    return (None, None, None)
-
-                for i in range(len(self.ssbFirstSymbInBaseScsTd[dn])):
-                    if self.ssbFirstSymbInBaseScsTd[dn][i] is None:
-                        self.coreset0Occasions.append(None)
-                        continue
-
-                    issb = i % self.nrSsbMaxL
-                    #determine sfnSsb and nSsb which are based on commonScs
-                    sfnSsb = sfn
-                    scaleTd = self.baseScsTd // self.nrMibCommonScs
-                    nSsb = math.floor(self.ssbFirstSymbInBaseScsTd[dn][i] / (self.nrSymbPerSlotNormCp * scaleTd))
-
-                    #Table 13-13: PDCCH monitoring occasions for Type0-PDCCH CSS set - SS/PBCH block and CORESET multiplexing pattern 2 and {SS/PBCH block, PDCCH} SCS {120, 60} kHz
-                    #Table 13-14: PDCCH monitoring occasions for Type0-PDCCH CSS set - SS/PBCH block and CORESET multiplexing pattern 2 and {SS/PBCH block, PDCCH} SCS {240, 120} kHz
-                    if self.nrSsbScs == 120 and self.nrMibCommonScs == 60:
-                        sfnc = sfnSsb
-                        nc = [nSsb,]
-                        firstSymbCoreset0 = (0, 1, 6, 7)[issb % 4]
-                    elif self.nrSsbScs == 240 and self.nrMibCommonScs == 120:
-                        issbMod8Set1 = (0, 1, 2, 3, 6, 7)
-                        issbMod8Set2 = (4, 5)
-                        if issb % 8 in issbMod8Set2:
-                            sfnc = sfnSsb
-                            nc = [nSsb - 1,]
-                            firstSymbCoreset0 = (12, 13)[issbMod8Set2.index(issb % 8)]
-                        else:
-                            sfnc = sfnSsb
-                            nc = [nSsb,]
-                            firstSymbCoreset0 = (0, 1, 2, 3, 0, 1)[issbMod8Set1.index(issb % 8)]
-                    else:
-                        self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid combination of ssbScs(=%d) and mibCommonScs(=%d) for FR2.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.nrSsbScs, self.nrMibCommonScs))
-                        self.error = True
-                        return (None, None, None)
-
-                    oc = [(hsfn, sfnc, i) for i in nc]
-                    self.coreset0Occasions.append([oc, firstSymbCoreset0, ['OK']])
-            else:
-                dn = '%s_%s' % (hsfn, sfn)
-                if not dn in self.ssbFirstSymbInBaseScsTd:
-                    return (None, None, None)
-
-                for i in range(len(self.ssbFirstSymbInBaseScsTd[dn])):
-                    if self.ssbFirstSymbInBaseScsTd[dn][i] is None:
-                        self.coreset0Occasions.append(None)
-                        continue
-
-                    issb = i % self.nrSsbMaxL
-                    #determine sfnSsb and nSsb which are based on commonScs
-                    sfnSsb = sfn
-                    scaleTd = self.baseScsTd // self.nrMibCommonScs
-                    nSsb = math.floor(self.ssbFirstSymbInBaseScsTd[dn][i] / (self.nrSymbPerSlotNormCp * scaleTd))
-
-                    #Table 13-15: PDCCH monitoring occasions for Type0-PDCCH CSS set - SS/PBCH block and CORESET multiplexing pattern 3 and {SS/PBCH block, PDCCH} SCS {120, 120} kHz
-                    if self.nrSsbScs == 120 and self.nrMibCommonScs == 120:
-                        sfnc = sfnSsb
-                        nc = [nSsb,]
-                        firstSymbCoreset0 = (4, 8, 2, 6)[issb % 4]
-                    else:
-                        self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid combination of ssbScs(=%d) and mibCommonScs(=%d) for FR2.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.nrSsbScs, self.nrMibCommonScs))
-                        self.error = True
-                        return (None, None, None)
-
-                    oc = [(hsfn, sfnc, i) for i in nc]
-                    self.coreset0Occasions.append([oc, firstSymbCoreset0, ['OK']])
-
-
-            #validate pdcch occasions
+            ret = self.detCss0(hsfn, sfn)
+            if not ret:
+                return (None, None, None)
+            
+            dn = '%s_%s' % (hsfn, sfn)
             scaleTd = self.baseScsTd // self.nrMibCommonScs
             scaleFd = self.nrMibCommonScs // self.baseScsFd
-            for i in range(len(self.coreset0Occasions)):
-                if self.coreset0Occasions[i] is None:
-                    continue
-
-                oc, firstSymb, valid = self.coreset0Occasions[i]
-                for j in range(len(oc)):
-                    hsfn, sfnc, nc = oc[j]
-
-                    dn2 = '%s_%s' % (hsfn, sfnc)
-                    firstSymbInBaseScsTd = (nc * self.nrSymbPerSlotNormCp + firstSymb) * scaleTd
-                    coreset0SymbsInBaseScsTd = [firstSymbInBaseScsTd+k for k in range(self.nrCoreset0NumSymbs * scaleTd)]
-                    #self.ngwin.logEdit.append('---->coreset0SymbsInBaseScsTd[issb=%d,nc=%d]=%s' % (i % self.nrSsbMaxL, nc, coreset0SymbsInBaseScsTd))
-
-                    #refer to 3GPP 38.213 vf30
-                    #10 UE procedure for receiving control information
-                    '''
-                    If the UE monitors the PDCCH candidate for a Type0-PDCCH CSS set on the serving cell according to the procedure described in Subclause 13, the UE may assume that no SS/PBCH block is transmitted in REs used for monitoring the PDCCH candidate on the serving cell.
-                    '''
-                    if dn2 in self.ssbFirstSymbInBaseScsTd:
-                        #multiplexing pattern 1 uses TDM only, and pattern 2 uses FDM/TDM, pattern 3 uses FDM only
-                        #coreset0 and ssb dosn't overlap in freq-domain when:
-                        #(1) if offset>0, offset >= #RB_CORESET0
-                        #(2) if offset<0, offset <= -1 * #RB_SSB * (ssbScs / commonScs)
-                        tdOverlapped = True if len(self.ssbSymbsInBaseScsTd[dn2].intersection(set(coreset0SymbsInBaseScsTd))) > 0 else False
-                        fdOverlapped = True if not (self.nrCoreset0Offset >= self.nrCoreset0NumRbs or self.nrCoreset0Offset <= -20*(self.nrSsbScs//self.nrMibCommonScs)) else False
-                        if tdOverlapped and fdOverlapped:
-                            valid[j] = 'NOK'
-                            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: If the UE monitors the PDCCH candidate for a Type0-PDCCH CSS set on the serving cell, the UE may assume that no SS/PBCH block is transmitted in REs used for monitoring the PDCCH candidate on the serving cell. Victim PDCCH occasion is: i=%d(issb=%d,hrf=%d), oc=%s, firstSymb=%s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), i, i % self.nrSsbMaxL, self.nrMibHrf if self.nrSsbPeriod >= 10 else i // self.nrSsbMaxL, oc[j], firstSymb))
-                            self.error = True
-                            return (None, None, None)
-
-                    #refer to 3GPP 38.213 vf30
-                    #11.1 Slot configuration
-                    '''
-                    For a set of symbols of a slot indicated to a UE by pdcch-ConfigSIB1 in MIB for a CORESET for Type0-PDCCH CSS set, the UE does not expect the set of symbols to be indicated as uplink by TDD-UL-DL-ConfigurationCommon, or TDD-UL-DL-ConfigDedicated.
-                    '''
-                    if self.nrDuplexMode == 'TDD':
-                        for k in coreset0SymbsInBaseScsTd:
-                            if self.gridNrTdd[dn2][self.ssbFirstSc, k] == NrResType.NR_RES_U.value:
-                                valid[j] = 'NOK'
-                                break
-
-                    #set CORESET0 for each PDCCH occasions
-                    if valid[j] == 'OK':
-                        for k in coreset0SymbsInBaseScsTd:
-                            if self.nrDuplexMode == 'TDD':
-                                self.gridNrTdd[dn2][self.coreset0FirstSc:self.coreset0FirstSc+self.nrCoreset0NumRbs*self.nrScPerPrb*scaleFd, k] = NrResType.NR_RES_CORESET0.value
-                            else:
-                                self.gridNrFddDl[dn2][self.coreset0FirstSc:self.coreset0FirstSc+self.nrCoreset0NumRbs*self.nrScPerPrb*scaleFd, k] = NrResType.NR_RES_CORESET0.value
-
-                self.coreset0Occasions[i][2] = valid
-                if (len(valid) == 1 and valid[0] == 'NOK') or (len(valid) == 2 and valid[0] == 'NOK' and valid[1] == 'NOK'):
-                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid PDCCH occasion: i=%d(issb=%d,hrf=%d), occasion=%s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), i, i % self.nrSsbMaxL, self.nrMibHrf if self.nrSsbPeriod >= 10 else i // self.nrSsbMaxL, self.coreset0Occasions[i]))
-                    self.error = True
-                    return (None, None, None)
-
-                self.ngwin.logEdit.append('PDCCH monitoring occasion for SSB index=%d(hrf=%d): %s' % (i % self.nrSsbMaxL, self.nrMibHrf if self.nrSsbPeriod >= 10 else i // self.nrSsbMaxL, self.coreset0Occasions[i]))
-
+            
             #for simplicity, assume SSB index is randomly selected!
             while True:
                 bestSsb = np.random.randint(0, len(self.ssbFirstSymbInBaseScsTd[dn]))
@@ -960,11 +750,301 @@ class NgNrGrid(object):
                             self.gridNrFddDl[dn2][self.coreset0FirstSc+(i*self.nrScPerPrb+1)*scaleFd:self.coreset0FirstSc+(i+1)*self.nrScPerPrb*scaleFd:4, firstSymbInBaseScsTd+j*scaleTd:firstSymbInBaseScsTd+(j+1)*scaleTd] = NrResType.NR_RES_DMRS_PDCCH.value
 
             return (hsfn, sfnc, nc)
+        elif dci == 'dci10' and rnti == 'ra-rnti':
+            #convert 'slot'+'msg1LastSymb' which based on prachScs into commonScs
+            tmpStr = 'converting from prachScs(=%dKHz) to commonScs(=%dKHz): [hsfn=%d, sfn=%d, slot=%d, msg1LastSymb=%d] --> ' % (self.prachScs, self.nrMibCommonScs, hsfn, sfn,  slot, self.msg1LastSymb)
+            
+            scaleTd = self.nrMibCommonScs / self.prachScs
+            firstSlotMonitoring = ((slot * self.nrSymbPerSlotNormCp + self.msg1LastSymb + 1) * scaleTd - 1) // self.nrSymbPerSlotNormCp
+            if firstSlotMonitoring >= self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]:
+                firstSlotMonitoring = firstSlotMonitoring % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]
+                hsfn, sfn = self.incSfn(hsfn, sfn, 1)
+                self.recvSsb(hsfn, sfn)
+            firstSymbMonitoring = math.ceil(((slot * self.nrSymbPerSlotNormCp + self.msg1LastSymb + 1) * scaleTd - 1) % self.nrSymbPerSlotNormCp)
+            
+            tmpStr = tmpStr + '[hsfn=%d, sfn=%d, slot=%d, symb=%d]' % (hsfn, sfn, firstSlotMonitoring, firstSymbMonitoring)
+            self.ngwin.logEdit.append(tmpStr)
+            
+            #refer to 3GPP 38.213 vf40 8.2
+            #The window starts at the first symbol of the earliest CORESET the UE is configured to receive PDCCH for Type1-PDCCH CSS set, as defined in Subclause 10.1, that is at least one symbol, after the last symbol of the PRACH occasion corresponding to the PRACH transmission, where the symbol duration corresponds to the SCS for Type1-PDCCH CSS set as defined in Subclause 10.1.
+            firstSymbMonitoring = firstSymbMonitoring + 1
+            if firstSymbMonitoring >= self.nrSymbPerSlotNormCp:
+                firstSymbMonitoring = firstSymbMonitoring % self.nrSymbPerSlotNormCp
+                firstSlotMonitoring = firstSlotMonitoring + 1
+                if firstSlotMonitoring >= self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]:
+                    firstSlotMonitoring = firstSlotMonitoring % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]
+                    hsfn, sfn = self.incSfn(hsfn, sfn, 1)
+                    self.recvSsb(hsfn, sfn)
+                    
+            self.ngwin.logEdit.append('start monitoring CSS0 for DCI 1_0 scheduling RAR: hsfn=%d, sfn=%d, firstSlotMonitoring=%d, firstSymbMonitoring=%d' % (hsfn, sfn, firstSlotMonitoring, firstSymbMonitoring))
+            
+            symbInd = ((1024 * hsfn + sfn) * self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] + firstSlotMonitoring) * self.nrSymbPerSlotNormCp + firstSymbMonitoring
+            css0Msg2 = [] 
+            while True:
+                ret = self.detCss0(hsfn, sfn)
+                if not ret:
+                    hsfn, sfn = self.incSfn(hsfn, sfn, 1)
+                    self.recvSsb(hsfn, sfn)
+                else:
+                    for i in range(len(self.coreset0Occasions)):
+                        if self.coreset0Occasions[i] is None:
+                            continue
+                        oc, firstSymb, valid = self.coreset0Occasions[i]
+                        for j in range(len(valid)):
+                            if valid[j] == 'NOK':
+                                continue
+                            ocHsfn, ocSfn, ocSlot = oc[j]
+                            symbInd2 = ((1024 * ocHsfn + ocSfn) * self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] + ocSlot) * self.nrSymbPerSlotNormCp + firstSymb 
+                            if symbInd2 >= symbInd and [ocHsfn, ocSfn, ocSlot, firstSymb] not in css0Msg2:
+                                css0Msg2.append([ocHsfn, ocSfn, ocSlot, firstSymb])
+                
+                if len(css0Msg2) > 0:
+                    break
+            
+            startHsfn, startSfn, startSlot, startFirstSymb = css0Msg2[0]
+            raRespWinStart = ((1024 * startHsfn + startSfn) * self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] + startSlot) * self.nrSymbPerSlotNormCp + startFirstSymb
+            raRespWinEnd = ((1024 * startHsfn + startSfn) * self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] + startSlot + self.nrRachRaRespWin) * self.nrSymbPerSlotNormCp + startFirstSymb - self.nrCoreset0NumSymbs
+            validCss0Msg2 = [css0Msg2[0]]
+            for i in range(1, len(css0Msg2)):
+                ocHsfn, ocSfn, ocSlot, ocFirstSymb = css0Msg2[i]
+                symbInd2 = ((1024 * ocHsfn + ocSfn) * self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] + ocSlot) * self.nrSymbPerSlotNormCp + ocFirstSymb 
+                if symbInd2 >= raRespWinStart and symbInd2 < raRespWinEnd:
+                    validCss0Msg2.append(css0Msg2[i])
+            
+            self.ngwin.logEdit.append('contents of css0Msg2:')
+            for i in range(len(css0Msg2)):
+                self.ngwin.logEdit.append('PDCCH occasion #%d: %s' % (i, css0Msg2[i]))
+            self.ngwin.logEdit.append('contents of validCss0Msg2(raRespWin=%d slots):' % self.nrRachRaRespWin)
+            for i in range(len(validCss0Msg2)):
+                self.ngwin.logEdit.append('PDCCH occasion #%d: %s' % (i, validCss0Msg2[i]))
+            
+            return (hsfn, sfn, slot)
         else:
             #TODO
             return (hsfn, sfn, 0)
 
 
+    def detCss0(self, hsfn, sfn):
+        self.coreset0Occasions = []
+        if self.nrCoreset0MultiplexingPat == 1:
+            #refer to 3GPP 38.213 vf30
+            #Table 13-11: Parameters for PDCCH monitoring occasions for Type0-PDCCH CSS set - SS/PBCH block and CORESET multiplexing pattern 1 and FR1
+            #Table 13-12: Parameters for PDCCH monitoring occasions for Type0-PDCCH CSS set - SS/PBCH block and CORESET multiplexing pattern 1 and FR2
+            css0OccasionsPat1Fr1 = {
+                0 : (0,1,2,(0,)),
+                1 : (0,2,1,(0, self.nrCoreset0NumSymbs)),
+                2 : (4,1,2,(0,)),
+                3 : (4,2,1,(0, self.nrCoreset0NumSymbs)),
+                4 : (10,1,2,(0,)),
+                5 : (10,2,1,(0, self.nrCoreset0NumSymbs)),
+                6 : (14,1,2,(0,)),
+                7 : (14,2,1,(0, self.nrCoreset0NumSymbs)),
+                8 : (0,1,4,(0,)),
+                9 : (10,1,4,(0,)),
+                10 : (0,1,2,(1,)),
+                11 : (0,1,2,(2,)),
+                12 : (4,1,2,(1,)),
+                13 : (4,1,2,(2,)),
+                14 : (10,1,2,(1,)),
+                15 : (10,1,2,(2,)),
+                }
+            css0OccasionsPat1Fr2 = {
+                0 : (0,1,2,(0,)),
+                1 : (0,2,1,(0,7),),
+                2 : (5,1,2,(0,)),
+                3 : (5,2,1,(0,7),),
+                4 : (10,1,2,(0,)),
+                5 : (10,2,1,(0,7),),
+                6 : (0,2,1,(0, self.nrCoreset0NumSymbs)),
+                7 : (5,2,1,(0, self.nrCoreset0NumSymbs)),
+                8 : (10,2,1,(0, self.nrCoreset0NumSymbs)),
+                9 : (15,1,2,(0,)),
+                10 : (15,2,1,(0,7),),
+                11 : (15,2,1,(0, self.nrCoreset0NumSymbs)),
+                12 : (0,1,4,(0,)),
+                13 : (10,1,4,(0,)),
+                14 : None,
+                15 : None,
+                }
+
+            if css0OccasionsPat1Fr2[self.nrRmsiCss0] is None:
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(=%d) when referring css0OccasionsPat1Fr2.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.nrRmsiCss0))
+                self.error = True
+                return False
+            else:
+                O2, numSetsPerSlot, M2, firstSymbSet = css0OccasionsPat1Fr1[self.nrRmsiCss0] if self.nrFreqRange == 'FR1' else css0OccasionsPat1Fr2[self.nrRmsiCss0]
+
+            dn = '%s_%s' % (hsfn, sfn)
+            if not dn in self.ssbFirstSymbInBaseScsTd:
+                return False
+
+            for i in range(len(self.ssbFirstSymbInBaseScsTd[dn])):
+                if self.ssbFirstSymbInBaseScsTd[dn][i] is None:
+                    self.coreset0Occasions.append(None)
+                    continue
+
+                issb = i % self.nrSsbMaxL
+                #determine pdcch monitoring occasion (sfnc + nc) for ssb with index issb
+                val = (O2 * 2 ** self.nrScs2Mu[self.nrMibCommonScs]) // 2 + math.floor(issb * M2 / 2)
+                valSfnc = math.floor(val / self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]])
+                if (valSfnc % 2 == 0 and sfn % 2 == 0) or (valSfnc % 2 == 1 and sfn % 2 == 1):
+                    sfnc = sfn
+                else:
+                    hsfn, sfn = self.incSfn(hsfn, sfn, 1)
+                    self.recvSsb(hsfn, sfn)
+                    sfnc = sfn
+
+                n0 = val % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]
+                if n0 == self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] - 1:
+                    oc = [(hsfn, sfnc, n0)]
+                    hsfn, sfn = self.incSfn(hsfn, sfn, 1)
+                    self.recvSsb(hsfn, sfn)
+                    sfnc = sfn
+                    oc.append((hsfn, sfnc, 0))
+                else:
+                    nc = [n0, n0+1]
+                    oc = [(hsfn, sfnc, i) for i in nc]
+
+                #determine first symbol of coreset0
+                if len(firstSymbSet) == 2:
+                    firstSymbCoreset0 = firstSymbSet[0] if issb % 2 == 0 else firstSymbSet[1]
+                else:
+                    firstSymbCoreset0 = firstSymbSet[0]
+
+                self.coreset0Occasions.append([oc, firstSymbCoreset0, ['OK', 'OK']])
+
+        elif self.nrCoreset0MultiplexingPat == 2:
+            dn = '%s_%s' % (hsfn, sfn)
+            if not dn in self.ssbFirstSymbInBaseScsTd:
+                return False
+
+            for i in range(len(self.ssbFirstSymbInBaseScsTd[dn])):
+                if self.ssbFirstSymbInBaseScsTd[dn][i] is None:
+                    self.coreset0Occasions.append(None)
+                    continue
+
+                issb = i % self.nrSsbMaxL
+                #determine sfnSsb and nSsb which are based on commonScs
+                sfnSsb = sfn
+                scaleTd = self.baseScsTd // self.nrMibCommonScs
+                nSsb = math.floor(self.ssbFirstSymbInBaseScsTd[dn][i] / (self.nrSymbPerSlotNormCp * scaleTd))
+
+                #Table 13-13: PDCCH monitoring occasions for Type0-PDCCH CSS set - SS/PBCH block and CORESET multiplexing pattern 2 and {SS/PBCH block, PDCCH} SCS {120, 60} kHz
+                #Table 13-14: PDCCH monitoring occasions for Type0-PDCCH CSS set - SS/PBCH block and CORESET multiplexing pattern 2 and {SS/PBCH block, PDCCH} SCS {240, 120} kHz
+                if self.nrSsbScs == 120 and self.nrMibCommonScs == 60:
+                    sfnc = sfnSsb
+                    nc = [nSsb,]
+                    firstSymbCoreset0 = (0, 1, 6, 7)[issb % 4]
+                elif self.nrSsbScs == 240 and self.nrMibCommonScs == 120:
+                    issbMod8Set1 = (0, 1, 2, 3, 6, 7)
+                    issbMod8Set2 = (4, 5)
+                    if issb % 8 in issbMod8Set2:
+                        sfnc = sfnSsb
+                        nc = [nSsb - 1,]
+                        firstSymbCoreset0 = (12, 13)[issbMod8Set2.index(issb % 8)]
+                    else:
+                        sfnc = sfnSsb
+                        nc = [nSsb,]
+                        firstSymbCoreset0 = (0, 1, 2, 3, 0, 1)[issbMod8Set1.index(issb % 8)]
+                else:
+                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid combination of ssbScs(=%d) and mibCommonScs(=%d) for FR2.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.nrSsbScs, self.nrMibCommonScs))
+                    self.error = True
+                    return False
+
+                oc = [(hsfn, sfnc, i) for i in nc]
+                self.coreset0Occasions.append([oc, firstSymbCoreset0, ['OK']])
+        else:
+            dn = '%s_%s' % (hsfn, sfn)
+            if not dn in self.ssbFirstSymbInBaseScsTd:
+                return False
+
+            for i in range(len(self.ssbFirstSymbInBaseScsTd[dn])):
+                if self.ssbFirstSymbInBaseScsTd[dn][i] is None:
+                    self.coreset0Occasions.append(None)
+                    continue
+
+                issb = i % self.nrSsbMaxL
+                #determine sfnSsb and nSsb which are based on commonScs
+                sfnSsb = sfn
+                scaleTd = self.baseScsTd // self.nrMibCommonScs
+                nSsb = math.floor(self.ssbFirstSymbInBaseScsTd[dn][i] / (self.nrSymbPerSlotNormCp * scaleTd))
+
+                #Table 13-15: PDCCH monitoring occasions for Type0-PDCCH CSS set - SS/PBCH block and CORESET multiplexing pattern 3 and {SS/PBCH block, PDCCH} SCS {120, 120} kHz
+                if self.nrSsbScs == 120 and self.nrMibCommonScs == 120:
+                    sfnc = sfnSsb
+                    nc = [nSsb,]
+                    firstSymbCoreset0 = (4, 8, 2, 6)[issb % 4]
+                else:
+                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid combination of ssbScs(=%d) and mibCommonScs(=%d) for FR2.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.nrSsbScs, self.nrMibCommonScs))
+                    self.error = True
+                    return False
+
+                oc = [(hsfn, sfnc, i) for i in nc]
+                self.coreset0Occasions.append([oc, firstSymbCoreset0, ['OK']])
+
+        #validate pdcch occasions
+        scaleTd = self.baseScsTd // self.nrMibCommonScs
+        scaleFd = self.nrMibCommonScs // self.baseScsFd
+        for i in range(len(self.coreset0Occasions)):
+            if self.coreset0Occasions[i] is None:
+                continue
+
+            oc, firstSymb, valid = self.coreset0Occasions[i]
+            for j in range(len(oc)):
+                hsfn, sfnc, nc = oc[j]
+
+                dn2 = '%s_%s' % (hsfn, sfnc)
+                firstSymbInBaseScsTd = (nc * self.nrSymbPerSlotNormCp + firstSymb) * scaleTd
+                coreset0SymbsInBaseScsTd = [firstSymbInBaseScsTd+k for k in range(self.nrCoreset0NumSymbs * scaleTd)]
+                #self.ngwin.logEdit.append('---->coreset0SymbsInBaseScsTd[issb=%d,nc=%d]=%s' % (i % self.nrSsbMaxL, nc, coreset0SymbsInBaseScsTd))
+
+                #refer to 3GPP 38.213 vf30
+                #10 UE procedure for receiving control information
+                '''
+                If the UE monitors the PDCCH candidate for a Type0-PDCCH CSS set on the serving cell according to the procedure described in Subclause 13, the UE may assume that no SS/PBCH block is transmitted in REs used for monitoring the PDCCH candidate on the serving cell.
+                '''
+                if dn2 in self.ssbFirstSymbInBaseScsTd:
+                    #multiplexing pattern 1 uses TDM only, and pattern 2 uses FDM/TDM, pattern 3 uses FDM only
+                    #coreset0 and ssb dosn't overlap in freq-domain when:
+                    #(1) if offset>0, offset >= #RB_CORESET0
+                    #(2) if offset<0, offset <= -1 * #RB_SSB * (ssbScs / commonScs)
+                    tdOverlapped = True if len(self.ssbSymbsInBaseScsTd[dn2].intersection(set(coreset0SymbsInBaseScsTd))) > 0 else False
+                    fdOverlapped = True if not (self.nrCoreset0Offset >= self.nrCoreset0NumRbs or self.nrCoreset0Offset <= -20*(self.nrSsbScs//self.nrMibCommonScs)) else False
+                    if tdOverlapped and fdOverlapped:
+                        valid[j] = 'NOK'
+                        self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: If the UE monitors the PDCCH candidate for a Type0-PDCCH CSS set on the serving cell, the UE may assume that no SS/PBCH block is transmitted in REs used for monitoring the PDCCH candidate on the serving cell. Victim PDCCH occasion is: i=%d(issb=%d,hrf=%d), oc=%s, firstSymb=%s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), i, i % self.nrSsbMaxL, self.nrMibHrf if self.nrSsbPeriod >= 10 else i // self.nrSsbMaxL, oc[j], firstSymb))
+                        self.error = True
+                        return False
+
+                #refer to 3GPP 38.213 vf30
+                #11.1 Slot configuration
+                '''
+                For a set of symbols of a slot indicated to a UE by pdcch-ConfigSIB1 in MIB for a CORESET for Type0-PDCCH CSS set, the UE does not expect the set of symbols to be indicated as uplink by TDD-UL-DL-ConfigurationCommon, or TDD-UL-DL-ConfigDedicated.
+                '''
+                if self.nrDuplexMode == 'TDD':
+                    for k in coreset0SymbsInBaseScsTd:
+                        if self.gridNrTdd[dn2][self.ssbFirstSc, k] == NrResType.NR_RES_U.value:
+                            valid[j] = 'NOK'
+                            break
+
+                #set CORESET0 for each PDCCH occasions
+                if valid[j] == 'OK':
+                    for k in coreset0SymbsInBaseScsTd:
+                        if self.nrDuplexMode == 'TDD':
+                            self.gridNrTdd[dn2][self.coreset0FirstSc:self.coreset0FirstSc+self.nrCoreset0NumRbs*self.nrScPerPrb*scaleFd, k] = NrResType.NR_RES_CORESET0.value
+                        else:
+                            self.gridNrFddDl[dn2][self.coreset0FirstSc:self.coreset0FirstSc+self.nrCoreset0NumRbs*self.nrScPerPrb*scaleFd, k] = NrResType.NR_RES_CORESET0.value
+
+            self.coreset0Occasions[i][2] = valid
+            if (len(valid) == 1 and valid[0] == 'NOK') or (len(valid) == 2 and valid[0] == 'NOK' and valid[1] == 'NOK'):
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid PDCCH occasion: i=%d(issb=%d,hrf=%d), occasion=%s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), i, i % self.nrSsbMaxL, self.nrMibHrf if self.nrSsbPeriod >= 10 else i // self.nrSsbMaxL, self.coreset0Occasions[i]))
+                self.error = True
+                return False
+
+            self.ngwin.logEdit.append('[Type-0 CSS]PDCCH monitoring occasion for SSB index=%d(hrf=%d): %s' % (i % self.nrSsbMaxL, self.nrMibHrf if self.nrSsbPeriod >= 10 else i // self.nrSsbMaxL, self.coreset0Occasions[i]))
+            
+        return True
+    
     def coresetCce2RegMapping(self, coreset='coreset0', numRbs=6, numSymbs=1, interleaved=False, L=6, R=None, nShift=None):
         if not coreset in ('coreset0', 'coreset1'):
             return (None, None)
@@ -1325,6 +1405,8 @@ class NgNrGrid(object):
             self.recvSsb(msg1Hsfn, msg1Sfn)
         
         scaleTd = self.baseScsTd // self.prachScs
+        #last symbol of PRACH occasion, starting from msg1Slot
+        self.msg1LastSymb = self.nrRachCfgStartSymb + msg1OccasionInd * self.nrRachCfgDuration + self.nrRachCfgDuration - 1
         msg1FirstSymbInBaseScsTd = (msg1Slot * self.nrSymbPerSlotNormCp + self.nrRachCfgStartSymb + msg1OccasionInd * self.nrRachCfgDuration) * scaleTd
         msg1SymbsInBaseScsTd = [msg1FirstSymbInBaseScsTd+k for k in range(self.nrRachCfgDuration*scaleTd)]
         
@@ -1341,6 +1423,12 @@ class NgNrGrid(object):
             for fd in msg1ScsInBaseScsFd:
                 for td in msg1SymbsInBaseScsTd:
                     self.gridNrFddUl[dn][fd, td] = NrResType.NR_RES_PRACH.value
+                    
+        #refer to 3GPP 38.321 5.1.3
+        #RA-RNTI= 1 + s_id + 14 × t_id + 14 × 80 × f_id + 14 × 80 × 8 × ul_carrier_id
+        #where s_id is the index of the first OFDM symbol of the PRACH occasion (0 ≤ s_id < 14), t_id is the index of the first slot of the PRACH occasion in a system frame (0 ≤ t_id < 80), f_id is the index of the PRACH occasion in the frequency domain (0 ≤ f_id < 8), and ul_carrier_id is the UL carrier used for Random Access Preamble transmission (0 for NUL carrier, and 1 for SUL carrier).
+        self.raRnti = 1 + (self.nrRachCfgStartSymb + msg1OccasionInd * self.nrRachCfgDuration) + 14 * msg1Slot + 14 * 80 * msg1FdmInd
+        self.ngwin.logEdit.append('Associated RA-RNTI = 0x{:04X}'.format(self.raRnti))
         
         return (msg1Hsfn, msg1Sfn, msg1Slot)
         #return (hsfn, sfn, slot)

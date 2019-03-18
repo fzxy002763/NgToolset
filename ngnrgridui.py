@@ -1605,6 +1605,10 @@ class NgNrGridUi(QDialog):
         self.nrRachGenericMsg1FreqStartLabel = QLabel('msg1-FrequencyStart[0-274]:')
         self.nrRachGenericMsg1FreqStartEdit = QLineEdit('0')
         self.nrRachGenericMsg1FreqStartEdit.setValidator(QIntValidator(0, 274))
+        
+        self.nrRachGenericRaRespWinLabel = QLabel('ra-ResponseWindow:')
+        self.nrRachGenericRaRespWinComb = QComboBox()
+        self.nrRachGenericRaRespWinComb.addItems(['sl1', 'sl2', 'sl4', 'sl8', 'sl10', 'sl20', 'sl40', 'sl80'])
 
         rachGenericGrpBox = QGroupBox()
         rachGenericGrpBox.setTitle('RACH-ConfigGeneric')
@@ -1619,6 +1623,8 @@ class NgNrGridUi(QDialog):
         rachGenericGrpBoxGridLayout.addWidget(self.nrRachGenericMsg1FdmComb, 3, 1)
         rachGenericGrpBoxGridLayout.addWidget(self.nrRachGenericMsg1FreqStartLabel, 4, 0)
         rachGenericGrpBoxGridLayout.addWidget(self.nrRachGenericMsg1FreqStartEdit, 4, 1)
+        rachGenericGrpBoxGridLayout.addWidget(self.nrRachGenericRaRespWinLabel, 5, 0)
+        rachGenericGrpBoxGridLayout.addWidget(self.nrRachGenericRaRespWinComb, 5, 1)
         rachGenericGrpBox.setLayout(rachGenericGrpBoxGridLayout)
 
         self.nrRachNumRaPreamblesLabel = QLabel('totalNumberOfRA-Preambles[1-64]:')
@@ -6629,6 +6635,19 @@ class NgNrGridUi(QDialog):
             if self.flagCoreset0:
                 self.updateKSsbAndNCrbSsb(offset=0 if self.coreset0Offset < 0 else self.coreset0Offset)
                 self.flagCss0 = self.validateCss0()
+        
+        #(3) update ra-ResponseWindow comb
+        #refer to 3GPP 38.331 vf40 RACH-ConfigGeneric
+        #The network configures a value lower than or equal to 10 ms (see TS 38.321 [3], clause 5.1.4).
+        self.nrRachGenericRaRespWinComb.clear()
+        if self.nrMibScsCommonComb.currentText()[:-3] == '15':
+            self.nrRachGenericRaRespWinComb.addItems(['sl1', 'sl2', 'sl4', 'sl8', 'sl10'])
+        elif self.nrMibScsCommonComb.currentText()[:-3] == '30':
+            self.nrRachGenericRaRespWinComb.addItems(['sl1', 'sl2', 'sl4', 'sl8', 'sl10', 'sl20'])
+        elif self.nrMibScsCommonComb.currentText()[:-3] == '60':
+            self.nrRachGenericRaRespWinComb.addItems(['sl1', 'sl2', 'sl4', 'sl8', 'sl10', 'sl20', 'sl40'])
+        else:
+            self.nrRachGenericRaRespWinComb.addItems(['sl1', 'sl2', 'sl4', 'sl8', 'sl10', 'sl20', 'sl40', 'sl80'])
 
     def onCarrierBwCombCurIndChanged(self, index):
         if index < 0:
@@ -10250,7 +10269,7 @@ class NgNrGridUi(QDialog):
         #receiving SSB
         nrGrid.recvSsb(hsfn, sfn)
         #monitoring PDCCH for SIB1
-        hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci10', rnti='si-rnti')
+        hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, 0, dci='dci10', rnti='si-rnti')
         if hsfn is not None and sfn is not None and slot is not None:
             #receiving SIB1
             nrGrid.recvSib1(hsfn, sfn, slot)
@@ -10259,9 +10278,10 @@ class NgNrGridUi(QDialog):
         if hsfn is not None and sfn is not None and slot is not None:
             hsfn, sfn, slot = nrGrid.sendMsg1(hsfn, sfn, slot)
         
-        '''
         #monitoring PDCCH for Msg2
-        hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci10', rnti='ra-rnti')
+        if hsfn is not None and sfn is not None and slot is not None:
+            hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, slot, dci='dci10', rnti='ra-rnti')
+        '''
         #receiving Msg2(RAR)
         hsfn, sfn = nrGrid.recvMsg2(hsfn, sfn)
         #sending Msg3(PUSCH)
@@ -10425,6 +10445,7 @@ class NgNrGridUi(QDialog):
         self.args['rach']['scs'] = self.nrRachGenericScsComb.currentText()
         self.args['rach']['msg1Fdm'] = self.nrRachGenericMsg1FdmComb.currentText()
         self.args['rach']['msg1FreqStart'] = self.nrRachGenericMsg1FreqStartEdit.text()
+        self.args['rach']['raRespWin'] = self.nrRachGenericRaRespWinComb.currentText()
         self.args['rach']['totNumPreambs'] = self.nrRachNumRaPreamblesEdit.text()
         self.args['rach']['ssbPerRachOccasion'] = self.nrRachSsbPerRachOccasionComb.currentText()
         self.args['rach']['cbPreambsPerSsb'] = self.nrRachCbPreamblesPerSsbComb.currentText()
