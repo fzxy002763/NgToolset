@@ -742,7 +742,7 @@ class NgNrGrid(object):
         if not rnti in ('si-rnti', 'ra-rnti', 'tc-rnti', 'c-rnti'):
             return (None, None, None)
 
-        self.ngwin.logEdit.append('---->inside recvPdcch(hsfn=%d, sfn=%d, slot=%d, dci="%s",rnti="%s", scaleTdSsb=%d, scaleTdRmsiScs=%d)' % (hsfn, sfn, slot, dci, rnti, self.baseScsTd // self.nrSsbScs, self.baseScsTd // self.nrMibCommonScs))
+        self.ngwin.logEdit.append('---->inside monitorPdcch(hsfn=%d, sfn=%d, slot=%d, dci="%s",rnti="%s", scaleTdSsb=%d, scaleTdRmsiScs=%d)' % (hsfn, sfn, slot, dci, rnti, self.baseScsTd // self.nrSsbScs, self.baseScsTd // self.nrMibCommonScs))
         qApp.processEvents()
 
         if dci == 'dci10' and rnti == 'si-rnti':
