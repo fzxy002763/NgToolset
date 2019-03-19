@@ -10272,7 +10272,7 @@ class NgNrGridUi(QDialog):
         hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, 0, dci='dci10', rnti='si-rnti')
         if hsfn is not None and sfn is not None and slot is not None:
             #receiving SIB1
-            nrGrid.recvSib1(hsfn, sfn, slot)
+            hsfn, sfn, slot = nrGrid.recvSib1(hsfn, sfn, slot)
 
         #sending Msg1(PRACH)
         if hsfn is not None and sfn is not None and slot is not None:
@@ -10281,9 +10281,11 @@ class NgNrGridUi(QDialog):
         #monitoring PDCCH for Msg2
         if hsfn is not None and sfn is not None and slot is not None:
             hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, slot, dci='dci10', rnti='ra-rnti')
-        '''
+            
         #receiving Msg2(RAR)
-        hsfn, sfn = nrGrid.recvMsg2(hsfn, sfn)
+        if hsfn is not None and sfn is not None and slot is not None:
+            hsfn, sfn, slot = nrGrid.recvMsg2(hsfn, sfn, slot)
+        '''
         #sending Msg3(PUSCH)
         hsfn, sfn = nrGrid.sendMsg3(hsfn, sfn)
         #monitoring PDCCH for Msg4

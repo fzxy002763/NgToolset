@@ -1156,7 +1156,7 @@ class NgNrGrid(object):
 
     def recvSib1(self, hsfn, sfn, slot):
         if self.error:
-            return
+            return (None, None, None)
 
         self.ngwin.logEdit.append('---->inside recvSib1(hsfn=%d,sfn=%d,dci slot=%d)' % (hsfn, sfn, slot))
 
@@ -1467,9 +1467,13 @@ class NgNrGrid(object):
         return (msg1Hsfn, msg1Sfn, msg1Slot)
         #return (hsfn, sfn, slot)
 
-    def recvMsg2(self, hsfn, sfn):
-        self.ngwin.logEdit.append('---->inside recvMsg2')
-        return (hsfn, sfn)
+    def recvMsg2(self, hsfn, sfn, slot):
+        if self.error:
+            return (None, None, None)
+        
+        self.ngwin.logEdit.append('---->inside recvMsg2(hsfn=%d,sfn=%d,dci slot=%d)' % (hsfn, sfn, slot))
+        
+        return (hsfn, sfn, slot)
 
     def sendMsg3(self, hsfn, sfn):
         self.ngwin.logEdit.append('---->inside sendMsg3')
