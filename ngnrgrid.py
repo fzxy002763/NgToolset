@@ -15,6 +15,7 @@ import os
 import time
 from enum import Enum
 from collections import OrderedDict
+from PyQt5.QtWidgets import qApp
 import numpy as np
 #from openpyxl import Workbook
 import xlsxwriter
@@ -74,6 +75,7 @@ class NgNrGrid(object):
 
     def init(self):
         self.ngwin.logEdit.append('---->inside init')
+        qApp.processEvents()
 
         #HSFN not exit in NR specs, but used in 5GNR resource grid for convenience
         self.hsfn = 0
@@ -147,6 +149,7 @@ class NgNrGrid(object):
             self.ssbSet = self.nrSsbInOneGroup[:self.nrSsbMaxL]
 
         self.ngwin.logEdit.append('ssbSet="%s"' % self.ssbSet)
+        qApp.processEvents()
 
         if self.nrSsbPattern == 'Case A' and self.nrSsbScs == 15:
             ssb1 = [2, 8]
@@ -186,6 +189,7 @@ class NgNrGrid(object):
         for i in range(len(self.ssbSet)):
             ssbFirstSymbSetStr.append(str(self.ssbFirstSymbSet[i]) if self.ssbSet[i] == '1' else '-')
         self.ngwin.logEdit.append('ssb first symbols: "%s"' % ','.join(ssbFirstSymbSetStr))
+        qApp.processEvents()
 
         self.nrCoreset0MultiplexingPat = self.args['mib']['coreset0MultiplexingPat']
         self.nrCoreset0NumRbs = self.args['mib']['coreset0NumRbs']
@@ -199,6 +203,7 @@ class NgNrGrid(object):
         self.coreset0NumCces = self.nrCoreset0NumRbs * self.nrCoreset0NumSymbs // 6
         if self.nrCss0AggLevel > self.coreset0NumCces:
             self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid configurations of CSS0/CORESET0: aggregation level=%d while total number of CCEs=%d!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.nrCss0AggLevel, self.coreset0NumCces))
+            qApp.processEvents()
             return False
 
         #self.coreset0FirstSc = self.ssbFirstSc - self.nrCoreset0Offset * self.nrScPerPrb * (self.nrMibCommonScs // self.baseScsFd)
@@ -369,6 +374,7 @@ class NgNrGrid(object):
         key = '%s_%s' % (self.args['tddCfg']['pat1Period'], self.nrScs2Mu[self.nrTddCfgRefScs])
         if not key in self.tddCfgRefScsPeriod or self.tddCfgRefScsPeriod[key] is None:
             self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring tddCfgRefScsPeriod!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+            qApp.processEvents()
             return False
         self.pat1NumSlotsPerPeriod = self.tddCfgRefScsPeriod[key]
         self.nrTddCfgPat1NumDlSlots = int(self.args['tddCfg']['pat1NumDlSlots'])
@@ -380,6 +386,7 @@ class NgNrGrid(object):
             key = '%s_%s' % (self.args['tddCfg']['pat2Period'], self.nrScs2Mu[self.nrTddCfgRefScs])
             if not key in self.tddCfgRefScsPeriod or self.tddCfgRefScsPeriod[key] is None:
                 self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring tddCfgRefScsPeriod!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+                qApp.processEvents()
                 return False
             self.pat2NumSlotsPerPeriod = self.tddCfgRefScsPeriod[key]
             self.nrTddCfgPat2NumDlSlots = int(self.args['tddCfg']['pat2NumDlSlots'])
@@ -390,12 +397,14 @@ class NgNrGrid(object):
             period = self.tddCfgPeriod2Int[self.args['tddCfg']['pat1Period']] + self.tddCfgPeriod2Int[self.args['tddCfg']['pat2Period']]
             if 160 % period != 0:
                 self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid TDD-UL-DL-Config periodicity(=%.3fms) with p=%.3fms and p2=%.3fms, which should divide 20ms!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), period/8, self.tddCfgPeriod2Int[self.args['tddCfg']['pat1Period']]/8, self.tddCfgPeriod2Int[self.args['tddCfg']['pat2Period']]/8))
+                qApp.processEvents()
                 return False
         else:
             self.pat2NumSlotsPerPeriod = None
             period = self.tddCfgPeriod2Int[self.args['tddCfg']['pat1Period']]
             if 160 % period != 0:
                 self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid TDD-UL-DL-Config periodicity(=%.3fms), which should divide 20ms!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), period/8))
+                qApp.processEvents()
                 return False
 
         self.periodsPer20ms = 160 // period
@@ -426,11 +435,13 @@ class NgNrGrid(object):
         for i in range(len(self.tddPatOddRf)):
             if (i+1) % self.nrSymbPerSlotNormCp == 0:
                 self.ngwin.logEdit.append('-->slot%d: %s' % (i // self.nrSymbPerSlotNormCp, ''.join(self.tddPatOddRf[i-13:i+1])))
-
+        qApp.processEvents()
+        
         return True
 
     def initTddGrid(self, hsfn, sfn):
         self.ngwin.logEdit.append('---->inside initTddGrid(hsfn=%d, sfn=%d)' % (hsfn, sfn))
+        qApp.processEvents()
 
         dn = '%s_%s' % (hsfn, sfn)
         if not dn in self.gridNrTdd:
@@ -440,6 +451,7 @@ class NgNrGrid(object):
         tddCfgMap = {'D':NrResType.NR_RES_D.value, 'F':NrResType.NR_RES_F.value, 'U':NrResType.NR_RES_U.value}
         scaleTd = self.baseScsTd // self.nrTddCfgRefScs
         self.ngwin.logEdit.append('scaleTd=%d where baseScsTd=%dKHz and tddCfgRefScs=%dKHz' % (scaleTd, self.baseScsTd, self.nrTddCfgRefScs))
+        qApp.processEvents()
         if sfn % 2 == 0:
             for i in range(len(self.tddPatEvenRf)):
                 for j in range(scaleTd):
@@ -456,7 +468,8 @@ class NgNrGrid(object):
         '''
 
     def exportToExcel(self):
-        self.ngwin.logEdit.append('---->exporting to excel(engine=xlsxwriter)...')
+        self.ngwin.logEdit.append('---->exporting to excel(engine=xlsxwriter), please wait...')
+        qApp.processEvents()
         verticalHeader = []
         for i in range(self.nrScTot):
             verticalHeader.append('crb%dsc%d' % (i // self.nrScPerPrb, i % self.nrScPerPrb))
@@ -584,6 +597,7 @@ class NgNrGrid(object):
             return
 
         self.ngwin.logEdit.append('---->inside recvSsb(hsfn=%d,sfn=%d, scaleFd=%d, scaleTd=%d)' % (hsfn, sfn, self.nrSsbScs // self.baseScsFd, self.baseScsTd // self.nrSsbScs))
+        qApp.processEvents()
 
         dn = '%s_%s' % (hsfn, sfn)
         #init gridNrTdd or gridNrFddDl/gridNrFddUl if necessary
@@ -622,6 +636,7 @@ class NgNrGrid(object):
                 scaleTd = self.baseScsTd // self.nrSsbScs
                 ssbFirstSymb = hrf * (self.nrSymbPerRfNormCp // 2) + self.ssbFirstSymbSet[issb] * scaleTd
                 self.ngwin.logEdit.append('issb=%d, ssbFirstSc=%d, v=%d, ssbFirstSymb=%d' % (issb, self.ssbFirstSc, v, ssbFirstSymb))
+                qApp.processEvents()
 
                 #refer to 3GPP 38.211 vf30
                 #Table 7.4.3.1-1: Resources within an SS/PBCH block for PSS, SSS, PBCH, and DM-RS for PBCH.
@@ -637,6 +652,7 @@ class NgNrGrid(object):
                             #if self.gridNrTdd[dn][self.ssbFirstSc, ssbFirstSymb+i*scaleTd+j] == NrResType.NR_RES_U.value:
                             if self.gridNrTdd[dn][self.ssbFirstSc, ssbFirstSymb+i*scaleTd+j] in (NrResType.NR_RES_U.value, NrResType.NR_RES_F.value):
                                 self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: The UE does not expect the set of symbols of the slot which are used for SSB transmission(ssb index=%d, first symbol=%d) to be indicated as uplink by TDD-UL-DL-ConfigurationCommon.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), issb, ssbFirstSymb))
+                                qApp.processEvents()
                                 self.error = True
                                 return
 
@@ -727,6 +743,7 @@ class NgNrGrid(object):
             return (None, None, None)
 
         self.ngwin.logEdit.append('---->inside recvPdcch(hsfn=%d, sfn=%d, slot=%d, dci="%s",rnti="%s", scaleTdSsb=%d, scaleTdRmsiScs=%d)' % (hsfn, sfn, slot, dci, rnti, self.baseScsTd // self.nrSsbScs, self.baseScsTd // self.nrMibCommonScs))
+        qApp.processEvents()
 
         if dci == 'dci10' and rnti == 'si-rnti':
             ret = self.detCss0(hsfn, sfn)
@@ -757,6 +774,7 @@ class NgNrGrid(object):
             pdcchCandidate = np.random.randint(0, numCandidates)
 
             self.ngwin.logEdit.append('randomly selecting pdcch candidate: bestSsb=%d(hrf=%d,issb=%d), pdcchSlot=%d, pdcchCandidate=%d' % (bestSsb, self.nrMibHrf if self.nrSsbPeriod >= 10 else bestSsb // self.nrSsbMaxL, bestSsb % self.nrSsbMaxL, pdcchSlot, pdcchCandidate))
+            qApp.processEvents()
             
             #save bestSsb index for later ssb-prach mapping
             self.bestSsbInd = bestSsb % self.nrSsbMaxL
@@ -790,6 +808,7 @@ class NgNrGrid(object):
             
             tmpStr = tmpStr + '[hsfn=%d, sfn=%d, slot=%d, symb=%d]' % (hsfn, sfn, firstSlotMonitoring, firstSymbMonitoring)
             self.ngwin.logEdit.append(tmpStr)
+            qApp.processEvents()
             
             oldHsfn, oldSfn = hsfn, sfn
             
@@ -805,6 +824,7 @@ class NgNrGrid(object):
                     self.recvSsb(hsfn, sfn)
                     
             self.ngwin.logEdit.append('start monitoring CSS0 for DCI 1_0 scheduling RAR: hsfn=%d, sfn=%d, firstSlotMonitoring=%d, firstSymbMonitoring=%d' % (hsfn, sfn, firstSlotMonitoring, firstSymbMonitoring))
+            qApp.processEvents()
             
             symbInd = ((1024 * hsfn + sfn) * self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] + firstSlotMonitoring) * self.nrSymbPerSlotNormCp + firstSymbMonitoring
             css0Msg2 = [] 
@@ -818,9 +838,6 @@ class NgNrGrid(object):
                         else:
                             self.gridNrFddUl.pop('%s_%s' % (hsfn, sfn))
                             self.gridNrFddDl.pop('%s_%s' % (hsfn, sfn))
-                            
-                    hsfn, sfn = self.incSfn(hsfn, sfn, 1)
-                    self.recvSsb(hsfn, sfn)
                 else:
                     for i in range(len(self.coreset0Occasions)):
                         if self.coreset0Occasions[i] is None:
@@ -836,6 +853,9 @@ class NgNrGrid(object):
                 
                 if len(css0Msg2) > 0:
                     break
+                
+                hsfn, sfn = self.incSfn(hsfn, sfn, 1)
+                self.recvSsb(hsfn, sfn)
             
             startHsfn, startSfn, startSlot, startFirstSymb = css0Msg2[0]
             raRespWinStart = ((1024 * startHsfn + startSfn) * self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] + startSlot) * self.nrSymbPerSlotNormCp + startFirstSymb
@@ -853,6 +873,7 @@ class NgNrGrid(object):
             self.ngwin.logEdit.append('contents of validCss0Msg2(raRespWin=%d slots):' % self.nrRachRaRespWin)
             for i in range(len(validCss0Msg2)):
                 self.ngwin.logEdit.append('PDCCH occasion #%d: %s' % (i, validCss0Msg2[i]))
+            qApp.processEvents()
             
             #randomly select from validCss0Msg2 pdcch occasion for msg2 scheduling
             pdcchOccasion = np.random.randint(0, len(validCss0Msg2))
@@ -862,6 +883,7 @@ class NgNrGrid(object):
             pdcchCandidate = np.random.randint(0, numCandidates)
             
             self.ngwin.logEdit.append('randomly selecting pdcch candidate: pdcchOccasion=%d(numPdcchOccasions=%d), pdcchCandidate=%d(numPdcchCandidates=%d)' % (pdcchOccasion, len(validCss0Msg2), pdcchCandidate, numCandidates))
+            qApp.processEvents()
             
             scaleTd = self.baseScsTd // self.nrMibCommonScs
             scaleFd = self.nrMibCommonScs // self.baseScsFd
@@ -885,6 +907,9 @@ class NgNrGrid(object):
 
 
     def detCss0(self, hsfn, sfn):
+        self.ngwin.logEdit.append('---->inside detCss0(hsfn=%d, sfn=%d)' % (hsfn, sfn))
+        qApp.processEvents()
+        
         self.coreset0Occasions = []
         if self.nrCoreset0MultiplexingPat == 1:
             #refer to 3GPP 38.213 vf30
@@ -929,6 +954,7 @@ class NgNrGrid(object):
 
             if css0OccasionsPat1Fr2[self.nrRmsiCss0] is None:
                 self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(=%d) when referring css0OccasionsPat1Fr2.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.nrRmsiCss0))
+                qApp.processEvents()
                 self.error = True
                 return False
             else:
@@ -1008,6 +1034,7 @@ class NgNrGrid(object):
                         firstSymbCoreset0 = (0, 1, 2, 3, 0, 1)[issbMod8Set1.index(issb % 8)]
                 else:
                     self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid combination of ssbScs(=%d) and mibCommonScs(=%d) for FR2.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.nrSsbScs, self.nrMibCommonScs))
+                    qApp.processEvents()
                     self.error = True
                     return False
 
@@ -1036,6 +1063,7 @@ class NgNrGrid(object):
                     firstSymbCoreset0 = (4, 8, 2, 6)[issb % 4]
                 else:
                     self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid combination of ssbScs(=%d) and mibCommonScs(=%d) for FR2.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.nrSsbScs, self.nrMibCommonScs))
+                    qApp.processEvents()
                     self.error = True
                     return False
 
@@ -1073,6 +1101,7 @@ class NgNrGrid(object):
                     if tdOverlapped and fdOverlapped:
                         valid[j] = 'NOK'
                         self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: If the UE monitors the PDCCH candidate for a Type0-PDCCH CSS set on the serving cell, the UE may assume that no SS/PBCH block is transmitted in REs used for monitoring the PDCCH candidate on the serving cell. Victim PDCCH occasion is: i=%d(issb=%d,hrf=%d), oc=%s, firstSymb=%s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), i, i % self.nrSsbMaxL, self.nrMibHrf if self.nrSsbPeriod >= 10 else i // self.nrSsbMaxL, oc[j], firstSymb))
+                        qApp.processEvents()
                         self.error = True
                         return False
 
@@ -1098,10 +1127,12 @@ class NgNrGrid(object):
             self.coreset0Occasions[i][2] = valid
             if (len(valid) == 1 and valid[0] == 'NOK') or (len(valid) == 2 and valid[0] == 'NOK' and valid[1] == 'NOK'):
                 self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid PDCCH occasion: i=%d(issb=%d,hrf=%d), occasion=%s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), i, i % self.nrSsbMaxL, self.nrMibHrf if self.nrSsbPeriod >= 10 else i // self.nrSsbMaxL, self.coreset0Occasions[i]))
+                qApp.processEvents()
                 self.error = True
                 return False
 
             self.ngwin.logEdit.append('[Type-0 CSS]PDCCH monitoring occasion for SSB index=%d(hrf=%d): %s' % (i % self.nrSsbMaxL, self.nrMibHrf if self.nrSsbPeriod >= 10 else i // self.nrSsbMaxL, self.coreset0Occasions[i]))
+            qApp.processEvents()
             
         return True
     
@@ -1123,6 +1154,7 @@ class NgNrGrid(object):
                 return (None, None)
 
         self.ngwin.logEdit.append('calling coresetCce2RegMapping for %s: numRbs=%d,numSymbs=%d,interleaved=%s,L=%d,R=%s,nShift=%s' % (coreset, numRbs, numSymbs, interleaved, L, R, nShift))
+        qApp.processEvents()
 
         #indexing REGs
         #refer to 3GPP 38.211 vf30
@@ -1177,6 +1209,7 @@ class NgNrGrid(object):
                 ccesStr.append('\n')
         self.ngwin.logEdit.append('contents of regBundles:\n%s' % ''.join(regBundlesStr))
         self.ngwin.logEdit.append('contents of cces:\n%s' % ''.join(ccesStr))
+        qApp.processEvents()
 
         return (regBundles, cces)
 
@@ -1185,6 +1218,7 @@ class NgNrGrid(object):
             return (None, None, None)
 
         self.ngwin.logEdit.append('---->inside recvSib1(hsfn=%d,sfn=%d,dci slot=%d)' % (hsfn, sfn, slot))
+        qApp.processEvents()
 
         scaleTd = self.baseScsTd // self.nrMibCommonScs
         scaleFd = self.nrMibCommonScs // self.baseScsFd
@@ -1202,6 +1236,7 @@ class NgNrGrid(object):
                 #for PDSCH mapping type B, tdL is defined relative to the start of the scheduled PDSCH resources
                 sib1DmrsSymbs.append(i)
         self.ngwin.logEdit.append('contents of sib1DmrsSymbs(w.r.t to slivS): %s' % sib1DmrsSymbs)
+        qApp.processEvents()
 
         if self.nrSib1FdVrbPrbMappingType == 'nonInterleaved':
             firstScSib1InBaseScsFd = self.coreset0FirstSc + self.nrSib1FdStartRb * self.nrScPerPrb * scaleFd
@@ -1225,8 +1260,9 @@ class NgNrGrid(object):
             fdOverlapped = self.ssbScsInBaseScsFd.intersection(set(sib1ScsInBaseScsFd))
             if len(tdOverlapped) > 0 and len(fdOverlapped) > 0:
                 self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: When receiving the PDSCH scheduled with SI-RNTI and the system information indicator in DCI is set to 0, the UE shall assume that no SS/PBCH block is transmitted in REs used by the UE for a reception of the PDSCH.\ntdOverlapped=%s\nfdOverlapped=%s' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), tdOverlapped, fdOverlapped))
+                qApp.processEvents()
                 self.error = True
-                return
+                return (None, None, None)
 
         for i in range(self.nrSib1TdNumSymbs):
             #if self.nrDuplexMode == 'TDD' and self.gridNrTdd[dn][self.coreset0FirstSc, firstSymbSib1InBaseScsTd+i*scaleTd] == NrResType.NR_RES_U.value:
@@ -1260,6 +1296,7 @@ class NgNrGrid(object):
         #FIXME The UE is not expected to be configured with Li=2 simultaneously with a PRG size of 4 as defined in [6, TS 38.214].
 
         self.ngwin.logEdit.append('calling dci10CssVrb2PrbMapping: coreset0Size=%d,iniDlBwpStart=%d,coreset0Start=%d,L=%d' % (coreset0Size, iniDlBwpStart, coreset0Start, L))
+        qApp.processEvents()
 
         numBundles = math.ceil((coreset0Size + (iniDlBwpStart + coreset0Start) % L) / L)
         rbBundleSize = []
@@ -1295,6 +1332,7 @@ class NgNrGrid(object):
         self.ngwin.logEdit.append('contents of vrbBundles: %s' % vrbBundles)
         self.ngwin.logEdit.append('contents of prbBundles: %s' % prbBundles)
         self.ngwin.logEdit.append('contents of prbs: %s' % prbs)
+        qApp.processEvents()
 
         return prbs
 
@@ -1303,6 +1341,8 @@ class NgNrGrid(object):
             return (None, None, None)
 
         self.ngwin.logEdit.append('---->inside sendMsg1(hsfn=%s,sfn=%s,slot=%s)' % (hsfn, sfn, slot))
+        qApp.processEvents()
+        
         #rachSsbMapStartSfn = sfn if sfn % self.prachAssociationPeriod == 0 else self.prachAssociationPeriod * math.floor(sfn / self.prachAssociationPeriod)
         rachSsbMapStartSfn = sfn if sfn % 16 == 0 else 16 * math.floor(sfn / 16)
         if rachSsbMapStartSfn >= 1024:
@@ -1429,9 +1469,11 @@ class NgNrGrid(object):
             
         self.ngwin.logEdit.append('contents of invalidPrachOccasionsPerAssociationPeriod(size=%d):' % len(invalidPrachOccasionsPerAssociationPeriod))
         self.ngwin.logEdit.append(','.join([str(occ) for occ in invalidPrachOccasionsPerAssociationPeriod]))
+        qApp.processEvents()
         
         if isfn >= 16 and len(validPrachOccasionsPerAssociationPeriod) < self.minNumValidPrachOccasionPerAssociationPeriod:
             self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid PRACH configuration(numTxSsb=%d,ssbPerOccasionM8=%d,x=%d,y=%s,subfFr1SlotFr2=%s,#prachSlots=%d,#prachOccasion=%d,msg1Fdm=%d): PRACH association period is at most 160ms!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.numTxSsb, self.nrRachSsbPerRachOccasionM8,  self.nrRachCfgPeriodx, self.nrRachCfgOffsety, self.nrRachCfgSubfNumFr1SlotNumFr2, self.nrRachCfgNumSlotsPerSubfFr1Per60KSlotFR2, self.nrRachCfgNumOccasionsPerSlot, self.nrRachMsg1Fdm))
+            qApp.processEvents()
             self.error = True
             return (None, None, None)
             
@@ -1460,10 +1502,12 @@ class NgNrGrid(object):
         self.ngwin.logEdit.append('contents of ssb2RachOccasionMap:')
         for key,val in ssb2RachOccasionMap.items():
             self.ngwin.logEdit.append('issb=%d: rachOccasion=%s, cbPreambs=%s' % (key, val[0], val[1]))
+        qApp.processEvents()
         
         #assume valid prach occasion is randomly selected 
         bestSsbRachOccasion = ssb2RachOccasionMap[self.bestSsbInd][0][np.random.randint(0, len(ssb2RachOccasionMap[self.bestSsbInd][0]))]
         self.ngwin.logEdit.append('selecting prach occasion(=%s) with cbPreambs=%s corresponding to best SSB(with issb=%d)' % (bestSsbRachOccasion, ssb2RachOccasionMap[self.bestSsbInd][1], self.bestSsbInd))
+        qApp.processEvents()
         
         #PRACH time/freq domain RE mapping
         msg1Hsfn, msg1Sfn, msg1Slot = bestSsbRachOccasion[0]
@@ -1499,6 +1543,7 @@ class NgNrGrid(object):
         #where s_id is the index of the first OFDM symbol of the PRACH occasion (0 ≤ s_id < 14), t_id is the index of the first slot of the PRACH occasion in a system frame (0 ≤ t_id < 80), f_id is the index of the PRACH occasion in the frequency domain (0 ≤ f_id < 8), and ul_carrier_id is the UL carrier used for Random Access Preamble transmission (0 for NUL carrier, and 1 for SUL carrier).
         self.raRnti = 1 + (self.nrRachCfgStartSymb + msg1OccasionInd * self.nrRachCfgDuration) + 14 * msg1Slot + 14 * 80 * msg1FdmInd
         self.ngwin.logEdit.append('Associated RA-RNTI = 0x{:04X}'.format(self.raRnti))
+        qApp.processEvents()
         
         return (msg1Hsfn, msg1Sfn, msg1Slot)
         #return (hsfn, sfn, slot)
@@ -1508,6 +1553,7 @@ class NgNrGrid(object):
             return (None, None, None)
         
         self.ngwin.logEdit.append('---->inside recvMsg2(hsfn=%d,sfn=%d,dci slot=%d)' % (hsfn, sfn, slot))
+        qApp.processEvents()
         
         scaleTd = self.baseScsTd // self.nrMibCommonScs
         scaleFd = self.nrMibCommonScs // self.baseScsFd
@@ -1525,6 +1571,7 @@ class NgNrGrid(object):
                 #for PDSCH mapping type B, tdL is defined relative to the start of the scheduled PDSCH resources
                 msg2DmrsSymbs.append(i)
         self.ngwin.logEdit.append('contents of msg2DmrsSymbs(w.r.t to slivS): %s' % msg2DmrsSymbs)
+        qApp.processEvents()
 
         if self.nrMsg2FdVrbPrbMappingType == 'nonInterleaved':
             firstScMsg2InBaseScsFd = self.coreset0FirstSc + self.nrMsg2FdStartRb * self.nrScPerPrb * scaleFd
@@ -1548,6 +1595,7 @@ class NgNrGrid(object):
             fdOverlapped = self.ssbScsInBaseScsFd.intersection(set(msg2ScsInBaseScsFd))
             if len(tdOverlapped) > 0 and len(fdOverlapped) > 0:
                 self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: When receiving the PDSCH scheduled with SI-RNTI and the system information indicator in DCI is set to 1, RA-RNTI, P-RNTI or TC-RNTI, the UE assumes SS/PBCH block transmission according to ssb-PositionsInBurst, and if the PDSCH resource allocation overlaps with PRBs containing SS/PBCH block transmission resources the UE shall assume that the PRBs containing SS/PBCH block transmission resources are not available for PDSCH in the OFDM symbols where SS/PBCH block is transmitted.\ntdOverlapped=%s\nfdOverlapped=%s' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), tdOverlapped, fdOverlapped))
+                qApp.processEvents()
                 self.error = True
                 return
 

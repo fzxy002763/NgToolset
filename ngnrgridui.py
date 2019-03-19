@@ -10230,6 +10230,7 @@ class NgNrGridUi(QDialog):
 
     def onOkBtnClicked(self):
         self.ngwin.logEdit.append('-->inside onOkBtnClicked')
+        self.accept()
 
         flag = self.prepNrGrid()
 
@@ -10270,8 +10271,10 @@ class NgNrGridUi(QDialog):
 
         #receiving SSB
         nrGrid.recvSsb(hsfn, sfn)
+        
         #monitoring PDCCH for SIB1
         hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, 0, dci='dci10', rnti='si-rnti')
+        
         if hsfn is not None and sfn is not None and slot is not None:
             #receiving SIB1
             hsfn, sfn, slot = nrGrid.recvSib1(hsfn, sfn, slot)
@@ -10287,6 +10290,7 @@ class NgNrGridUi(QDialog):
         #receiving Msg2(RAR)
         if hsfn is not None and sfn is not None and slot is not None:
             hsfn, sfn, slot = nrGrid.recvMsg2(hsfn, sfn, slot)
+            
         '''
         #sending Msg3(PUSCH)
         hsfn, sfn = nrGrid.sendMsg3(hsfn, sfn)
@@ -10316,11 +10320,8 @@ class NgNrGridUi(QDialog):
         #TODO
 
         #export grid to excel
-        qApp.processEvents()
         if not nrGrid.error:
             nrGrid.exportToExcel()
-
-        self.accept()
 
     def prepNrGrid(self):
         self.ngwin.logEdit.append('-->inside prepNrGrid')
