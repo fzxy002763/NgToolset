@@ -10,6 +10,7 @@ Change History:
     2018-10-28  v0.1    created.    github/zhenggao2
 '''
 
+import os
 import time
 import math
 from collections import OrderedDict
@@ -591,6 +592,7 @@ class NgNrGridUi(QDialog):
         #DCI 1_0 with RA-RNTI for Msg2(RAR)
         self.nrDci10Msg2RntiLabel = QLabel('RNTI(RA-RNTI)[0x0001-FFEF]:')
         self.nrDci10Msg2RntiEdit = QLineEdit('0x0001')
+        self.nrDci10Msg2RntiEdit.setEnabled(False)
 
         self.nrDci10Msg2MuPdcchLabel = QLabel('u_PDCCH[0-3]:')
         self.nrDci10Msg2MuPdcchEdit = QLineEdit()
@@ -10314,10 +10316,9 @@ class NgNrGridUi(QDialog):
         #TODO
 
         #export grid to excel
+        qApp.processEvents()
         if not nrGrid.error:
-            qApp.processEvents()
             nrGrid.exportToExcel()
-            #pass
 
         self.accept()
 
@@ -10403,6 +10404,25 @@ class NgNrGridUi(QDialog):
         self.args['dci10Sib1']['fdBundleSize'] = self.nrDci10Sib1FreqAllocType1BundleSizeComb.currentText()
         self.args['dci10Sib1']['mcsCw0'] = self.nrDci10Sib1Cw0McsEdit.text()
         self.args['dci10Sib1']['tbs'] = self.nrDci10Sib1TbsEdit.text()
+        self.args['dci10Msg2'] = dict()
+        self.args['dci10Msg2']['rnti'] = self.nrDci10Msg2RntiEdit.text()
+        self.args['dci10Msg2']['muPdcch'] = self.nrDci10Msg2MuPdcchEdit.text()
+        self.args['dci10Msg2']['muPdsch'] = self.nrDci10Msg2MuPdschEdit.text()
+        self.args['dci10Msg2']['tdRa'] = self.nrDci10Msg2TimeAllocFieldEdit.text()
+        self.args['dci10Msg2']['tdMappingType'] = self.nrDci10Msg2TimeAllocMappingTypeComb.currentText()
+        self.args['dci10Msg2']['tdK0'] = self.nrDci10Msg2TimeAllocK0Edit.text()
+        self.args['dci10Msg2']['tdSliv'] = self.nrDci10Msg2TimeAllocSlivEdit.text()
+        self.args['dci10Msg2']['tdStartSymb'] = self.nrDci10Msg2TimeAllocSEdit.text()
+        self.args['dci10Msg2']['tdNumSymbs'] = self.nrDci10Msg2TimeAllocLEdit.text()
+        self.args['dci10Msg2']['fdRaType'] = self.nrDci10Msg2FreqAllocTypeComb.currentText()
+        self.args['dci10Msg2']['fdRa'] = self.nrDci10Msg2FreqAllocFieldEdit.text()
+        self.args['dci10Msg2']['fdStartRb'] = self.nrDci10Msg2FreqAllocType1RbStartEdit.text()
+        self.args['dci10Msg2']['fdNumRbs'] = self.nrDci10Msg2FreqAllocType1LRbsEdit.text()
+        self.args['dci10Msg2']['fdVrbPrbMappingType'] = self.nrDci10Msg2FreqAllocType1VrbPrbMappingTypeComb.currentText()
+        self.args['dci10Msg2']['fdBundleSize'] = self.nrDci10Msg2FreqAllocType1BundleSizeComb.currentText()
+        self.args['dci10Msg2']['mcsCw0'] = self.nrDci10Msg2Cw0McsEdit.text()
+        self.args['dci10Msg2']['tbScaling'] = self.nrDci10Msg2TbScalingEdit.text()
+        self.args['dci10Msg2']['tbs'] = self.nrDci10Msg2TbsEdit.text()
 
         #(4) 'bwp settings' tab
         #DMRS for SIB1
@@ -10424,6 +10444,26 @@ class NgNrGridUi(QDialog):
         tdL, fdK = self.getDmrsPdschTdFdPattern(dmrsType, tdmappingType, slivS, slivL, numFrontLoadSymbs, dmrsAddPos, cdmGroupsWoData)
         self.args['dmrsSib1']['tdL'] = tdL
         self.args['dmrsSib1']['fdK'] = fdK
+        
+        #DMRS for Msg2
+        self.args['dmrsMsg2'] = dict()
+        self.args['dmrsMsg2']['dmrsType'] = self.nrDmrsMsg2DmrsTypeComb.currentText()
+        self.args['dmrsMsg2']['dmrsAddPos'] = self.nrDmrsMsg2AddPosComb.currentText()
+        self.args['dmrsMsg2']['maxLength'] = self.nrDmrsMsg2MaxLengthComb.currentText()
+        self.args['dmrsMsg2']['dmrsPorts'] = self.nrDmrsMsg2DmrsPortsEdit.text()
+        self.args['dmrsMsg2']['cdmGroupsWoData'] = self.nrDmrsMsg2CdmGroupsWoDataEdit.text()
+        self.args['dmrsMsg2']['numFrontLoadSymbs'] = self.nrDmrsMsg2FrontLoadSymbsEdit.text()
+        
+        dmrsType = self.nrDmrsMsg2DmrsTypeComb.currentText()
+        tdmappingType = self.nrDci10Msg2TimeAllocMappingTypeComb.currentText()
+        slivS = int(self.nrDci10Msg2TimeAllocSEdit.text())
+        slivL = int(self.nrDci10Msg2TimeAllocLEdit.text())
+        numFrontLoadSymbs = int(self.nrDmrsMsg2FrontLoadSymbsEdit.text())
+        dmrsAddPos = self.nrDmrsMsg2AddPosComb.currentText()
+        cdmGroupsWoData = int(self.nrDmrsMsg2CdmGroupsWoDataEdit.text())
+        tdL, fdK = self.getDmrsPdschTdFdPattern(dmrsType, tdmappingType, slivS, slivL, numFrontLoadSymbs, dmrsAddPos, cdmGroupsWoData)
+        self.args['dmrsMsg2']['tdL'] = tdL
+        self.args['dmrsMsg2']['fdK'] = fdK
 
         #initial ul bwp and PRACH
         self.args['iniUlBwp'] = dict()
@@ -10466,6 +10506,17 @@ class NgNrGridUi(QDialog):
         for key in self.args.keys():
             self.ngwin.logEdit.append('contents of ["%s"]: %s' % (key, self.args[key]))
             qApp.processEvents()
+        
+        #save configurations for debugging in case of app crash
+        outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
+        if not os.path.exists(outDir):
+            os.mkdir(outDir)
+        
+        with open(os.path.join(outDir, '5gnr_grid_config_%s.cfg' % (time.strftime('%Y%m%d%H%M%S', time.localtime()))), 'w') as f:
+            self.ngwin.logEdit.append('saving configuration to: %s' % f.name)
+            qApp.processEvents()
+            for key in self.args.keys():
+                f.write('contents of ["%s"]: %s\n' % (key, self.args[key]))
 
         return True
 

@@ -230,7 +230,32 @@ class NgNrGrid(object):
         self.nrSib1DmrsNumFrontLoadSymbs = int(self.args['dmrsSib1']['numFrontLoadSymbs'])
         self.nrSib1DmrsTdL = self.args['dmrsSib1']['tdL']
         self.nrSib1DmrsFdK = self.args['dmrsSib1']['fdK']
+        
+        self.nrMsg2Rnti = int(self.args['dci10Msg2']['rnti'], 16)
+        self.nrMsg2MuPdcch = int(self.args['dci10Msg2']['muPdcch'])
+        self.nrMsg2MuPdsch = int(self.args['dci10Msg2']['muPdsch'])
+        self.nrMsg2TdRa = self.args['dci10Msg2']['tdRa']
+        self.nrMsg2TdMappingType = self.args['dci10Msg2']['tdMappingType']
+        self.nrMsg2TdK0 = int(self.args['dci10Msg2']['tdK0'])
+        self.nrMsg2TdSliv = int(self.args['dci10Msg2']['tdSliv'])
+        self.nrMsg2TdStartSymb = int(self.args['dci10Msg2']['tdStartSymb'])
+        self.nrMsg2TdNumSymbs = int(self.args['dci10Msg2']['tdNumSymbs'])
+        self.nrMsg2FdRaType = self.args['dci10Msg2']['fdRaType']
+        self.nrMsg2FdRa = self.args['dci10Msg2']['fdRa']
+        self.nrMsg2FdStartRb = int(self.args['dci10Msg2']['fdStartRb'])
+        self.nrMsg2FdNumRbs = int(self.args['dci10Msg2']['fdNumRbs'])
+        self.nrMsg2FdVrbPrbMappingType = self.args['dci10Msg2']['fdVrbPrbMappingType']
+        self.nrMsg2FdBundleSize = int(self.args['dci10Msg2']['fdBundleSize'][1:])
 
+        self.nrMsg2DmrsType = self.args['dmrsMsg2']['dmrsType']
+        self.nrMsg2DmrsAddPos = self.args['dmrsMsg2']['dmrsAddPos']
+        self.nrMsg2DmrsMaxLen = self.args['dmrsMsg2']['maxLength']
+        self.nrMsg2DmrsPorts = self.args['dmrsMsg2']['dmrsPorts']
+        self.nrMsg2DmrsCdmGroupsWoData = int(self.args['dmrsMsg2']['cdmGroupsWoData'])
+        self.nrMsg2DmrsNumFrontLoadSymbs = int(self.args['dmrsMsg2']['numFrontLoadSymbs'])
+        self.nrMsg2DmrsTdL = self.args['dmrsMsg2']['tdL']
+        self.nrMsg2DmrsFdK = self.args['dmrsMsg2']['fdK']
+        
         #DCI 1_0 with CSS interleaved VRB-to-PRB mapping
         if self.nrSib1FdVrbPrbMappingType == 'interleaved':
             self.dci10CssPrbs = self.dci10CssVrb2PrbMapping(coreset0Size=self.nrCoreset0NumRbs, iniDlBwpStart=0, coreset0Start=0, L=self.nrSib1FdBundleSize)
@@ -609,7 +634,8 @@ class NgNrGrid(object):
                     '''
                     for i in range(4):
                         for j in range(scaleTd):
-                            if self.gridNrTdd[dn][self.ssbFirstSc, ssbFirstSymb+i*scaleTd+j] == NrResType.NR_RES_U.value:
+                            #if self.gridNrTdd[dn][self.ssbFirstSc, ssbFirstSymb+i*scaleTd+j] == NrResType.NR_RES_U.value:
+                            if self.gridNrTdd[dn][self.ssbFirstSc, ssbFirstSymb+i*scaleTd+j] in (NrResType.NR_RES_U.value, NrResType.NR_RES_F.value):
                                 self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: The UE does not expect the set of symbols of the slot which are used for SSB transmission(ssb index=%d, first symbol=%d) to be indicated as uplink by TDD-UL-DL-ConfigurationCommon.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), issb, ssbFirstSymb))
                                 self.error = True
                                 return
@@ -1057,7 +1083,7 @@ class NgNrGrid(object):
                 '''
                 if self.nrDuplexMode == 'TDD':
                     for k in coreset0SymbsInBaseScsTd:
-                        if self.gridNrTdd[dn2][self.ssbFirstSc, k] == NrResType.NR_RES_U.value:
+                        if self.gridNrTdd[dn2][self.ssbFirstSc, k] in (NrResType.NR_RES_U.value, NrResType.NR_RES_F.value):
                             valid[j] = 'NOK'
                             break
 
@@ -1203,7 +1229,8 @@ class NgNrGrid(object):
                 return
 
         for i in range(self.nrSib1TdNumSymbs):
-            if self.nrDuplexMode == 'TDD' and self.gridNrTdd[dn][self.coreset0FirstSc, firstSymbSib1InBaseScsTd+i*scaleTd] == NrResType.NR_RES_U.value:
+            #if self.nrDuplexMode == 'TDD' and self.gridNrTdd[dn][self.coreset0FirstSc, firstSymbSib1InBaseScsTd+i*scaleTd] == NrResType.NR_RES_U.value:
+            if self.nrDuplexMode == 'TDD' and self.gridNrTdd[dn][self.coreset0FirstSc, firstSymbSib1InBaseScsTd+i*scaleTd] in (NrResType.NR_RES_U.value, NrResType.NR_RES_F.value):
                 continue
 
             if self.nrDuplexMode == 'TDD':
@@ -1218,6 +1245,14 @@ class NgNrGrid(object):
                                     self.gridNrTdd[dn][sib1ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbSib1InBaseScsTd+i*scaleTd:firstSymbSib1InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DTX.value
             else:
                 self.gridNrFddDl[dn][sib1ScsInBaseScsFd, firstSymbSib1InBaseScsTd+i*scaleTd:firstSymbSib1InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_SIB1.value
+                if i in sib1DmrsSymbs:
+                    for j in range(self.nrSib1FdNumRbs):
+                        for k in range(self.nrScPerPrb):
+                            if self.nrSib1DmrsFdK[k] == 1:
+                                self.gridNrFddDl[dn][sib1ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbSib1InBaseScsTd+i*scaleTd:firstSymbSib1InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DMRS_SIB1.value
+                            else:
+                                if not (self.nrSib1TdMappingType == 'Type B' and self.nrSib1TdNumSymbs == 2):
+                                    self.gridNrFddDl[dn][sib1ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbSib1InBaseScsTd+i*scaleTd:firstSymbSib1InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DTX.value
         
         return (hsfn, sfn, slotSib1)
 
@@ -1397,6 +1432,7 @@ class NgNrGrid(object):
         
         if isfn >= 16 and len(validPrachOccasionsPerAssociationPeriod) < self.minNumValidPrachOccasionPerAssociationPeriod:
             self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid PRACH configuration(numTxSsb=%d,ssbPerOccasionM8=%d,x=%d,y=%s,subfFr1SlotFr2=%s,#prachSlots=%d,#prachOccasion=%d,msg1Fdm=%d): PRACH association period is at most 160ms!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.numTxSsb, self.nrRachSsbPerRachOccasionM8,  self.nrRachCfgPeriodx, self.nrRachCfgOffsety, self.nrRachCfgSubfNumFr1SlotNumFr2, self.nrRachCfgNumSlotsPerSubfFr1Per60KSlotFR2, self.nrRachCfgNumOccasionsPerSlot, self.nrRachMsg1Fdm))
+            self.error = True
             return (None, None, None)
             
         #SSB and PRACH occasion mapping
@@ -1473,7 +1509,74 @@ class NgNrGrid(object):
         
         self.ngwin.logEdit.append('---->inside recvMsg2(hsfn=%d,sfn=%d,dci slot=%d)' % (hsfn, sfn, slot))
         
-        return (hsfn, sfn, slot)
+        scaleTd = self.baseScsTd // self.nrMibCommonScs
+        scaleFd = self.nrMibCommonScs // self.baseScsFd
+
+        slotMsg2 = math.floor(slot * 2 ** (self.nrMsg2MuPdsch - self.nrMsg2MuPdcch)) + self.nrMsg2TdK0
+        firstSymbMsg2InBaseScsTd = (slotMsg2 * self.nrSymbPerSlotNormCp + self.nrMsg2TdStartSymb) * scaleTd
+        msg2SymbsInBaseScsTd = [firstSymbMsg2InBaseScsTd+k for k in range(self.nrMsg2TdNumSymbs*scaleTd)]
+
+        msg2DmrsSymbs = []
+        for i in self.nrMsg2DmrsTdL:
+            if self.nrMsg2TdMappingType == 'Type A':
+                #for PDSCH mapping type A, tdL is defined relative to the start of the slot
+                msg2DmrsSymbs.append(i - self.nrMsg2TdStartSymb)
+            else:
+                #for PDSCH mapping type B, tdL is defined relative to the start of the scheduled PDSCH resources
+                msg2DmrsSymbs.append(i)
+        self.ngwin.logEdit.append('contents of msg2DmrsSymbs(w.r.t to slivS): %s' % msg2DmrsSymbs)
+
+        if self.nrMsg2FdVrbPrbMappingType == 'nonInterleaved':
+            firstScMsg2InBaseScsFd = self.coreset0FirstSc + self.nrMsg2FdStartRb * self.nrScPerPrb * scaleFd
+            msg2ScsInBaseScsFd = [firstScMsg2InBaseScsFd+k for k in range(self.nrMsg2FdNumRbs*self.nrScPerPrb*scaleFd)]
+        else:
+            msg2ScsInBaseScsFd = []
+            for k in range(self.nrMsg2FdNumRbs):
+                vrb = self.nrMsg2FdStartRb + k
+                prb = self.dci10CssPrbs[vrb]
+                msg2ScsInBaseScsFd.extend([self.coreset0FirstSc+prb*self.nrScPerPrb*scaleFd+k for k in range(self.nrScPerPrb*scaleFd)])
+
+        #validate Msg2 time-frequency allocation
+        dn = '%s_%s' % (hsfn, sfn)
+        if dn in self.ssbFirstSymbInBaseScsTd:
+            #refer to 3GPP 38.314 vf40
+            #5.1.4	PDSCH resource mapping
+            '''
+            When receiving the PDSCH scheduled with SI-RNTI and the system information indicator in DCI is set to 1, RA-RNTI, P-RNTI or TC-RNTI, the UE assumes SS/PBCH block transmission according to ssb-PositionsInBurst, and if the PDSCH resource allocation overlaps with PRBs containing SS/PBCH block transmission resources the UE shall assume that the PRBs containing SS/PBCH block transmission resources are not available for PDSCH in the OFDM symbols where SS/PBCH block is transmitted.
+            '''
+            tdOverlapped = self.ssbSymbsInBaseScsTd[dn].intersection(set(msg2SymbsInBaseScsTd))
+            fdOverlapped = self.ssbScsInBaseScsFd.intersection(set(msg2ScsInBaseScsFd))
+            if len(tdOverlapped) > 0 and len(fdOverlapped) > 0:
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: When receiving the PDSCH scheduled with SI-RNTI and the system information indicator in DCI is set to 1, RA-RNTI, P-RNTI or TC-RNTI, the UE assumes SS/PBCH block transmission according to ssb-PositionsInBurst, and if the PDSCH resource allocation overlaps with PRBs containing SS/PBCH block transmission resources the UE shall assume that the PRBs containing SS/PBCH block transmission resources are not available for PDSCH in the OFDM symbols where SS/PBCH block is transmitted.\ntdOverlapped=%s\nfdOverlapped=%s' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), tdOverlapped, fdOverlapped))
+                self.error = True
+                return
+
+        for i in range(self.nrMsg2TdNumSymbs):
+            if self.nrDuplexMode == 'TDD' and self.gridNrTdd[dn][self.coreset0FirstSc, firstSymbMsg2InBaseScsTd+i*scaleTd] in (NrResType.NR_RES_U.value, NrResType.NR_RES_F.value):
+                continue
+
+            if self.nrDuplexMode == 'TDD':
+                self.gridNrTdd[dn][msg2ScsInBaseScsFd, firstSymbMsg2InBaseScsTd+i*scaleTd:firstSymbMsg2InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_MSG2.value
+                if i in msg2DmrsSymbs:
+                    for j in range(self.nrMsg2FdNumRbs):
+                        for k in range(self.nrScPerPrb):
+                            if self.nrMsg2DmrsFdK[k] == 1:
+                                self.gridNrTdd[dn][msg2ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbMsg2InBaseScsTd+i*scaleTd:firstSymbMsg2InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DMRS_MSG2.value
+                            else:
+                                if not (self.nrMsg2TdMappingType == 'Type B' and self.nrMsg2TdNumSymbs == 2):
+                                    self.gridNrTdd[dn][msg2ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbMsg2InBaseScsTd+i*scaleTd:firstSymbMsg2InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DTX.value
+            else:
+                self.gridNrFddDl[dn][msg2ScsInBaseScsFd, firstSymbMsg2InBaseScsTd+i*scaleTd:firstSymbMsg2InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_MSG2.value
+                if i in msg2DmrsSymbs:
+                    for j in range(self.nrMsg2FdNumRbs):
+                        for k in range(self.nrScPerPrb):
+                            if self.nrMsg2DmrsFdK[k] == 1:
+                                self.gridNrFddDl[dn][msg2ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbMsg2InBaseScsTd+i*scaleTd:firstSymbMsg2InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DMRS_MSG2.value
+                            else:
+                                if not (self.nrMsg2TdMappingType == 'Type B' and self.nrMsg2TdNumSymbs == 2):
+                                    self.gridNrFddDl[dn][msg2ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbMsg2InBaseScsTd+i*scaleTd:firstSymbMsg2InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DTX.value
+        
+        return (hsfn, sfn, slotMsg2)
 
     def sendMsg3(self, hsfn, sfn):
         self.ngwin.logEdit.append('---->inside sendMsg3')
