@@ -49,7 +49,8 @@ class NgMainWin(QMainWindow):
         
     def onAbout(self):
         QMessageBox.information(self, 'About', '<h1>NG Toolset</h1><p>NG toolset is set of useful NPO tools for 4G and 5G.</p>'
-                                + '<p>Author: zhengwei.gao@yahoo.com</p>')
+                                + '<p>Author: <a href=mailto:zhengwei.gao@yahoo.com>zhengwei.gao(at)yahoo.com</a></p>'
+                                + '<p>Blog: <a href="http://blog.csdn.net/jeffyko">http://blog.csdn.net/jeffyko</a></p>')
         
     def onEnableDebug(self, checked):
         self.enableDebug = checked
