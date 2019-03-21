@@ -81,9 +81,9 @@ class NgXmlParser(object):
             return
         
         '''
-        self.ngwin.logEdit.append(root.tag, root.attrib)
+        self.ngwin.logEdit.append('tag=%s,attrib=%s' % (root.tag, root.attrib))
         for child in root:
-            self.ngwin.logEdit.append(child.tag, child.attrib)
+            self.ngwin.logEdit.append('|--tag=%s,attrib=%s' % (child.tag, child.attrib))
         '''
         
         #xml with namespace
