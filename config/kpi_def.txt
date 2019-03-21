@@ -1,0 +1,38 @@
+#case#1: kpi definition(kpi=f*x/y)
+#f = factor, x = numerator, y = denominator, p = precision
+#kpi_name=
+#kpi_f=
+#kpi_x=
+#kpi_y=
+#kpi_p=
+
+#case#2: kpi definition(kpi=numerator)
+#kpi_name=
+#kpi_x=
+
+kpi_name=ENDC_X2_SETUP_SR
+kpi_f=100
+kpi_x=(M55110C00004,1)
+kpi_y=(M55110C00003,1)
+kpi_p=2
+
+kpi_name=X2_FAIL_TOT
+kpi_x=(M55110C00003,1);(M55110C00004,-1)
+
+kpi_name=X2_FAIL_CONFUSION
+kpi_x=(M55110C00022,1)
+
+kpi_name=X2_FAIL_MAXX2
+kpi_x=(M55110C00023,1)
+
+kpi_name=X2_FAIL_PROC
+kpi_x=(M55110C00024,1)
+
+kpi_name=X2_FAIL_NOCELL
+kpi_x=(M55110C00025,1)
+
+kpi_name=X2_FAIL_LOCKED
+kpi_x=(M55110C00026,1)
+
+kpi_name=X2_FAIL_OTHER
+kpi_x=(M55110C00003,1);(M55110C00004,-1);(M55110C00022,-1);(M55110C00023,-1);(M55110C00024,-1);(M55110C00025,-1);(M55110C00026,-1)

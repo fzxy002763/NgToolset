@@ -11,10 +11,12 @@ Change History:
 '''
 
 import os
+import time
 from datetime import datetime
 import tarfile
 import xml.etree.ElementTree as ET
 import ngmainwin
+import xlsxwriter
 from PyQt5.QtWidgets import qApp
 
 class NgRawPmParser(object):
@@ -37,20 +39,64 @@ class NgRawPmParser(object):
         
         #parse raw pm xml
         self.data = dict()
+        self.tagsMap = dict()
         for root, dirs, files in os.walk(self.inDir):
             self.xmls = sorted([os.path.join(root, fn) for fn in files if fn.endswith('xml')], key=str.lower) 
             for fn in self.xmls:
                 self.parseRawPmXml(fn, self.rat)
         
         #print self.data
-        for key,val in self.data.items():
-            self.ngwin.logEdit.append('|--key=%s' % key)
-            for item in val:
-                self.ngwin.logEdit.append('|----%s' % item)
+        '''
+        for key1,val1 in self.data.items():
+            self.ngwin.logEdit.append('|-measType=%s' % key1)
+            for key2,val2 in val1.items():
+                self.ngwin.logEdit.append('|--tag=%s' % key2)
+                for key3,val3 in val2.items():
+                    self.ngwin.logEdit.append('|----key=%s,val=%s' % (key3, val3))
             qApp.processEvents()
+        '''
+        
+        #calculate kpi
+        #TODO
+        
+        
+        #export to excel
+        self.ngwin.logEdit.append('Exporting to excel(engine=xlsxwriter), please wait...')
+        qApp.processEvents()
+        
+        workbook = xlsxwriter.Workbook(os.path.join(self.outDir, '%s_kpi_report_%s.xlsx' % (rat, time.strftime('%Y%m%d%H%M%S', time.localtime()))))
+        fmtHHeader = workbook.add_format({'font_name':'Arial', 'font_size':9, 'align':'center', 'valign':'vcenter', 'text_wrap':True, 'bg_color':'yellow'})
+        fmtCell = workbook.add_format({'font_name':'Arial', 'font_size':9, 'align':'left', 'valign':'vcenter'})
+        
+        for measType in self.data.keys():
+            horizontalHeader = ['STIME', 'INTERVAL', 'DN']
+            tags = self.tagsMap[measType]
+            tags.sort()
+            horizontalHeader.extend(tags)
+            
+            sheet1 = workbook.add_worksheet(measType)
+            sheet1.set_zoom(90)
+            sheet1.freeze_panes(1, 3)
+
+            #write header
+            sheet1.write_row(0, 0, horizontalHeader, fmtHHeader)
+
+            count = 0
+            for key,val in self.data[measType].items():
+                #key = 'time;interval;dn'
+                #val = {tag:text}
+                stime, interval, dn = key.split(';')
+                row = [stime, interval, dn]
+                for tag in tags:
+                    row.append(val[tag])
+                    
+                sheet1.write_row(count+1, 0, row, fmtCell)
+                count = count + 1
+                    
+        workbook.close()
     
     def parseRawPmXml(self, fn, rat):
-        self.ngwin.logEdit.append('Parsing %s (rat=%s)' % (fn, rat))
+        self.ngwin.logEdit.append('Parsing raw PM:%s (rat=%s)' % (fn, rat))
         qApp.processEvents()
         
         if rat == '5g':
@@ -77,12 +123,17 @@ class NgRawPmParser(object):
                         pmtarget = pmmoresult.find('PMTarget')
                         measType = pmtarget.get('measurementType')
                         for child in pmtarget:
-                            key = '%s_%s_%s' % (dn.text[len('PLMN-PLMN/'):], measType, child.tag)
-                            if key not in self.data:
-                                self.data[key] = [{'startTime':startTime, 'interval':interval, 'value':child.text}]
+                            key = '%s;%s;%s' % (startTime, interval, dn.text[len('PLMN-PLMN/'):])
+                            if measType not in self.data:
+                                self.data[measType] = dict()
+                            if key not in self.data[measType]:
+                                self.data[measType][key] = dict()
+                            self.data[measType][key][child.tag] = child.text
+                            
+                            if measType not in self.tagsMap:
+                                self.tagsMap[measType] = [child.tag]
                             else:
-                                self.data[key].append({'startTime':startTime, 'interval':interval, 'value':child.text})
-                            #self.ngwin.logEdit.append('dn=%s,measType=%s,tag=%s,text=%s' % (dn.text[len('PLMN-PLMN/'):], measType, child.tag, child.text))
+                                self.tagsMap[measType].append(child.tag)
             except Exception as e:
                 self.ngwin.logEdit.append(str(e))
                 return
@@ -111,12 +162,17 @@ class NgRawPmParser(object):
                         pmtarget = pmmoresult.find('NE-WBTS_1.0')
                         measType = pmtarget.get('measurementType')
                         for child in pmtarget:
-                            key = '%s_%s_%s' % (dn.text[len('NE-'):], measType, child.tag)
-                            if key not in self.data:
-                                self.data[key] = [{'startTime':startTime, 'interval':interval, 'value':child.text}]
+                            key = '%s;%s;%s' % (startTime, interval, dn.text[len('PLMN-PLMN/'):])
+                            if measType not in self.data:
+                                self.data[measType] = dict()
+                            if key not in self.data[measType]:
+                                self.data[measType][key] = dict()
+                            self.data[measType][key][child.tag] = child.text
+                            
+                            if measType not in self.tagsMap:
+                                self.tagsMap[measType] = [child.tag]
                             else:
-                                self.data[key].append({'startTime':startTime, 'interval':interval, 'value':child.text})
-                            #self.ngwin.logEdit.append('dn=%s,measType=%s,tag=%s,text=%s' % (dn.text[len('NE-'):], measType, child.tag, child.text))
+                                self.tagsMap[measType].append(child.tag)
             except Exception as e:
                 self.ngwin.logEdit.append(str(e))
                 return

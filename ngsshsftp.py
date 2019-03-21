@@ -121,10 +121,6 @@ class NgSshSftp(object):
                     sftp.get(remotePath, localPath)
                 
                 t.close()
-                
-            #except paramiko.ssh_exception.SSHException as e:
-            #    self.ngwin.logEdit.append('Unable to establish SSH connection: %s' % e)
-            #    continue
             except Exception as e:
                 #self.ngwin.logEdit.append('%s' % e.args)
                 self.ngwin.logEdit.append(str(e))
