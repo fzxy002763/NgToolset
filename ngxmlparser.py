@@ -42,6 +42,7 @@ class NgXmlParser(object):
                 
                 self.parseXml(fn)
                 
+                '''
                 with open(os.path.join(self.outDir, 'xml_parsed_%s.dat' % ts), 'a') as f:
                     f.write('#%s\n' % fn)
                     for dn in self.data.keys():
@@ -51,6 +52,18 @@ class NgXmlParser(object):
                                 f.write('%s=(%s)\n' % (par, ','.join(val)))
                             else:
                                 f.write('%s=%s\n' % (par, val)) 
+                '''
+                                
+                with open(os.path.join(self.outDir, 'xml_parsed_%s_%s.csv' % (os.path.basename(fn), ts)), 'a') as f:
+                    f.write('MO_DN,PARA_NAME,PARA_VAL\n')
+                    #f.write('#%s\n' % fn)
+                    for dn in self.data.keys():
+                        #f.write('$DN=%s\n' % dn)
+                        for par, val in self.data[dn].items():
+                            if isinstance(val, list):
+                                f.write('%s,%s,%s\n' % (dn, par, ';'.join(val)))
+                            else:
+                                f.write('%s,%s,%s\n' % (dn, par, val)) 
     
     def parseXml(self, fn):
         self.ngwin.logEdit.append('Parsing %s' % fn)
