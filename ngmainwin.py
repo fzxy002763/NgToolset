@@ -21,6 +21,7 @@ from ngnrgridui import NgNrGridUi
 from ngxmlparser import NgXmlParser
 from ngsqlquery import NgSqlQuery
 from ngm8015proc import NgM8015Proc
+from ngsshsftp import NgSshSftp
 import os
 
 class NgMainWin(QMainWindow):
@@ -83,6 +84,9 @@ class NgMainWin(QMainWindow):
             proc.procUserCase04()
             self.logEdit.append('<font color=blue>Done!</font>')
         
+    def onExecSshSftpClient(self):
+        client = NgSshSftp(self)
+        
     def onExecLteResGrid(self):
         dlg = NgLteGridUi(self)
         dlg.exec_()
@@ -119,6 +123,8 @@ class NgMainWin(QMainWindow):
         self.xmlParserAction.triggered.connect(self.onExecXmlParser)
         self.sqlQueryAction = QAction('NEDS (M8015 Analyzer)')
         self.sqlQueryAction.triggered.connect(self.onExecNedsM8015)
+        self.sshSftpAction = QAction('SSH/SFTP Client')
+        self.sshSftpAction.triggered.connect(self.onExecSshSftpClient)
         
         #Options menu
         self.enableDebugAction = QAction('Enable Debug')
@@ -147,6 +153,7 @@ class NgMainWin(QMainWindow):
         self.miscMenu.addAction(self.chkSqlAction)
         self.miscMenu.addAction(self.xmlParserAction)
         self.miscMenu.addAction(self.sqlQueryAction)
+        self.miscMenu.addAction(self.sshSftpAction)
         
         self.optionsMenu = self.menuBar().addMenu('Options')
         self.optionsMenu.addAction(self.enableDebugAction)
