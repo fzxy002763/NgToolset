@@ -12,6 +12,7 @@ Change History:
 
 import os
 import time
+import traceback
 import paramiko
 import ngmainwin
 from PyQt5.QtWidgets import qApp
@@ -40,8 +41,8 @@ class NgSshSftp(object):
                     else:
                         self.bbuip.append(tokens)
         except Exception as e:
-            #self.ngwin.logEdit.append('%s' % e.args)
-            self.ngwin.logEdit.append(str(e))
+            #self.ngwin.logEdit.append(str(e))
+            self.ngwin.logEdit.append(traceback.format_exc())
             
         for bts in self.bbuip:
             btsId, btsIp, btsName = bts
@@ -122,6 +123,6 @@ class NgSshSftp(object):
                 
                 t.close()
             except Exception as e:
-                #self.ngwin.logEdit.append('%s' % e.args)
-                self.ngwin.logEdit.append(str(e))
+                #self.ngwin.logEdit.append(str(e))
+                self.ngwin.logEdit.append(traceback.format_exc())
                 continue

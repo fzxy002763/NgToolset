@@ -12,6 +12,7 @@ Change History:
 
 import os
 import time
+import traceback
 import math
 from collections import OrderedDict
 from PyQt5.QtWidgets import QDialog, QLabel, QLineEdit, QComboBox, QPushButton, QGroupBox, QTabWidget, QWidget, QScrollArea
@@ -9265,7 +9266,7 @@ class NgNrGridUi(QDialog):
             try:
                 srsSet1 = [int(i) for i in self.nrSrsResSet1ResourceIdListEdit.text().split(',') if len(i) > 0]
             except Exception as e:
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Exception raised when parsing srs-resourceSet1: %s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), e))
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Exception raised when parsing srs-resourceSet1:\n%s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), traceback.format_exc()))
                 return
 
             Nsrs = len(srsSet1)
@@ -9545,7 +9546,7 @@ class NgNrGridUi(QDialog):
             try:
                 srsSet1 = [int(i) for i in self.nrSrsResSet1ResourceIdListEdit.text().split(',') if len(i) > 0]
             except Exception as e:
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Exception raised when parsing srs-resourceSet1: %s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), e))
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Exception raised when parsing srs-resourceSet1:\n%s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), traceback.format_exc()))
                 return
 
             Nsrs = len(srsSet1)
@@ -9602,7 +9603,7 @@ class NgNrGridUi(QDialog):
             try:
                 srsSet0 = [int(i) for i in self.nrSrsResSet0ResourceIdListEdit.text().split(',') if len(i) > 0]
             except Exception as e:
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Exception raised when parsing srs-resourceSet0: %s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), e))
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Exception raised when parsing srs-resourceSet0:\n%s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), traceback.format_exc()))
                 return
 
             Nsrs = len(srsSet0)
@@ -9726,7 +9727,7 @@ class NgNrGridUi(QDialog):
             try:
                 srsSet1 = [int(i) for i in self.nrSrsResSet1ResourceIdListEdit.text().split(',') if len(i) > 0]
             except Exception as e:
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Exception raised: %s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), e))
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Exception raised:\n%s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), traceback.format_exc()))
                 return
             Nsrs = len(srsSet1)
 
