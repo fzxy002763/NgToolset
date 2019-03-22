@@ -54,11 +54,13 @@ class NgRawPmParser(object):
                 for key3,val3 in val2.items():
                     self.ngwin.logEdit.append('|----key=%s,val=%s' % (key3, val3))
             qApp.processEvents()
+        
+        for key,val in self.tagsMap.items():
+            self.ngwin.logEdit.append('key=%s,val=%s'%(key,val))
         '''
         
         #calculate kpi
         #TODO
-        
         
         #export to excel
         self.ngwin.logEdit.append('Exporting to excel(engine=xlsxwriter), please wait...')
@@ -70,7 +72,7 @@ class NgRawPmParser(object):
         
         for measType in self.data.keys():
             horizontalHeader = ['STIME', 'INTERVAL', 'DN']
-            tags = self.tagsMap[measType]
+            tags = list(self.tagsMap[measType])
             tags.sort()
             horizontalHeader.extend(tags)
             
@@ -131,9 +133,10 @@ class NgRawPmParser(object):
                             self.data[measType][key][child.tag] = child.text
                             
                             if measType not in self.tagsMap:
-                                self.tagsMap[measType] = [child.tag]
+                                #note the difference between: a=set('hello') and a=set(['hello'])
+                                self.tagsMap[measType] = set([child.tag])
                             else:
-                                self.tagsMap[measType].append(child.tag)
+                                self.tagsMap[measType].add(child.tag)
             except Exception as e:
                 self.ngwin.logEdit.append(str(e))
                 return
@@ -170,9 +173,10 @@ class NgRawPmParser(object):
                             self.data[measType][key][child.tag] = child.text
                             
                             if measType not in self.tagsMap:
-                                self.tagsMap[measType] = [child.tag]
+                                #note the difference between: a=set('hello') and a=set(['hello'])
+                                self.tagsMap[measType] = set([child.tag])
                             else:
-                                self.tagsMap[measType].append(child.tag)
+                                self.tagsMap[measType].add(child.tag)
             except Exception as e:
                 self.ngwin.logEdit.append(str(e))
                 return
