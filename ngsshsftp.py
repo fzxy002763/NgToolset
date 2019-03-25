@@ -23,6 +23,8 @@ class NgSshSftp(object):
         self.bbuip = []
         #dataDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
         self.confDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config')
+
+        #parse bbuip.txt
         try:
             with open(os.path.join(self.confDir, 'bbuip.txt'), 'r') as f:
                 self.ngwin.logEdit.append('Parsing bbuip.txt...')
@@ -41,6 +43,38 @@ class NgSshSftp(object):
                         self.ngwin.logEdit.append('Format for each line of bbuip.txt must be: bts_id,bts_ip,bts_name!')
                     else:
                         self.bbuip.append(tokens)
+        except Exception as e:
+            #self.ngwin.logEdit.append(str(e))
+            self.ngwin.logEdit.append(traceback.format_exc())
+
+        #parse path configuration
+        try:
+            with open(os.path.join(self.confDir, 'sftp_path_config.txt'), 'r') as f:
+                self.ngwin.logEdit.append('Parsing SFTP path configuation: %s' % f.name)
+                qApp.processEvents()
+
+                while True:
+                    line = f.readline()
+                    if not line:
+                        break
+                    if line.startswith('#') or line.strip() == '':
+                        continue
+
+                    tokens = line.split('=')
+                    tokens = list(map(lambda x:x.strip(), tokens))
+                    if len(tokens) == 2:
+                        if tokens[0].lower() == 'scf_path':
+                            self.scfPath = tokens[1]
+                        elif tokens[0].lower() == 'vendor_path':
+                            self.vendorPath = tokens[1]
+                        elif tokens[0].lower() == 'swconfig_path':
+                            self.swconfigPath = tokens[1]
+                        elif tokens[0].lower() == 'freq_history_path':
+                            self.freqHistPath = tokens[1]
+                        elif tokens[0].lower() == 'raw_pm_path':
+                            self.rawPmPath = tokens[1]
+                        else:
+                            pass
         except Exception as e:
             #self.ngwin.logEdit.append(str(e))
             self.ngwin.logEdit.append(traceback.format_exc())
@@ -110,39 +144,6 @@ class NgSshSftp(object):
                 stdin, stdout, stderr = ssh.exec_command('find / -iname "MRBTS*PM*.xml" -print')
                 self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
                 '''
-
-                #parse path configuration
-                try:
-                    with open(os.path.join(self.confDir, 'sftp_path_config.txt'), 'r') as f:
-                        self.ngwin.logEdit.append('Parsing SFTP path configuation: %s' % f.name)
-                        qApp.processEvents()
-
-                        while True:
-                            line = f.readline()
-                            if not line:
-                                break
-                            if line.startswith('#') or line.strip() == '':
-                                continue
-
-                            tokens = line.split('=')
-                            tokens = list(map(lambda x:x.strip(), tokens))
-                            if len(tokens) == 2:
-                                if tokens[0].lower() == 'scf_path':
-                                    self.scfPath = tokens[1]
-                                elif tokens[0].lower() == 'vendor_path':
-                                    self.vendorPath = tokens[1]
-                                elif tokens[0].lower() == 'swconfig_path':
-                                    self.swconfigPath = tokens[1]
-                                elif tokens[0].lower() == 'freq_history_path':
-                                    self.freqHistPath = tokens[1]
-                                elif tokens[0].lower() == 'raw_pm_path':
-                                    self.rawPmPath = tokens[1]
-                                else:
-                                    pass
-                except Exception as e:
-                    #self.ngwin.logEdit.append(str(e))
-                    self.ngwin.logEdit.append(traceback.format_exc())
-
 
                 #SFTPClient
                 curDir = os.path.dirname(os.path.abspath(__file__))

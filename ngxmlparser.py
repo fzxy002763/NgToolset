@@ -23,25 +23,25 @@ class NgXmlParser(object):
         self.ngwin = ngwin
         self.inDir = inDir
         if outDir is None:
-            self.outDir = self.inDir 
+            self.outDir = self.inDir
         else:
             self.outDir = outDir
         self.data = OrderedDict()
-    
+
     def start(self):
         self.ngwin.logEdit.append('Default XML directory: %s' % self.inDir)
         qApp.processEvents()
-        
-        ts = time.strftime('%Y%m%d%H%M%S', time.localtime()) 
+
+        ts = time.strftime('%Y%m%d%H%M%S', time.localtime())
         for root, dirs, files in os.walk(self.inDir):
-            self.xmls = sorted([os.path.join(root, fn) for fn in files if fn.endswith('xml')], key=str.lower) 
+            self.xmls = sorted([os.path.join(root, fn) for fn in files if fn.endswith('xml')], key=str.lower)
             self.isScfc = False
             self.enbId = None
             for fn in self.xmls:
                 self.data.clear()
-                
+
                 self.parseXml(fn)
-                
+
                 '''
                 with open(os.path.join(self.outDir, 'xml_parsed_%s.dat' % ts), 'a') as f:
                     f.write('#%s\n' % fn)
@@ -51,9 +51,9 @@ class NgXmlParser(object):
                             if isinstance(val, list):
                                 f.write('%s=(%s)\n' % (par, ','.join(val)))
                             else:
-                                f.write('%s=%s\n' % (par, val)) 
+                                f.write('%s=%s\n' % (par, val))
                 '''
-                                
+
                 with open(os.path.join(self.outDir, 'xml_parsed_%s_%s.csv' % (os.path.basename(fn), ts)), 'a') as f:
                     f.write('MO_DN,PARA_NAME,PARA_VAL\n')
                     #f.write('#%s\n' % fn)
@@ -63,29 +63,29 @@ class NgXmlParser(object):
                             if isinstance(val, list):
                                 f.write('%s,%s,%s\n' % (dn, par, ';'.join(val)))
                             else:
-                                f.write('%s,%s,%s\n' % (dn, par, val)) 
-    
+                                f.write('%s,%s,%s\n' % (dn, par, val))
+
     def parseXml(self, fn):
         self.ngwin.logEdit.append('Parsing %s' % fn)
-        
+
         bn = os.path.basename(fn).lower()
-        if bn.startswith('scfc'):
+        if bn.startswith('scf'):
             self.isScfc = True
         else:
             self.isScfc = False
-        
+
         try:
             root = ET.parse(fn).getroot()
         except Exception as e:
             self.ngwin.logEdit.append("ERROR: fail to parse file: %s!" % fn)
             return
-        
+
         '''
         self.ngwin.logEdit.append('tag=%s,attrib=%s' % (root.tag, root.attrib))
         for child in root:
             self.ngwin.logEdit.append('|--tag=%s,attrib=%s' % (child.tag, child.attrib))
         '''
-        
+
         #xml with namespace
         xmlns = '{raml21.xsd}'
         cm = root.find(xmlns + 'cmData')
@@ -96,7 +96,7 @@ class NgXmlParser(object):
                 self.enbId = tokens[0].split('-')[-1]
             elif self.enbId is not None:
                 dn = dn.replace('*', self.enbId)
-            
+
             self.data[dn] = OrderedDict()
             for _list in mo.findall(xmlns + 'list'):
                 listName = _list.get('name')
@@ -107,7 +107,7 @@ class NgXmlParser(object):
                             self.data[dn][par].append(p.text)
                         else:
                             self.data[dn][par] = [p.text]
-            
+
             for p in mo.findall(xmlns + 'p'):
                 par = p.get('name')
                 self.data[dn][par] = p.text
