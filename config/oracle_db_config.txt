@@ -1,0 +1,21 @@
+###################Oracle Database Configurations#################
+
+#set host name 
+#jiangxi OMC8
+#HOST_NAME = 100.92.253.14
+#jiangxi OMC9
+HOST_NAME = 10.226.55.14
+#jiangxi OMC10
+#HOST_NAME = 10.226.80.142
+
+#set db name
+DB_NAME = oss
+
+#set tcp port
+TCP_PORT = 1521
+
+#set user name
+USER_NAME = jxmcc
+
+#set user passcode
+USER_PASSCODE = Nsn12345
