@@ -93,57 +93,59 @@ class NgSshSftp(object):
                 ssh._transport = t
                 #ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
                 #ssh.connect(hostname='10.140.7.4', port=22, username='toor4nsn', password='oZPS0POrRieRtu')
-                self.ngwin.logEdit.append('>pwd:')
-                stdin, stdout, stderr = ssh.exec_command('pwd')
-                self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
 
-                self.ngwin.logEdit.append('>ls -al /:')
-                stdin, stdout, stderr = ssh.exec_command('ls -al /')
-                self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
+                if self.ngwin.enableDebug:
+                    self.ngwin.logEdit.append('>pwd:')
+                    stdin, stdout, stderr = ssh.exec_command('pwd')
+                    self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
 
-                self.ngwin.logEdit.append('>ls -al /ffs:')
-                stdin, stdout, stderr = ssh.exec_command('ls -al /ffs')
-                self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
+                    self.ngwin.logEdit.append('>ls -al /:')
+                    stdin, stdout, stderr = ssh.exec_command('ls -al /')
+                    self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
 
-                self.ngwin.logEdit.append('>cd /ffs/run && ls -al' )
-                stdin, stdout, stderr = ssh.exec_command('cd /ffs/run && ls -al')
-                self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
+                    self.ngwin.logEdit.append('>ls -al /ffs:')
+                    stdin, stdout, stderr = ssh.exec_command('ls -al /ffs')
+                    self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
 
-                self.ngwin.logEdit.append('>ls -al /ffs/run/config:')
-                stdin, stdout, stderr = ssh.exec_command('ls -al /ffs/run/config')
-                self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
+                    self.ngwin.logEdit.append('>cd /ffs/run && ls -al' )
+                    stdin, stdout, stderr = ssh.exec_command('cd /ffs/run && ls -al')
+                    self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
 
-                self.ngwin.logEdit.append('>ls -al /tmp:')
-                stdin, stdout, stderr = ssh.exec_command('ls -al /tmp')
-                self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
+                    self.ngwin.logEdit.append('>ls -al /ffs/run/config:')
+                    stdin, stdout, stderr = ssh.exec_command('ls -al /ffs/run/config')
+                    self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
 
-                self.ngwin.logEdit.append('>find / -iname "SBTS_SCF.xml" -print:')
-                stdin, stdout, stderr = ssh.exec_command('find / -iname "SBTS_SCF.xml" -print')
-                self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
+                    self.ngwin.logEdit.append('>ls -al /tmp:')
+                    stdin, stdout, stderr = ssh.exec_command('ls -al /tmp')
+                    self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
 
-                self.ngwin.logEdit.append('>find / -iname "Vendor_DU.xml" -print:')
-                stdin, stdout, stderr = ssh.exec_command('find / -iname "Vendor_DU.xml" -print')
-                self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
+                    self.ngwin.logEdit.append('>find / -iname "SBTS_SCF.xml" -print:')
+                    stdin, stdout, stderr = ssh.exec_command('find / -iname "SBTS_SCF.xml" -print')
+                    self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
 
-                self.ngwin.logEdit.append('>find / -iname "swconfig.txt" -print:')
-                stdin, stdout, stderr = ssh.exec_command('find / -iname "swconfig.txt" -print')
-                self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
+                    self.ngwin.logEdit.append('>find / -iname "Vendor_DU.xml" -print:')
+                    stdin, stdout, stderr = ssh.exec_command('find / -iname "Vendor_DU.xml" -print')
+                    self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
 
-                self.ngwin.logEdit.append('>find / -iname "FrequencyHistory.xml" -print:')
-                stdin, stdout, stderr = ssh.exec_command('find / -iname "FrequencyHistory.xml" -print')
-                self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
+                    self.ngwin.logEdit.append('>find / -iname "swconfig.txt" -print:')
+                    stdin, stdout, stderr = ssh.exec_command('find / -iname "swconfig.txt" -print')
+                    self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
 
-                #5G raw pm: MRBTS-53775_PM_20190321_070030_SRAN.xml
-                self.ngwin.logEdit.append('>find / -iname "MRBTS*PM*.xml" -print:')
-                stdin, stdout, stderr = ssh.exec_command('find / -iname "MRBTS*PM*.xml" -print')
-                self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
+                    self.ngwin.logEdit.append('>find / -iname "FrequencyHistory.xml" -print:')
+                    stdin, stdout, stderr = ssh.exec_command('find / -iname "FrequencyHistory.xml" -print')
+                    self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
 
-                '''
-                #4G raw pm: PM.BTS-833144.20160916.150000.LTE.xml.xz, PM.BTS-833144.20160916.151500.LTE.raw.xz
-                self.ngwin.logEdit.append('>find / -iname "MRBTS*PM*.xml" -print:')
-                stdin, stdout, stderr = ssh.exec_command('find / -iname "MRBTS*PM*.xml" -print')
-                self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
-                '''
+                    #5G raw pm: MRBTS-53775_PM_20190321_070030_SRAN.xml
+                    self.ngwin.logEdit.append('>find / -iname "MRBTS*PM*.xml" -print:')
+                    stdin, stdout, stderr = ssh.exec_command('find / -iname "MRBTS*PM*.xml" -print')
+                    self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
+
+                    '''
+                    #4G raw pm: PM.BTS-833144.20160916.150000.LTE.xml.xz, PM.BTS-833144.20160916.151500.LTE.raw.xz
+                    self.ngwin.logEdit.append('>find / -iname "MRBTS*PM*.xml" -print:')
+                    stdin, stdout, stderr = ssh.exec_command('find / -iname "MRBTS*PM*.xml" -print')
+                    self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
+                    '''
 
                 #SFTPClient
                 curDir = os.path.dirname(os.path.abspath(__file__))
@@ -181,7 +183,7 @@ class NgSshSftp(object):
                         os.mkdir(os.path.join(curDir, 'data/raw_pm'))
 
                     self.ngwin.logEdit.append('>tar -czf /tmp/PM.tar.gz *.xml:')
-                    stdin, stdout, stderr = ssh.exec_command('tar -czf /tmp/PM.tar.gz *.xml')
+                    stdin, stdout, stderr = ssh.exec_command('cd %s && tar -czf /tmp/PM.tar.gz *.xml' % self.rawPmPath)
                     self.ngwin.logEdit.append(str(stdout.read(), encoding='utf-8'))
 
                     remotePath = '/tmp/PM.tar.gz'
