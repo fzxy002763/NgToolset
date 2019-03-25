@@ -235,7 +235,7 @@ class NgNrGrid(object):
         self.nrSib1DmrsNumFrontLoadSymbs = int(self.args['dmrsSib1']['numFrontLoadSymbs'])
         self.nrSib1DmrsTdL = self.args['dmrsSib1']['tdL']
         self.nrSib1DmrsFdK = self.args['dmrsSib1']['fdK']
-        
+
         self.nrMsg2Rnti = int(self.args['dci10Msg2']['rnti'], 16)
         self.nrMsg2MuPdcch = int(self.args['dci10Msg2']['muPdcch'])
         self.nrMsg2MuPdsch = int(self.args['dci10Msg2']['muPdsch'])
@@ -260,7 +260,7 @@ class NgNrGrid(object):
         self.nrMsg2DmrsNumFrontLoadSymbs = int(self.args['dmrsMsg2']['numFrontLoadSymbs'])
         self.nrMsg2DmrsTdL = self.args['dmrsMsg2']['tdL']
         self.nrMsg2DmrsFdK = self.args['dmrsMsg2']['fdK']
-        
+
         #DCI 1_0 with CSS interleaved VRB-to-PRB mapping
         if self.nrSib1FdVrbPrbMappingType == 'interleaved':
             self.dci10CssPrbs = self.dci10CssVrb2PrbMapping(coreset0Size=self.nrCoreset0NumRbs, iniDlBwpStart=0, coreset0Start=0, L=self.nrSib1FdBundleSize)
@@ -317,7 +317,7 @@ class NgNrGrid(object):
 
         self.ngwin.logEdit.append('PRACH association period info: numTxSsb=%d, configuration period x=%d, numSsbPerPeriod=%.2f, association period=%d with #slots=%d and #occasions=%d' % (self.numTxSsb, self.nrRachCfgPeriodx, self.numSsbPerPeriod, self.prachAssociationPeriod, self.numPrachSlotPerAssociationPeriod, self.numPrachOccasionPerAssociationPeriod))
         '''
-        
+
         self.minNumValidPrachOccasionPerAssociationPeriod = math.ceil(self.numTxSsb / self.nrRachSsbPerRachOccasionM8 * 8)
 
         return True
@@ -436,7 +436,7 @@ class NgNrGrid(object):
             if (i+1) % self.nrSymbPerSlotNormCp == 0:
                 self.ngwin.logEdit.append('-->slot%d: %s' % (i // self.nrSymbPerSlotNormCp, ''.join(self.tddPatOddRf[i-13:i+1])))
         qApp.processEvents()
-        
+
         return True
 
     def initTddGrid(self, hsfn, sfn):
@@ -749,12 +749,15 @@ class NgNrGrid(object):
             ret = self.detCss0(hsfn, sfn)
             if not ret:
                 return (None, None, None)
-            
+
             dn = '%s_%s' % (hsfn, sfn)
             scaleTd = self.baseScsTd // self.nrMibCommonScs
             scaleFd = self.nrMibCommonScs // self.baseScsFd
-            
+
             #for simplicity, assume SSB index is randomly selected!
+            if self.ngwin.enableDebug:
+                self.ngwin.logEdit.append('<font color=blue>WARNING: first while True for SSB selection, which may hang up!</font>')
+                qApp.processEvents()
             while True:
                 bestSsb = np.random.randint(0, len(self.ssbFirstSymbInBaseScsTd[dn]))
                 if self.ssbFirstSymbInBaseScsTd[dn][bestSsb] is not None:
@@ -775,7 +778,7 @@ class NgNrGrid(object):
 
             self.ngwin.logEdit.append('randomly selecting pdcch candidate: bestSsb=%d(hrf=%d,issb=%d), pdcchSlot=%d, pdcchCandidate=%d' % (bestSsb, self.nrMibHrf if self.nrSsbPeriod >= 10 else bestSsb // self.nrSsbMaxL, bestSsb % self.nrSsbMaxL, pdcchSlot, pdcchCandidate))
             qApp.processEvents()
-            
+
             #save bestSsb index for later ssb-prach mapping
             self.bestSsbInd = bestSsb % self.nrSsbMaxL
 
@@ -797,7 +800,7 @@ class NgNrGrid(object):
         elif dci == 'dci10' and rnti == 'ra-rnti':
             #convert 'slot'+'msg1LastSymb' which based on prachScs into commonScs
             tmpStr = 'converting from prachScs(=%dKHz) to commonScs(=%dKHz): [hsfn=%d, sfn=%d, slot=%d, msg1LastSymb=%d] --> ' % (self.prachScs, self.nrMibCommonScs, hsfn, sfn,  slot, self.msg1LastSymb)
-            
+
             scaleTd = self.nrMibCommonScs / self.prachScs
             firstSlotMonitoring = ((slot * self.nrSymbPerSlotNormCp + self.msg1LastSymb + 1) * scaleTd - 1) // self.nrSymbPerSlotNormCp
             if firstSlotMonitoring >= self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]:
@@ -805,13 +808,13 @@ class NgNrGrid(object):
                 hsfn, sfn = self.incSfn(hsfn, sfn, 1)
                 self.recvSsb(hsfn, sfn)
             firstSymbMonitoring = math.ceil(((slot * self.nrSymbPerSlotNormCp + self.msg1LastSymb + 1) * scaleTd - 1) % self.nrSymbPerSlotNormCp)
-            
+
             tmpStr = tmpStr + '[hsfn=%d, sfn=%d, slot=%d, symb=%d]' % (hsfn, sfn, firstSlotMonitoring, firstSymbMonitoring)
             self.ngwin.logEdit.append(tmpStr)
             qApp.processEvents()
-            
+
             oldHsfn, oldSfn = hsfn, sfn
-            
+
             #refer to 3GPP 38.213 vf40 8.2
             #The window starts at the first symbol of the earliest CORESET the UE is configured to receive PDCCH for Type1-PDCCH CSS set, as defined in Subclause 10.1, that is at least one symbol, after the last symbol of the PRACH occasion corresponding to the PRACH transmission, where the symbol duration corresponds to the SCS for Type1-PDCCH CSS set as defined in Subclause 10.1.
             firstSymbMonitoring = firstSymbMonitoring + 1
@@ -822,15 +825,22 @@ class NgNrGrid(object):
                     firstSlotMonitoring = firstSlotMonitoring % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]
                     hsfn, sfn = self.incSfn(hsfn, sfn, 1)
                     self.recvSsb(hsfn, sfn)
-                    
+
             self.ngwin.logEdit.append('start monitoring CSS0 for DCI 1_0 scheduling RAR: hsfn=%d, sfn=%d, firstSlotMonitoring=%d, firstSymbMonitoring=%d' % (hsfn, sfn, firstSlotMonitoring, firstSymbMonitoring))
             qApp.processEvents()
-            
+
             symbInd = ((1024 * hsfn + sfn) * self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] + firstSlotMonitoring) * self.nrSymbPerSlotNormCp + firstSymbMonitoring
-            css0Msg2 = [] 
+            css0Msg2 = []
+            if self.ngwin.enableDebug:
+                self.ngwin.logEdit.append('<font color=blue>WARNING: second while True for css0Msg2 determination, which may hang up!</font>')
+                qApp.processEvents()
             while True:
                 ret = self.detCss0(hsfn, sfn)
                 if not ret:
+                    if self.ngwin.enableDebug:
+                        self.ngwin.logEdit.append('<font color=red>detCss0 failed, hsfn=%s,sfn=%s</font>' % (hsfn, sfn))
+                        qApp.processEvents()
+
                     #remove 'not-used' HSFN+SFN from gridNrTdd/gridNrFddUl/gridNrFddDl
                     if not (hsfn == oldHsfn and sfn == oldSfn):
                         if self.nrDuplexMode == 'TDD':
@@ -847,26 +857,26 @@ class NgNrGrid(object):
                             if valid[j] == 'NOK':
                                 continue
                             ocHsfn, ocSfn, ocSlot = oc[j]
-                            symbInd2 = ((1024 * ocHsfn + ocSfn) * self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] + ocSlot) * self.nrSymbPerSlotNormCp + firstSymb 
+                            symbInd2 = ((1024 * ocHsfn + ocSfn) * self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] + ocSlot) * self.nrSymbPerSlotNormCp + firstSymb
                             if symbInd2 >= symbInd and [ocHsfn, ocSfn, ocSlot, firstSymb] not in css0Msg2:
                                 css0Msg2.append([ocHsfn, ocSfn, ocSlot, firstSymb])
-                
+
                 if len(css0Msg2) > 0:
                     break
-                
+
                 hsfn, sfn = self.incSfn(hsfn, sfn, 1)
                 self.recvSsb(hsfn, sfn)
-            
+
             startHsfn, startSfn, startSlot, startFirstSymb = css0Msg2[0]
             raRespWinStart = ((1024 * startHsfn + startSfn) * self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] + startSlot) * self.nrSymbPerSlotNormCp + startFirstSymb
             raRespWinEnd = ((1024 * startHsfn + startSfn) * self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] + startSlot + self.nrRachRaRespWin) * self.nrSymbPerSlotNormCp + startFirstSymb - self.nrCoreset0NumSymbs
             validCss0Msg2 = [css0Msg2[0]]
             for i in range(1, len(css0Msg2)):
                 ocHsfn, ocSfn, ocSlot, ocFirstSymb = css0Msg2[i]
-                symbInd2 = ((1024 * ocHsfn + ocSfn) * self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] + ocSlot) * self.nrSymbPerSlotNormCp + ocFirstSymb 
+                symbInd2 = ((1024 * ocHsfn + ocSfn) * self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] + ocSlot) * self.nrSymbPerSlotNormCp + ocFirstSymb
                 if symbInd2 >= raRespWinStart and symbInd2 < raRespWinEnd:
                     validCss0Msg2.append(css0Msg2[i])
-            
+
             self.ngwin.logEdit.append('contents of css0Msg2:')
             for i in range(len(css0Msg2)):
                 self.ngwin.logEdit.append('PDCCH occasion #%d: %s' % (i, css0Msg2[i]))
@@ -874,17 +884,17 @@ class NgNrGrid(object):
             for i in range(len(validCss0Msg2)):
                 self.ngwin.logEdit.append('PDCCH occasion #%d: %s' % (i, validCss0Msg2[i]))
             qApp.processEvents()
-            
+
             #randomly select from validCss0Msg2 pdcch occasion for msg2 scheduling
             pdcchOccasion = np.random.randint(0, len(validCss0Msg2))
             hsfn, sfn, slot, firstSymb = validCss0Msg2[pdcchOccasion]
-            
+
             numCandidates = min(self.nrCss0MaxNumCandidates, self.coreset0NumCces // self.nrCss0AggLevel)
             pdcchCandidate = np.random.randint(0, numCandidates)
-            
+
             self.ngwin.logEdit.append('randomly selecting pdcch candidate: pdcchOccasion=%d(numPdcchOccasions=%d), pdcchCandidate=%d(numPdcchCandidates=%d)' % (pdcchOccasion, len(validCss0Msg2), pdcchCandidate, numCandidates))
             qApp.processEvents()
-            
+
             scaleTd = self.baseScsTd // self.nrMibCommonScs
             scaleFd = self.nrMibCommonScs // self.baseScsFd
             dn2 = '%s_%s' % (hsfn, sfn)
@@ -899,7 +909,7 @@ class NgNrGrid(object):
                         else:
                             self.gridNrFddDl[dn2][self.coreset0FirstSc+i*self.nrScPerPrb*scaleFd:self.coreset0FirstSc+(i+1)*self.nrScPerPrb*scaleFd, firstSymbInBaseScsTd+j*scaleTd:firstSymbInBaseScsTd+(j+1)*scaleTd] = NrResType.NR_RES_PDCCH.value
                             self.gridNrFddDl[dn2][self.coreset0FirstSc+(i*self.nrScPerPrb+1)*scaleFd:self.coreset0FirstSc+(i+1)*self.nrScPerPrb*scaleFd:4, firstSymbInBaseScsTd+j*scaleTd:firstSymbInBaseScsTd+(j+1)*scaleTd] = NrResType.NR_RES_DMRS_PDCCH.value
-            
+
             return (hsfn, sfn, slot)
         else:
             #TODO
@@ -909,7 +919,7 @@ class NgNrGrid(object):
     def detCss0(self, hsfn, sfn):
         self.ngwin.logEdit.append('---->inside detCss0(hsfn=%d, sfn=%d)' % (hsfn, sfn))
         qApp.processEvents()
-        
+
         self.coreset0Occasions = []
         if self.nrCoreset0MultiplexingPat == 1:
             #refer to 3GPP 38.213 vf30
@@ -1133,9 +1143,9 @@ class NgNrGrid(object):
 
             self.ngwin.logEdit.append('[Type-0 CSS]PDCCH monitoring occasion for SSB index=%d(hrf=%d): %s' % (i % self.nrSsbMaxL, self.nrMibHrf if self.nrSsbPeriod >= 10 else i // self.nrSsbMaxL, self.coreset0Occasions[i]))
             qApp.processEvents()
-            
+
         return True
-    
+
     def coresetCce2RegMapping(self, coreset='coreset0', numRbs=6, numSymbs=1, interleaved=False, L=6, R=None, nShift=None):
         if not coreset in ('coreset0', 'coreset1'):
             return (None, None)
@@ -1289,7 +1299,7 @@ class NgNrGrid(object):
                             else:
                                 if not (self.nrSib1TdMappingType == 'Type B' and self.nrSib1TdNumSymbs == 2):
                                     self.gridNrFddDl[dn][sib1ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbSib1InBaseScsTd+i*scaleTd:firstSymbSib1InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DTX.value
-        
+
         return (hsfn, sfn, slotSib1)
 
     def dci10CssVrb2PrbMapping(self, coreset0Size=48, iniDlBwpStart=0, coreset0Start=0, L=2):
@@ -1342,7 +1352,7 @@ class NgNrGrid(object):
 
         self.ngwin.logEdit.append('---->inside sendMsg1(hsfn=%s,sfn=%s,slot=%s)' % (hsfn, sfn, slot))
         qApp.processEvents()
-        
+
         #rachSsbMapStartSfn = sfn if sfn % self.prachAssociationPeriod == 0 else self.prachAssociationPeriod * math.floor(sfn / self.prachAssociationPeriod)
         rachSsbMapStartSfn = sfn if sfn % 16 == 0 else 16 * math.floor(sfn / 16)
         if rachSsbMapStartSfn >= 1024:
@@ -1350,7 +1360,7 @@ class NgNrGrid(object):
             curHsfn = hsfn + 1
         else:
             curHsfn = hsfn
-        
+
         #find all valid PRACH occasions within a PRACH association period which is at most 160ms
         validPrachOccasionsPerAssociationPeriod = []
         invalidPrachOccasionsPerAssociationPeriod = []
@@ -1360,7 +1370,7 @@ class NgNrGrid(object):
             if curSfn < sfn:
                 isfn = isfn + 1
                 continue
-            
+
             if curSfn % self.nrRachCfgPeriodx in self.nrRachCfgOffsety:
                 raSlots = []
                 if self.nrRachScs in ('30', '120'):
@@ -1372,7 +1382,7 @@ class NgNrGrid(object):
                             raSlots.extend([2*m, 2*m+1])
                 else:
                     raSlots.extend(self.nrRachCfgSubfNumFr1SlotNumFr2)
-                    
+
                 #'slot' from args are based on commonScs, while PRACH slot based on prachScs
                 if curSfn == sfn:
                     if self.prachScs > self.nrMibCommonScs:
@@ -1381,13 +1391,13 @@ class NgNrGrid(object):
                     else:
                         scaleTd = self.nrMibCommonScs // self.prachScs
                         firstSlotAfterSib1 = slot // scaleTd + 1
-                        
+
                     while True:
                         if len(raSlots) > 0 and raSlots[0] < firstSlotAfterSib1:
                             raSlots.pop(0)
                         else:
                             break
-                
+
                 #init current frame for TDD
                 if self.nrDuplexMode == 'TDD':
                     tdGrid = np.full(self.nrSymbPerRfNormCp, 'F')
@@ -1400,7 +1410,7 @@ class NgNrGrid(object):
                         for i in range(len(self.tddPatOddRf)):
                             for j in range(scaleTd):
                                 tdGrid[i*scaleTd+j] = self.tddPatOddRf[i]
-                    
+
                     #init ssb in current frame
                     if self.nrSsbPeriod >= 10 and self.deltaSfn(self.hsfn, self.nrMibSfn, curHsfn, curSfn) % (self.nrSsbPeriod // 10) != 0:
                         pass
@@ -1414,18 +1424,18 @@ class NgNrGrid(object):
                                 ssbFirstSymb = hrf * (self.nrSymbPerRfNormCp // 2) + self.ssbFirstSymbSet[issb] * scaleTd
                                 for k in range(4*scaleTd):
                                     tdGrid[ssbFirstSymb+k] = 'SSB'
-                    
+
                     #init sib1 if any
                     if curHsfn == hsfn and curSfn == sfn:
                         scaleTd = self.baseScsTd // self.nrMibCommonScs
                         firstSymbSib1InBaseScsTd = (slot * self.nrSymbPerSlotNormCp + self.nrSib1TdStartSymb) * scaleTd
                         for k in range(self.nrSib1TdNumSymbs*scaleTd):
                             tdGrid[firstSymbSib1InBaseScsTd+k] = 'SIB1'
-                
+
                 #refer to 3GPP 38.213 vf40 8.1
                 #For paired spectrum all PRACH occasions are valid.
-                #If a UE is provided TDD-UL-DL-ConfigurationCommon, a PRACH occasion in a PRACH slot is valid if 
-                #-	it is within UL symbols, or 
+                #If a UE is provided TDD-UL-DL-ConfigurationCommon, a PRACH occasion in a PRACH slot is valid if
+                #-	it is within UL symbols, or
                 #-	it does not precede a SS/PBCH block in the PRACH slot and starts at least N_gap symbols after a last downlink symbol and at least N_gap symbols after a last SS/PBCH block transmission symbol, where N_gap is provided in Table 8.1-2.
                 for s in raSlots:
                     for t in range(self.nrRachCfgNumOccasionsPerSlot):
@@ -1436,47 +1446,47 @@ class NgNrGrid(object):
                             scaleTd = self.baseScsTd // self.prachScs
                             rachFirstSymbInBaseScsTd = (s * self.nrSymbPerSlotNormCp + self.nrRachCfgStartSymb + t * self.nrRachCfgDuration) * scaleTd
                             rachSymbsInbaseScsTd = [rachFirstSymbInBaseScsTd+k for k in range(self.nrRachCfgDuration*scaleTd)]
-                            
+
                             nGapInBaseScsTd = 0 if self.nrRachScs in ('1.25', '5') or self.nrRachCfgFormat == 'B4' else 2*(self.baseScsTd//self.prachScs)
-                            
+
                             valid = True
                             for k in rachSymbsInbaseScsTd:
                                 if tdGrid[k] != 'U':
                                     valid = False
                                     break
-                            
+
                             for k in range(rachFirstSymbInBaseScsTd, (s+1)*self.nrSymbPerSlotNormCp):
                                 if tdGrid[k] == 'SSB':
                                     valid = False
                                     break
-                            
+
                             for k in range(max(0, rachFirstSymbInBaseScsTd - nGapInBaseScsTd), rachFirstSymbInBaseScsTd):
                                 if tdGrid[k] in ('SSB', 'SIB1'):
                                     valid = False
                                     break
-                                
+
                             if valid:
                                 for f in range(self.nrRachMsg1Fdm):
                                     validPrachOccasionsPerAssociationPeriod.append([[curHsfn, curSfn, s], t, f])
                             else:
                                 for f in range(self.nrRachMsg1Fdm):
                                     invalidPrachOccasionsPerAssociationPeriod.append([[curHsfn, curSfn, s], t, f])
-                                
+
             isfn = isfn + 1
-        
+
         self.ngwin.logEdit.append('contents of validPrachOccasionsPerAssociationPeriod(size=%d,minSize=%d):' % (len(validPrachOccasionsPerAssociationPeriod), self.minNumValidPrachOccasionPerAssociationPeriod))
         self.ngwin.logEdit.append(','.join([str(occ) for occ in validPrachOccasionsPerAssociationPeriod]))
-            
+
         self.ngwin.logEdit.append('contents of invalidPrachOccasionsPerAssociationPeriod(size=%d):' % len(invalidPrachOccasionsPerAssociationPeriod))
         self.ngwin.logEdit.append(','.join([str(occ) for occ in invalidPrachOccasionsPerAssociationPeriod]))
         qApp.processEvents()
-        
+
         if isfn >= 16 and len(validPrachOccasionsPerAssociationPeriod) < self.minNumValidPrachOccasionPerAssociationPeriod:
             self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid PRACH configuration(numTxSsb=%d,ssbPerOccasionM8=%d,x=%d,y=%s,subfFr1SlotFr2=%s,#prachSlots=%d,#prachOccasion=%d,msg1Fdm=%d): PRACH association period is at most 160ms!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.numTxSsb, self.nrRachSsbPerRachOccasionM8,  self.nrRachCfgPeriodx, self.nrRachCfgOffsety, self.nrRachCfgSubfNumFr1SlotNumFr2, self.nrRachCfgNumSlotsPerSubfFr1Per60KSlotFR2, self.nrRachCfgNumOccasionsPerSlot, self.nrRachMsg1Fdm))
             qApp.processEvents()
             self.error = True
             return (None, None, None)
-            
+
         #SSB and PRACH occasion mapping
         ssb2RachOccasionMap = dict()
         if self.nrRachSsbPerRachOccasionM8 < 8:
@@ -1498,37 +1508,37 @@ class NgNrGrid(object):
                     cbPreambs = [availCbPreambsPerSsb*(count%numSsbPerRachOccasion)+k for k in range(self.nrRachCbPreambsPerSsb)]
                     ssb2RachOccasionMap[issb] = [rachOccasions, cbPreambs]
                     count = count + 1
-        
+
         self.ngwin.logEdit.append('contents of ssb2RachOccasionMap:')
         for key,val in ssb2RachOccasionMap.items():
             self.ngwin.logEdit.append('issb=%d: rachOccasion=%s, cbPreambs=%s' % (key, val[0], val[1]))
         qApp.processEvents()
-        
-        #assume valid prach occasion is randomly selected 
+
+        #assume valid prach occasion is randomly selected
         bestSsbRachOccasion = ssb2RachOccasionMap[self.bestSsbInd][0][np.random.randint(0, len(ssb2RachOccasionMap[self.bestSsbInd][0]))]
         self.ngwin.logEdit.append('selecting prach occasion(=%s) with cbPreambs=%s corresponding to best SSB(with issb=%d)' % (bestSsbRachOccasion, ssb2RachOccasionMap[self.bestSsbInd][1], self.bestSsbInd))
         qApp.processEvents()
-        
+
         #PRACH time/freq domain RE mapping
         msg1Hsfn, msg1Sfn, msg1Slot = bestSsbRachOccasion[0]
         msg1OccasionInd = bestSsbRachOccasion[1]
         msg1FdmInd = bestSsbRachOccasion[2]
-        
+
         dn = '%s_%s' % (msg1Hsfn, msg1Sfn)
         if (self.nrDuplexMode == 'TDD' and not dn in self.gridNrTdd) or (self.nrDuplexMode == 'FDD' and not dn in self.gridNrFddUl):
             self.recvSsb(msg1Hsfn, msg1Sfn)
-        
+
         scaleTd = self.baseScsTd // self.prachScs
         #last symbol of PRACH occasion, starting from msg1Slot
         self.msg1LastSymb = self.nrRachCfgStartSymb + msg1OccasionInd * self.nrRachCfgDuration + self.nrRachCfgDuration - 1
         msg1FirstSymbInBaseScsTd = (msg1Slot * self.nrSymbPerSlotNormCp + self.nrRachCfgStartSymb + msg1OccasionInd * self.nrRachCfgDuration) * scaleTd
         msg1SymbsInBaseScsTd = [msg1FirstSymbInBaseScsTd+k for k in range(self.nrRachCfgDuration*scaleTd)]
-        
+
         #determine freq-domain
         scaleFd = self.nrIniUlBwpScs // self.baseScsFd
         msg1FirstScInBaseScsFd = self.nrCarrierMinGuardBand * self.nrScPerPrb * (self.nrCarrierScs // self.baseScsFd) + self.nrIniUlBwpStartRb * self.nrScPerPrb * scaleFd + (self.nrRachMsg1FreqStart + msg1FdmInd * self.nrRachNumRbs) * self.nrScPerPrb * scaleFd
         msg1ScsInBaseScsFd = [msg1FirstScInBaseScsFd+k for k in range(self.nrRachNumRbs*self.nrScPerPrb*scaleFd)]
-        
+
         if self.nrDuplexMode == 'TDD':
             for fd in msg1ScsInBaseScsFd:
                 for td in msg1SymbsInBaseScsTd:
@@ -1537,24 +1547,24 @@ class NgNrGrid(object):
             for fd in msg1ScsInBaseScsFd:
                 for td in msg1SymbsInBaseScsTd:
                     self.gridNrFddUl[dn][fd, td] = NrResType.NR_RES_PRACH.value
-                    
+
         #refer to 3GPP 38.321 5.1.3
         #RA-RNTI= 1 + s_id + 14 × t_id + 14 × 80 × f_id + 14 × 80 × 8 × ul_carrier_id
         #where s_id is the index of the first OFDM symbol of the PRACH occasion (0 ≤ s_id < 14), t_id is the index of the first slot of the PRACH occasion in a system frame (0 ≤ t_id < 80), f_id is the index of the PRACH occasion in the frequency domain (0 ≤ f_id < 8), and ul_carrier_id is the UL carrier used for Random Access Preamble transmission (0 for NUL carrier, and 1 for SUL carrier).
         self.raRnti = 1 + (self.nrRachCfgStartSymb + msg1OccasionInd * self.nrRachCfgDuration) + 14 * msg1Slot + 14 * 80 * msg1FdmInd
         self.ngwin.logEdit.append('Associated RA-RNTI = 0x{:04X}'.format(self.raRnti))
         qApp.processEvents()
-        
+
         return (msg1Hsfn, msg1Sfn, msg1Slot)
         #return (hsfn, sfn, slot)
 
     def recvMsg2(self, hsfn, sfn, slot):
         if self.error:
             return (None, None, None)
-        
+
         self.ngwin.logEdit.append('---->inside recvMsg2(hsfn=%d,sfn=%d,dci slot=%d)' % (hsfn, sfn, slot))
         qApp.processEvents()
-        
+
         scaleTd = self.baseScsTd // self.nrMibCommonScs
         scaleFd = self.nrMibCommonScs // self.baseScsFd
 
@@ -1597,7 +1607,7 @@ class NgNrGrid(object):
                 self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: When receiving the PDSCH scheduled with SI-RNTI and the system information indicator in DCI is set to 1, RA-RNTI, P-RNTI or TC-RNTI, the UE assumes SS/PBCH block transmission according to ssb-PositionsInBurst, and if the PDSCH resource allocation overlaps with PRBs containing SS/PBCH block transmission resources the UE shall assume that the PRBs containing SS/PBCH block transmission resources are not available for PDSCH in the OFDM symbols where SS/PBCH block is transmitted.\ntdOverlapped=%s\nfdOverlapped=%s' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), tdOverlapped, fdOverlapped))
                 qApp.processEvents()
                 self.error = True
-                return
+                return (None, None, None)
 
         for i in range(self.nrMsg2TdNumSymbs):
             if self.nrDuplexMode == 'TDD' and self.gridNrTdd[dn][self.coreset0FirstSc, firstSymbMsg2InBaseScsTd+i*scaleTd] in (NrResType.NR_RES_U.value, NrResType.NR_RES_F.value):
@@ -1623,7 +1633,7 @@ class NgNrGrid(object):
                             else:
                                 if not (self.nrMsg2TdMappingType == 'Type B' and self.nrMsg2TdNumSymbs == 2):
                                     self.gridNrFddDl[dn][msg2ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbMsg2InBaseScsTd+i*scaleTd:firstSymbMsg2InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DTX.value
-        
+
         return (hsfn, sfn, slotMsg2)
 
     def sendMsg3(self, hsfn, sfn):

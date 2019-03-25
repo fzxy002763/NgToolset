@@ -1608,7 +1608,7 @@ class NgNrGridUi(QDialog):
         self.nrRachGenericMsg1FreqStartLabel = QLabel('msg1-FrequencyStart[0-274]:')
         self.nrRachGenericMsg1FreqStartEdit = QLineEdit('0')
         self.nrRachGenericMsg1FreqStartEdit.setValidator(QIntValidator(0, 274))
-        
+
         self.nrRachGenericRaRespWinLabel = QLabel('ra-ResponseWindow:')
         self.nrRachGenericRaRespWinComb = QComboBox()
         self.nrRachGenericRaRespWinComb.addItems(['sl1', 'sl2', 'sl4', 'sl8', 'sl10', 'sl20', 'sl40', 'sl80'])
@@ -6638,7 +6638,7 @@ class NgNrGridUi(QDialog):
             if self.flagCoreset0:
                 self.updateKSsbAndNCrbSsb(offset=0 if self.coreset0Offset < 0 else self.coreset0Offset)
                 self.flagCss0 = self.validateCss0()
-        
+
         #(3) update ra-ResponseWindow comb
         #refer to 3GPP 38.331 vf40 RACH-ConfigGeneric
         #The network configures a value lower than or equal to 10 ms (see TS 38.321 [3], clause 5.1.4).
@@ -10272,10 +10272,10 @@ class NgNrGridUi(QDialog):
 
         #receiving SSB
         nrGrid.recvSsb(hsfn, sfn)
-        
+
         #monitoring PDCCH for SIB1
         hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, 0, dci='dci10', rnti='si-rnti')
-        
+
         if hsfn is not None and sfn is not None and slot is not None:
             #receiving SIB1
             hsfn, sfn, slot = nrGrid.recvSib1(hsfn, sfn, slot)
@@ -10283,15 +10283,15 @@ class NgNrGridUi(QDialog):
         #sending Msg1(PRACH)
         if hsfn is not None and sfn is not None and slot is not None:
             hsfn, sfn, slot = nrGrid.sendMsg1(hsfn, sfn, slot)
-        
+
         #monitoring PDCCH for Msg2
         if hsfn is not None and sfn is not None and slot is not None:
             hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, slot, dci='dci10', rnti='ra-rnti')
-            
+
         #receiving Msg2(RAR)
         if hsfn is not None and sfn is not None and slot is not None:
             hsfn, sfn, slot = nrGrid.recvMsg2(hsfn, sfn, slot)
-            
+
         '''
         #sending Msg3(PUSCH)
         hsfn, sfn = nrGrid.sendMsg3(hsfn, sfn)
@@ -10322,7 +10322,11 @@ class NgNrGridUi(QDialog):
 
         #export grid to excel
         if not nrGrid.error:
-            nrGrid.exportToExcel()
+            if self.ngwin.enableDebug:
+                #Don't want waste time for waiting exportToExcel to finish!
+                pass
+            else:
+                nrGrid.exportToExcel()
 
     def prepNrGrid(self):
         self.ngwin.logEdit.append('-->inside prepNrGrid')
@@ -10446,7 +10450,7 @@ class NgNrGridUi(QDialog):
         tdL, fdK = self.getDmrsPdschTdFdPattern(dmrsType, tdmappingType, slivS, slivL, numFrontLoadSymbs, dmrsAddPos, cdmGroupsWoData)
         self.args['dmrsSib1']['tdL'] = tdL
         self.args['dmrsSib1']['fdK'] = fdK
-        
+
         #DMRS for Msg2
         self.args['dmrsMsg2'] = dict()
         self.args['dmrsMsg2']['dmrsType'] = self.nrDmrsMsg2DmrsTypeComb.currentText()
@@ -10455,7 +10459,7 @@ class NgNrGridUi(QDialog):
         self.args['dmrsMsg2']['dmrsPorts'] = self.nrDmrsMsg2DmrsPortsEdit.text()
         self.args['dmrsMsg2']['cdmGroupsWoData'] = self.nrDmrsMsg2CdmGroupsWoDataEdit.text()
         self.args['dmrsMsg2']['numFrontLoadSymbs'] = self.nrDmrsMsg2FrontLoadSymbsEdit.text()
-        
+
         dmrsType = self.nrDmrsMsg2DmrsTypeComb.currentText()
         tdmappingType = self.nrDci10Msg2TimeAllocMappingTypeComb.currentText()
         slivS = int(self.nrDci10Msg2TimeAllocSEdit.text())
@@ -10501,19 +10505,19 @@ class NgNrGridUi(QDialog):
             self.args['rach']['raLen'] = 839
             self.args['rach']['raNumRbs'], self.args['rach']['raKBar'] = self.nrNumRbRaAndKBar['839_5_%s' % self.nrIniUlBwpGenericScsComb.currentText()[:-3]]
         else:
-            self.args['rach']['raLen'] = 139 
+            self.args['rach']['raLen'] = 139
             self.args['rach']['raNumRbs'], self.args['rach']['raKBar'] = self.nrNumRbRaAndKBar['139_%s_%s' % (self.nrRachGenericScsComb.currentText()[:-3], self.nrIniUlBwpGenericScsComb.currentText()[:-3])]
 
         #print dict info
         for key in self.args.keys():
             self.ngwin.logEdit.append('contents of ["%s"]: %s' % (key, self.args[key]))
             qApp.processEvents()
-        
+
         #save configurations for debugging in case of app crash
         outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
         if not os.path.exists(outDir):
             os.mkdir(outDir)
-        
+
         with open(os.path.join(outDir, '5gnr_grid_config_%s.cfg' % (time.strftime('%Y%m%d%H%M%S', time.localtime()))), 'w') as f:
             self.ngwin.logEdit.append('saving configuration to: %s' % f.name)
             qApp.processEvents()
