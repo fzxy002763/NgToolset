@@ -1,0 +1,6 @@
+#SFTP path configurations
+scf_path=/ffs/run/config/node_0xe000/siteoam/config/SBTS_SCF.xml
+vendor_path=/ffs/run/config/node_0xe000/config/Vendor_DU.xml
+swconfig_path=/ffs/run/swconfig.txt
+freq_history_path=/tmp/FrequencyHistory.xml
+raw_pm_path=/tmp/node_0xe000/tmp/pm/reports

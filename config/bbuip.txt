@@ -1,3 +1,3 @@
 #bts_id, bts_ip, bts_name
-53760,10.140.7.4,Bole
+#53760,10.140.7.4,Bole
 53775,10.140.7.76,Jiapanyuan
