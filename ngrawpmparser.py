@@ -426,5 +426,3 @@ class NgRawPmParser(object):
         except Exception as e:
             #self.ngwin.logEdit.append(str(e))
             self.ngwin.logEdit.append(traceback.format_exc())
-            
-        

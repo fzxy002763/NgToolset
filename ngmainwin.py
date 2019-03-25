@@ -33,49 +33,49 @@ class NgMainWin(QMainWindow):
         self.tabWidget.setTabsClosable(True)
         self.logEdit = QTextEdit()
         self.tabWidget.addTab(self.logEdit, 'log')
-       
+
         self.createActions()
         self.createMenus()
-       
+
         self.setCentralWidget(self.tabWidget)
         self.setWindowTitle('NG Toolset')
         self.setWindowFlags(self.windowFlags() or Qt.WindowMinMaxButtonsHint)
         self.setWindowState(self.windowState() or Qt.WindowMaximized)
         self.tabWidget.tabCloseRequested.connect(self.onTabCloseRequested)
-        
+
     def onTabCloseRequested(self, index):
         if index == 0:
             return
         widget = self.tabWidget.widget(index)
         self.tabWidget.removeTab(index)
-        
+
     def onAbout(self):
         QMessageBox.information(self, 'About', '<h1>NG Toolset</h1><p>NG toolset is set of useful NPO tools for 4G and 5G.</p>'
                                 + '<p>Author: <a href=mailto:zhengwei.gao@yahoo.com>zhengwei.gao(at)yahoo.com</a></p>'
                                 + '<p>Blog: <a href="http://blog.csdn.net/jeffyko">http://blog.csdn.net/jeffyko</a></p>')
-        
+
     def onEnableDebug(self, checked):
         self.enableDebug = checked
-        
+
     def onChkSqlPlugin(self):
         drivers = QSqlDatabase().drivers()
         for e in drivers:
             self.logEdit.append('Found SQL driver: %s' % e)
-    
+
     def onExecXmlParser(self):
         indir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
-        parser = NgXmlParser(self, indir) 
+        parser = NgXmlParser(self, indir)
         parser.start()
-    
+
     def onExecNedsM8015(self):
         args = dict()
-        args['dbConf'] = 'dbconfig.txt'
+        args['dbConf'] = 'oracle_db_config.txt'
         args['sqlQuery'] = ['neds_lnadj.sql', 'neds_lnadjl.sql', 'neds_lncel.sql', 'neds_lnhoif.sql', 'neds_lnrel.sql', 'neds_irfim.sql',
                             'neds_m8015.sql', 'neds_m8051.sql', 'neds_m8005.sql', 'neds_m8001.sql', 'neds_m8013.sql', 'neds_m8006.sql', 'neds_m8007.sql']
-    
+
         query = NgSqlQuery(self, args)
         query.exec_()
-        
+
         if query.queryStat:
             proc = NgM8015Proc(self)
             proc.loadCsvData()
@@ -84,42 +84,42 @@ class NgMainWin(QMainWindow):
             proc.procUserCase02()
             proc.procUserCase04()
             self.logEdit.append('<font color=blue>Done!</font>')
-        
+
     def onExecSshSftpClient(self):
         client = NgSshSftp(self)
-        
+
     def onExecRawPmParser5g(self):
         parser = NgRawPmParser(self, '5g')
-        
+
     def onExecLteResGrid(self):
         dlg = NgLteGridUi(self)
         dlg.exec_()
-    
+
     def onExecNbiotResGrid(self):
         dlg = NgNbiotGridUi(self)
         dlg.exec_()
-    
+
     def onExecNrResGrid(self):
         #QMessageBox.information(self, 'NR Resource Grid', '<p><font color=red><b>Oops, NR resource grid is still under development!</b></font></p>'
         #                        + '<p>Please visit: <a href="http://www.3gpp.org/ftp/Specs/2018-03/Rel-15/38_series/"> http://www.3gpp.org/ftp/Specs/2018-03/Rel-15/38_series/</a> for latest 5G NSA specifications.</p>')
         dlg = NgNrGridUi(self)
         dlg.exec_()
-        
+
     def createActions(self):
         #File Menu
         self.exitAction = QAction('Exit')
         self.exitAction.triggered.connect(self.close)
-        
+
         #LTE menu
         self.lteResGridAction= QAction('LTE Resource Grid')
         self.lteResGridAction.triggered.connect(self.onExecLteResGrid)
         self.nbiotResGridAction= QAction('NB-IoT Resource Grid')
         self.nbiotResGridAction.triggered.connect(self.onExecNbiotResGrid)
-        
+
         #NR menu
         self.nrResGridAction= QAction('NR Resource Grid')
         self.nrResGridAction.triggered.connect(self.onExecNrResGrid)
-        
+
         #Misc menu
         self.chkSqlAction = QAction('Check SQL Plugin')
         self.chkSqlAction.triggered.connect(self.onChkSqlPlugin)
@@ -131,41 +131,41 @@ class NgMainWin(QMainWindow):
         self.sshSftpAction.triggered.connect(self.onExecSshSftpClient)
         self.rawPmParserAction = QAction('Raw PM Parser(5G)')
         self.rawPmParserAction.triggered.connect(self.onExecRawPmParser5g)
-        
+
         #Options menu
         self.enableDebugAction = QAction('Enable Debug')
         self.enableDebugAction.setCheckable(True)
         self.enableDebugAction.setChecked(False)
         self.enableDebugAction.triggered[bool].connect(self.onEnableDebug)
-        
+
         #Help menu
         self.aboutAction = QAction('About')
         self.aboutAction.triggered.connect(self.onAbout)
         self.aboutQtAction = QAction('About Qt')
         self.aboutQtAction.triggered.connect(qApp.aboutQt)
-    
+
     def createMenus(self):
         self.fileMenu = self.menuBar().addMenu('File')
         self.fileMenu.addAction(self.exitAction)
-        
+
         self.lteMenu = self.menuBar().addMenu('LTE')
         self.lteMenu.addAction(self.lteResGridAction)
         self.lteMenu.addAction(self.nbiotResGridAction)
-        
+
         self.nrMenu = self.menuBar().addMenu('NR')
         self.nrMenu.addAction(self.nrResGridAction)
-        
+
         self.miscMenu = self.menuBar().addMenu('Misc')
         self.miscMenu.addAction(self.chkSqlAction)
         self.miscMenu.addAction(self.xmlParserAction)
         self.miscMenu.addAction(self.sqlQueryAction)
         self.miscMenu.addAction(self.sshSftpAction)
         self.miscMenu.addAction(self.rawPmParserAction)
-        
+
         self.optionsMenu = self.menuBar().addMenu('Options')
         self.optionsMenu.addAction(self.enableDebugAction)
-        
+
         self.helpMenu = self.menuBar().addMenu('Help')
         self.helpMenu.addAction(self.aboutAction)
         self.helpMenu.addAction(self.aboutQtAction)
-        
+
