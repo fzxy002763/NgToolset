@@ -3303,6 +3303,48 @@ class NgNrGridUi(QDialog):
         bwpCfgTabWidget.addTab(dedDlBwpWidget, 'Dedicated DL BWP')
         bwpCfgTabWidget.addTab(dedUlBwpWidget, 'Dedicated UL BWP')
 
+        #advanced settings
+        self.nrAdvInfoLabel = QLabel('<font color=blue>Note: Proceed only if you know what you are doing.</font>')
+
+        self.nrAdvBestSsbLabel = QLabel('Best SSB:')
+        self.nrAdvBestSsbEdit = QLineEdit('NA')
+
+        self.nrAdvSib1PdcchSlotLabel = QLabel('PDCCH slot for SIB1:')
+        self.nrAdvSib1PdcchSlotEdit = QLineEdit('NA')
+
+        self.nrAdvSib1PdcchCandLabel = QLabel('PDCCH candidate for SIB1:')
+        self.nrAdvSib1PdcchCandEdit = QLineEdit('NA')
+
+        self.nrAdvPrachOccasionLabel = QLabel('PRACH occasion for Msg1:')
+        self.nrAdvPrachOccasionEdit = QLineEdit('NA')
+
+        self.nrAdvMsg2PdcchSlotLabel = QLabel('PDCCH slot for Msg2:')
+        self.nrAdvMsg2PdcchSlotEdit = QLineEdit('NA')
+
+        self.nrAdvMsg2PdcchCandLabel = QLabel('PDCCH candidate for Msg2:')
+        self.nrAdvMsg2PdcchCandEdit = QLineEdit('NA')
+
+        advConfWidget = QWidget()
+        advConfGridLayout = QGridLayout()
+        advConfGridLayout.addWidget(self.nrAdvInfoLabel, 0, 0, 1, 2)
+        advConfGridLayout.addWidget(self.nrAdvBestSsbLabel, 1, 0)
+        advConfGridLayout.addWidget(self.nrAdvBestSsbEdit, 1, 1)
+        advConfGridLayout.addWidget(self.nrAdvSib1PdcchSlotLabel, 2, 0)
+        advConfGridLayout.addWidget(self.nrAdvSib1PdcchSlotEdit, 2, 1)
+        advConfGridLayout.addWidget(self.nrAdvSib1PdcchCandLabel, 3, 0)
+        advConfGridLayout.addWidget(self.nrAdvSib1PdcchCandEdit, 3, 1)
+        advConfGridLayout.addWidget(self.nrAdvPrachOccasionLabel, 4, 0)
+        advConfGridLayout.addWidget(self.nrAdvPrachOccasionEdit, 4, 1)
+        advConfGridLayout.addWidget(self.nrAdvMsg2PdcchSlotLabel, 5, 0)
+        advConfGridLayout.addWidget(self.nrAdvMsg2PdcchSlotEdit, 5, 1)
+        advConfGridLayout.addWidget(self.nrAdvMsg2PdcchCandLabel, 6, 0)
+        advConfGridLayout.addWidget(self.nrAdvMsg2PdcchCandEdit, 6, 1)
+
+        advConfLayout = QVBoxLayout()
+        advConfLayout.addLayout(advConfGridLayout)
+        advConfLayout.addStretch()
+        advConfWidget.setLayout(advConfLayout)
+
         #connect signals to slots
         self.nrCarrierBwComb.currentIndexChanged.connect(self.onCarrierBwCombCurIndChanged)
         self.nrCarrierScsComb.currentIndexChanged.connect(self.onCarrierScsCombCurIndChanged)
@@ -3455,6 +3497,7 @@ class NgNrGridUi(QDialog):
         tabWidget.addTab(commonCfgWidget, 'Common Settings')
         tabWidget.addTab(pdcchCfgWidget, 'PDCCH Settings')
         tabWidget.addTab(bwpCfgTabWidget, 'BWP Settings')
+        tabWidget.addTab(advConfWidget, 'Advanced Settings')
 
         #-->Buttons
         self.okBtn = QPushButton('OK')
@@ -10518,6 +10561,15 @@ class NgNrGridUi(QDialog):
             self.args['rach']['raLen'] = 139
             self.args['rach']['raNumRbs'], self.args['rach']['raKBar'] = self.nrNumRbRaAndKBar['139_%s_%s' % (self.nrRachGenericScsComb.currentText()[:-3], self.nrIniUlBwpGenericScsComb.currentText()[:-3])]
 
+        #(5) advanced settings tab
+        self.args['advanced'] = dict()
+        self.args['advanced']['bestSsb'] = self.nrAdvBestSsbEdit.text()
+        self.args['advanced']['sib1PdcchSlot'] = self.nrAdvSib1PdcchSlotEdit.text()
+        self.args['advanced']['sib1PdcchCand'] = self.nrAdvSib1PdcchCandEdit.text()
+        self.args['advanced']['prachOccasion'] = self.nrAdvPrachOccasionEdit.text()
+        self.args['advanced']['msg2PdcchSlot'] = self.nrAdvMsg2PdcchSlotEdit.text()
+        self.args['advanced']['msg2PdcchCand'] = self.nrAdvMsg2PdcchCandEdit.text()
+
         #print dict info
         for key in self.args.keys():
             self.ngwin.logEdit.append('contents of ["%s"]: %s' % (key, self.args[key]))
@@ -10529,7 +10581,7 @@ class NgNrGridUi(QDialog):
             os.mkdir(outDir)
 
         with open(os.path.join(outDir, '5gnr_grid_config_%s.cfg' % (time.strftime('%Y%m%d%H%M%S', time.localtime()))), 'w') as f:
-            self.ngwin.logEdit.append('saving configuration to: %s' % f.name)
+            self.ngwin.logEdit.append('<font color=purple>saving configuration to: %s</font>' % f.name)
             qApp.processEvents()
             for key in self.args.keys():
                 f.write('contents of ["%s"]: %s\n' % (key, self.args[key]))

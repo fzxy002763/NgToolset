@@ -320,6 +320,37 @@ class NgNrGrid(object):
 
         self.minNumValidPrachOccasionPerAssociationPeriod = math.ceil(self.numTxSsb / self.nrRachSsbPerRachOccasionM8 * 8)
 
+        #advanced settings
+        try:
+            self.nrAdvBestSsb = int(self.args['advanced']['bestSsb'])
+        except Exception as e:
+            self.nrAdvBestSsb = None
+
+        try:
+            self.nrAdvSib1PdcchSlot = int(self.args['advanced']['sib1PdcchSlot'])
+        except Exception as e:
+            self.nrAdvSib1PdcchSlot = None
+
+        try:
+            self.nrAdvSib1PdcchCand = int(self.args['advanced']['sib1PdcchCand'])
+        except Exception as e:
+            self.nrAdvSib1PdcchCand = None
+
+        try:
+            self.nrAdvPrachOccasion = int(self.args['advanced']['prachOccasion'])
+        except Exception as e:
+            self.nrAdvPrachOccasion = None
+
+        try:
+            self.nrAdvMsg2PdcchSlot = int(self.args['advanced']['msg2PdcchSlot'])
+        except Exception as e:
+            self.nrAdvMsg2PdcchSlot = None
+
+        try:
+            self.nrAdvMsg2PdcchCand = int(self.args['advanced']['msg2PdcchCand'])
+        except Exception as e:
+            self.nrAdvMsg2PdcchCand = None
+
         return True
 
     def initTddUlDlConfig(self):
@@ -754,29 +785,36 @@ class NgNrGrid(object):
             scaleTd = self.baseScsTd // self.nrMibCommonScs
             scaleFd = self.nrMibCommonScs // self.baseScsFd
 
-            #for simplicity, assume SSB index is randomly selected!
-            if self.ngwin.enableDebug:
-                self.ngwin.logEdit.append('<font color=blue>WARNING: first while True for SSB selection, which may hang up!</font>')
-                qApp.processEvents()
-            while True:
-                bestSsb = np.random.randint(0, len(self.ssbFirstSymbInBaseScsTd[dn]))
-                if self.ssbFirstSymbInBaseScsTd[dn][bestSsb] is not None:
-                    break
+            if self.nrAdvBestSsb is None:
+                #for simplicity, assume SSB index is randomly selected!
+                if self.ngwin.enableDebug:
+                    self.ngwin.logEdit.append('<font color=blue>WARNING: first while True for SSB selection, which may hang up!</font>')
+                    qApp.processEvents()
+                while True:
+                    bestSsb = np.random.randint(0, len(self.ssbFirstSymbInBaseScsTd[dn]))
+                    if self.ssbFirstSymbInBaseScsTd[dn][bestSsb] is not None:
+                        break
+            else:
+                bestSsb = self.nrAdvBestSsb
 
             #determine pdcch candidate randomly
             oc, firstSymb, valid = self.coreset0Occasions[bestSsb]
-            if len(valid) == 2 and valid[0] == 'OK' and valid[1] == 'OK':
-                pdcchSlot = np.random.randint(0, 2)
-            else:
-                if len(valid) == 1:
-                    pdcchSlot = 0
+
+            if self.nrAdvSib1PdcchSlot is None:
+                if len(valid) == 2 and valid[0] == 'OK' and valid[1] == 'OK':
+                    pdcchSlot = np.random.randint(0, 2)
                 else:
-                    pdcchSlot = 0 if valid[0] == 'OK' else 1
+                    if len(valid) == 1:
+                        pdcchSlot = 0
+                    else:
+                        pdcchSlot = 0 if valid[0] == 'OK' else 1
+            else:
+                pdcchSlot = self.nrAdvSib1PdcchSlot
 
             numCandidates = min(self.nrCss0MaxNumCandidates, self.coreset0NumCces // self.nrCss0AggLevel)
-            pdcchCandidate = np.random.randint(0, numCandidates)
+            pdcchCandidate = np.random.randint(0, numCandidates) if self.nrAdvSib1PdcchCand is None else self.nrAdvSib1PdcchCand
 
-            self.ngwin.logEdit.append('<font color=purple>randomly selecting pdcch candidate: bestSsb=%d(hrf=%d,issb=%d), pdcchSlot=%d, pdcchCandidate=%d</font>' % (bestSsb, self.nrMibHrf if self.nrSsbPeriod >= 10 else bestSsb // self.nrSsbMaxL, bestSsb % self.nrSsbMaxL, pdcchSlot, pdcchCandidate))
+            self.ngwin.logEdit.append('<font color=purple>selecting pdcch candidate: bestSsb=%d(hrf=%d,issb=%d), pdcchSlot=%d, pdcchCandidate=%d</font>' % (bestSsb, self.nrMibHrf if self.nrSsbPeriod >= 10 else bestSsb // self.nrSsbMaxL, bestSsb % self.nrSsbMaxL, pdcchSlot, pdcchCandidate))
             qApp.processEvents()
 
             #save bestSsb index for later ssb-prach mapping
@@ -886,13 +924,13 @@ class NgNrGrid(object):
             qApp.processEvents()
 
             #randomly select from validCss0Msg2 pdcch occasion for msg2 scheduling
-            pdcchOccasion = np.random.randint(0, len(validCss0Msg2))
+            pdcchOccasion = np.random.randint(0, len(validCss0Msg2)) if self.nrAdvMsg2PdcchSlot is None else self.nrAdvMsg2PdcchSlot
             hsfn, sfn, slot, firstSymb = validCss0Msg2[pdcchOccasion]
 
             numCandidates = min(self.nrCss0MaxNumCandidates, self.coreset0NumCces // self.nrCss0AggLevel)
-            pdcchCandidate = np.random.randint(0, numCandidates)
+            pdcchCandidate = np.random.randint(0, numCandidates) if self.nrAdvMsg2PdcchCand is None else self.nrAdvMsg2PdcchCand
 
-            self.ngwin.logEdit.append('<font color=purple>randomly selecting pdcch candidate: pdcchOccasion=%d(numPdcchOccasions=%d), pdcchCandidate=%d(numPdcchCandidates=%d)</font>' % (pdcchOccasion, len(validCss0Msg2), pdcchCandidate, numCandidates))
+            self.ngwin.logEdit.append('<font color=purple>selecting pdcch candidate: pdcchOccasion=%d(numPdcchOccasions=%d), pdcchCandidate=%d(numPdcchCandidates=%d)</font>' % (pdcchOccasion, len(validCss0Msg2), pdcchCandidate, numCandidates))
             qApp.processEvents()
 
             scaleTd = self.baseScsTd // self.nrMibCommonScs
@@ -1515,8 +1553,8 @@ class NgNrGrid(object):
         qApp.processEvents()
 
         #assume valid prach occasion is randomly selected
-        bestSsbRachOccasion = ssb2RachOccasionMap[self.bestSsbInd][0][np.random.randint(0, len(ssb2RachOccasionMap[self.bestSsbInd][0]))]
-        self.ngwin.logEdit.append('selecting prach occasion(=%s) with cbPreambs=%s corresponding to best SSB(with issb=%d)' % (bestSsbRachOccasion, ssb2RachOccasionMap[self.bestSsbInd][1], self.bestSsbInd))
+        bestSsbRachOccasion = ssb2RachOccasionMap[self.bestSsbInd][0][np.random.randint(0, len(ssb2RachOccasionMap[self.bestSsbInd][0])) if self.nrAdvPrachOccasion is None else self.nrAdvPrachOccasion]
+        self.ngwin.logEdit.append('<font color=purple>selecting prach occasion(=%s) with cbPreambs=%s corresponding to best SSB(with issb=%d)</font>' % (bestSsbRachOccasion, ssb2RachOccasionMap[self.bestSsbInd][1], self.bestSsbInd))
         qApp.processEvents()
 
         #PRACH time/freq domain RE mapping
@@ -1549,7 +1587,7 @@ class NgNrGrid(object):
                     self.gridNrFddUl[dn][fd, td] = NrResType.NR_RES_PRACH.value
 
         #refer to 3GPP 38.321 5.1.3
-        #RA-RNTI= 1 + s_id + 14 × t_id + 14 × 80 × f_id + 14 × 80 × 8 × ul_carrier_id
+        #RA-RNTI= 1 + s_id + 14*t_id + 14*80*f_id + 14*80*8*ul_carrier_id
         #where s_id is the index of the first OFDM symbol of the PRACH occasion (0 ≤ s_id < 14), t_id is the index of the first slot of the PRACH occasion in a system frame (0 ≤ t_id < 80), f_id is the index of the PRACH occasion in the frequency domain (0 ≤ f_id < 8), and ul_carrier_id is the UL carrier used for Random Access Preamble transmission (0 for NUL carrier, and 1 for SUL carrier).
         self.raRnti = 1 + (self.nrRachCfgStartSymb + msg1OccasionInd * self.nrRachCfgDuration) + 14 * msg1Slot + 14 * 80 * msg1FdmInd
         self.ngwin.logEdit.append('Associated RA-RNTI = 0x{:04X}'.format(self.raRnti))
