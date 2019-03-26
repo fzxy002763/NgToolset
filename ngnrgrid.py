@@ -776,7 +776,7 @@ class NgNrGrid(object):
             numCandidates = min(self.nrCss0MaxNumCandidates, self.coreset0NumCces // self.nrCss0AggLevel)
             pdcchCandidate = np.random.randint(0, numCandidates)
 
-            self.ngwin.logEdit.append('randomly selecting pdcch candidate: bestSsb=%d(hrf=%d,issb=%d), pdcchSlot=%d, pdcchCandidate=%d' % (bestSsb, self.nrMibHrf if self.nrSsbPeriod >= 10 else bestSsb // self.nrSsbMaxL, bestSsb % self.nrSsbMaxL, pdcchSlot, pdcchCandidate))
+            self.ngwin.logEdit.append('<font color=purple>randomly selecting pdcch candidate: bestSsb=%d(hrf=%d,issb=%d), pdcchSlot=%d, pdcchCandidate=%d</font>' % (bestSsb, self.nrMibHrf if self.nrSsbPeriod >= 10 else bestSsb // self.nrSsbMaxL, bestSsb % self.nrSsbMaxL, pdcchSlot, pdcchCandidate))
             qApp.processEvents()
 
             #save bestSsb index for later ssb-prach mapping
@@ -892,7 +892,7 @@ class NgNrGrid(object):
             numCandidates = min(self.nrCss0MaxNumCandidates, self.coreset0NumCces // self.nrCss0AggLevel)
             pdcchCandidate = np.random.randint(0, numCandidates)
 
-            self.ngwin.logEdit.append('randomly selecting pdcch candidate: pdcchOccasion=%d(numPdcchOccasions=%d), pdcchCandidate=%d(numPdcchCandidates=%d)' % (pdcchOccasion, len(validCss0Msg2), pdcchCandidate, numCandidates))
+            self.ngwin.logEdit.append('<font color=purple>randomly selecting pdcch candidate: pdcchOccasion=%d(numPdcchOccasions=%d), pdcchCandidate=%d(numPdcchCandidates=%d)</font>' % (pdcchOccasion, len(validCss0Msg2), pdcchCandidate, numCandidates))
             qApp.processEvents()
 
             scaleTd = self.baseScsTd // self.nrMibCommonScs

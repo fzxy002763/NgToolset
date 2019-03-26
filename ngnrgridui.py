@@ -10233,12 +10233,6 @@ class NgNrGridUi(QDialog):
         self.ngwin.logEdit.append('-->inside onOkBtnClicked')
         self.accept()
 
-        flag = self.prepNrGrid()
-
-        if not flag:
-            self.accept()
-            return
-
         '''
         #step 4: call NgNbiotGrid
         nbGrid = NgNbiotGrid(self.ngwin, self.argsNbiot)
@@ -10266,30 +10260,47 @@ class NgNrGridUi(QDialog):
 
         #hsfn, sfn = incSfn(hsfn, sfn, 1) #wait for next NPDCCH candidate
         '''
+
+        self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Prepare configurations</b></font>')
+        try:
+            flag = self.prepNrGrid()
+            if not flag:
+                return
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            return
+
+        self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Start 5GNR simulation</b></font>')
         nrGrid = NgNrGrid(self.ngwin, self.args)
         hsfn = 0
         sfn = int(self.args['mib']['sfn'])
 
         #receiving SSB
+        self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv SSB</b></font>')
         nrGrid.recvSsb(hsfn, sfn)
 
         #monitoring PDCCH for SIB1
+        self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv PDCCH(DCI 1_0, SI-RNTI)</b></font>')
         hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, 0, dci='dci10', rnti='si-rnti')
 
         if hsfn is not None and sfn is not None and slot is not None:
             #receiving SIB1
+            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv SIB1</b></font>')
             hsfn, sfn, slot = nrGrid.recvSib1(hsfn, sfn, slot)
 
         #sending Msg1(PRACH)
         if hsfn is not None and sfn is not None and slot is not None:
+            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]send PRACH(Msg1)</b></font>')
             hsfn, sfn, slot = nrGrid.sendMsg1(hsfn, sfn, slot)
 
         #monitoring PDCCH for Msg2
         if hsfn is not None and sfn is not None and slot is not None:
+            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv PDCCH(DCI 1_0, RA-RNTI)</b></font>')
             hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, slot, dci='dci10', rnti='ra-rnti')
 
         #receiving Msg2(RAR)
         if hsfn is not None and sfn is not None and slot is not None:
+            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv RAR(Msg2)</b></font>')
             hsfn, sfn, slot = nrGrid.recvMsg2(hsfn, sfn, slot)
 
         '''
@@ -10317,15 +10328,14 @@ class NgNrGridUi(QDialog):
         hsfn, sfn = nrGrid.sendPusch(hsfn, sfn)
         '''
 
-        #other procedures
-        #TODO
-
         #export grid to excel
         if not nrGrid.error:
             if self.ngwin.enableDebug:
                 #Don't want waste time for waiting exportToExcel to finish!
+                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Exporting to excel skipped"</b></font>')
                 pass
             else:
+                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Exporting to excel, please wait</b></font>')
                 nrGrid.exportToExcel()
 
     def prepNrGrid(self):
