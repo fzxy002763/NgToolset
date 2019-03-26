@@ -10375,7 +10375,7 @@ class NgNrGridUi(QDialog):
         if not nrGrid.error:
             if self.ngwin.enableDebug:
                 #Don't want waste time for waiting exportToExcel to finish!
-                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Exporting to excel skipped"</b></font>')
+                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Exporting to excel skipped</b></font>')
                 pass
             else:
                 self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Exporting to excel, please wait</b></font>')

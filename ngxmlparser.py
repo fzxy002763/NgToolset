@@ -34,7 +34,7 @@ class NgXmlParser(object):
 
         ts = time.strftime('%Y%m%d%H%M%S', time.localtime())
         for root, dirs, files in os.walk(self.inDir):
-            self.xmls = sorted([os.path.join(root, fn) for fn in files if fn.endswith('xml')], key=str.lower)
+            self.xmls = sorted([os.path.join(root, fn) for fn in files if fn.lower().endswith('xml')], key=str.lower)
             self.isScfc = False
             self.enbId = None
             for fn in self.xmls:
