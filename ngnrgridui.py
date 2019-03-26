@@ -15,7 +15,7 @@ import time
 import traceback
 import math
 from collections import OrderedDict
-from PyQt5.QtWidgets import QDialog, QLabel, QLineEdit, QComboBox, QPushButton, QGroupBox, QTabWidget, QWidget, QScrollArea
+from PyQt5.QtWidgets import QDialog, QLabel, QLineEdit, QComboBox, QCheckBox, QPushButton, QGroupBox, QTabWidget, QWidget, QScrollArea, QFileDialog
 from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QGridLayout
 from PyQt5.QtWidgets import qApp
 from PyQt5.QtGui import QColor, QIntValidator, QRegExpValidator
@@ -3324,6 +3324,10 @@ class NgNrGridUi(QDialog):
         self.nrAdvMsg2PdcchCandLabel = QLabel('PDCCH candidate for Msg2:')
         self.nrAdvMsg2PdcchCandEdit = QLineEdit('NA')
 
+        self.nrAdvImportCfgChkBox = QCheckBox('Import existing configurations?')
+        self.nrAdvCfgFileEdit = QLineEdit()
+        self.nrAdvCfgFileEdit.setEnabled(False)
+
         advConfWidget = QWidget()
         advConfGridLayout = QGridLayout()
         advConfGridLayout.addWidget(self.nrAdvInfoLabel, 0, 0, 1, 2)
@@ -3339,6 +3343,8 @@ class NgNrGridUi(QDialog):
         advConfGridLayout.addWidget(self.nrAdvMsg2PdcchOccasionEdit, 5, 1)
         advConfGridLayout.addWidget(self.nrAdvMsg2PdcchCandLabel, 6, 0)
         advConfGridLayout.addWidget(self.nrAdvMsg2PdcchCandEdit, 6, 1)
+        advConfGridLayout.addWidget(self.nrAdvImportCfgChkBox, 7, 0)
+        advConfGridLayout.addWidget(self.nrAdvCfgFileEdit, 7, 1)
 
         advConfLayout = QVBoxLayout()
         advConfLayout.addLayout(advConfGridLayout)
@@ -3487,6 +3493,9 @@ class NgNrGridUi(QDialog):
         self.nrRachSsbPerRachOccasionComb.currentIndexChanged.connect(self.onRachSsbPerRachOccasionCombCurIndChanged)
         self.nrRachNumRaPreamblesEdit.textChanged.connect(self.onRachNumRaPreamblesTextChanged)
         self.nrPucchSib1PucchResCommonEdit.textChanged.connect(self.onPucchSib1PucchResCommonTextChanged)
+
+        #---->advanced settings
+        self.nrAdvImportCfgChkBox.toggled.connect(self.onAdvImportCfgChkBoxToggled)
 
         #---->I am THE driver!
         self.nrCarrierBandComb.setCurrentText('n77')
@@ -10306,7 +10315,11 @@ class NgNrGridUi(QDialog):
 
         self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Prepare configurations</b></font>')
         try:
-            flag = self.prepNrGrid()
+            if self.nrAdvImportCfgChkBox.isChecked():
+                flag = self.parseCfgFile()
+            else:
+                flag = self.prepNrGrid()
+
             if not flag:
                 return
         except Exception as e:
@@ -10583,8 +10596,66 @@ class NgNrGridUi(QDialog):
         with open(os.path.join(outDir, '5gnr_grid_config_%s.cfg' % (time.strftime('%Y%m%d%H%M%S', time.localtime()))), 'w') as f:
             self.ngwin.logEdit.append('<font color=purple>saving configuration to: %s</font>' % f.name)
             qApp.processEvents()
+            f.write('#5gnr configurations\n')
+            for key,val in self.args.items():
+                f.write('[%s]\n' % key)
+                if isinstance(val, dict):
+                    for key2,val2 in val.items():
+                        f.write('%s=%s\n' % (key2,val2))
+                else:
+                    f.write('%s\n' % val)
+
+            '''
             for key in self.args.keys():
                 f.write('contents of ["%s"]: %s\n' % (key, self.args[key]))
+            '''
+
+        return True
+
+    def parseCfgFile(self):
+        if not self.nrAdvCfgFileEdit.text():
+            return False
+
+        fn = self.nrAdvCfgFileEdit.text()
+        self.args = dict()
+        try:
+            with open(fn, 'r') as f:
+                self.ngwin.logEdit.append('Parsing configuration file: %s' % fn)
+                qApp.processEvents()
+
+                while True:
+                    line = f.readline()
+                    if not line:
+                        break
+                    if line.startswith('#') or line.strip() == '':
+                        continue
+
+                    line = line.strip()
+                    if line.startswith('[') and line.endswith(']'):
+                        key = line[1:-1]
+                    else:
+                        tokens = line.split('=')
+                        tokens = list(map(lambda x:x.strip(), tokens))
+                        if len(tokens) == 1:
+                            self.args[key] = tokens[0]
+                        else:
+                            if key not in self.args:
+                                self.args[key] = dict()
+
+                            if tokens[0] in ('maxDlFreq', 'maxL', 'coreset0MultiplexingPat', 'coreset0NumRbs', 'coreset0NumSymbs', 'coreset0Offset', 'coreset0StartRb', 'raX', 'raStartingSymb', 'raNumSlotsPerSubfFr1Per60KSlotFr2', 'raNumOccasionsPerSlot', 'raDuration', 'raLen', 'raNumRbs', 'raKBar'):
+                                self.args[key][tokens[0]] = int(tokens[1])
+                            elif (tokens[1].startswith('(') and tokens[1].endswith(')')) or (tokens[1].startswith('[') and tokens[1].endswith(']')):
+                                self.args[key][tokens[0]] = [int(k) for k in tokens[1][1:-1].split(',') if k]
+                            else:
+                                self.args[key][tokens[0]] = tokens[1]
+        except Exception as e:
+            #self.ngwin.logEdit.append(str(e))
+            self.ngwin.logEdit.append(traceback.format_exc())
+
+        #print dict info
+        for key in self.args.keys():
+            self.ngwin.logEdit.append('contents of ["%s"]: %s' % (key, self.args[key]))
+            qApp.processEvents()
 
         return True
 
@@ -10857,3 +10928,13 @@ class NgNrGridUi(QDialog):
             return (None, None)
 
         return (S, L)
+
+    def onAdvImportCfgChkBoxToggled(self, checked):
+        if checked:
+            fn, _ = QFileDialog.getOpenFileName(self, 'Choose config file', '.', 'Config files(*.cfg);;All files(*.*)')
+            if fn:
+                self.nrAdvCfgFileEdit.setText(fn)
+            else:
+                self.nrAdvImportCfgChkBox.setChecked(False)
+        else:
+            self.nrAdvCfgFileEdit.setText('')
