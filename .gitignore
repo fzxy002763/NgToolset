@@ -10,6 +10,7 @@ resource
 output
 build
 dist
+data
 *.pyprof
 *.supp
 *.spec
