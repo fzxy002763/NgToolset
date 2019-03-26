@@ -3318,8 +3318,8 @@ class NgNrGridUi(QDialog):
         self.nrAdvPrachOccasionLabel = QLabel('PRACH occasion for Msg1:')
         self.nrAdvPrachOccasionEdit = QLineEdit('NA')
 
-        self.nrAdvMsg2PdcchSlotLabel = QLabel('PDCCH slot for Msg2:')
-        self.nrAdvMsg2PdcchSlotEdit = QLineEdit('NA')
+        self.nrAdvMsg2PdcchOccasionLabel = QLabel('PDCCH occasion for Msg2:')
+        self.nrAdvMsg2PdcchOccasionEdit = QLineEdit('NA')
 
         self.nrAdvMsg2PdcchCandLabel = QLabel('PDCCH candidate for Msg2:')
         self.nrAdvMsg2PdcchCandEdit = QLineEdit('NA')
@@ -3335,8 +3335,8 @@ class NgNrGridUi(QDialog):
         advConfGridLayout.addWidget(self.nrAdvSib1PdcchCandEdit, 3, 1)
         advConfGridLayout.addWidget(self.nrAdvPrachOccasionLabel, 4, 0)
         advConfGridLayout.addWidget(self.nrAdvPrachOccasionEdit, 4, 1)
-        advConfGridLayout.addWidget(self.nrAdvMsg2PdcchSlotLabel, 5, 0)
-        advConfGridLayout.addWidget(self.nrAdvMsg2PdcchSlotEdit, 5, 1)
+        advConfGridLayout.addWidget(self.nrAdvMsg2PdcchOccasionLabel, 5, 0)
+        advConfGridLayout.addWidget(self.nrAdvMsg2PdcchOccasionEdit, 5, 1)
         advConfGridLayout.addWidget(self.nrAdvMsg2PdcchCandLabel, 6, 0)
         advConfGridLayout.addWidget(self.nrAdvMsg2PdcchCandEdit, 6, 1)
 
@@ -10567,7 +10567,7 @@ class NgNrGridUi(QDialog):
         self.args['advanced']['sib1PdcchSlot'] = self.nrAdvSib1PdcchSlotEdit.text()
         self.args['advanced']['sib1PdcchCand'] = self.nrAdvSib1PdcchCandEdit.text()
         self.args['advanced']['prachOccasion'] = self.nrAdvPrachOccasionEdit.text()
-        self.args['advanced']['msg2PdcchSlot'] = self.nrAdvMsg2PdcchSlotEdit.text()
+        self.args['advanced']['msg2PdcchSlot'] = self.nrAdvMsg2PdcchOccasionEdit.text()
         self.args['advanced']['msg2PdcchCand'] = self.nrAdvMsg2PdcchCandEdit.text()
 
         #print dict info

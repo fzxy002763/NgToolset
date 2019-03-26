@@ -342,9 +342,9 @@ class NgNrGrid(object):
             self.nrAdvPrachOccasion = None
 
         try:
-            self.nrAdvMsg2PdcchSlot = int(self.args['advanced']['msg2PdcchSlot'])
+            self.nrAdvMsg2PdcchOccasion = int(self.args['advanced']['msg2PdcchSlot'])
         except Exception as e:
-            self.nrAdvMsg2PdcchSlot = None
+            self.nrAdvMsg2PdcchOccasion = None
 
         try:
             self.nrAdvMsg2PdcchCand = int(self.args['advanced']['msg2PdcchCand'])
@@ -924,7 +924,7 @@ class NgNrGrid(object):
             qApp.processEvents()
 
             #randomly select from validCss0Msg2 pdcch occasion for msg2 scheduling
-            pdcchOccasion = np.random.randint(0, len(validCss0Msg2)) if self.nrAdvMsg2PdcchSlot is None else self.nrAdvMsg2PdcchSlot
+            pdcchOccasion = np.random.randint(0, len(validCss0Msg2)) if self.nrAdvMsg2PdcchOccasion is None else self.nrAdvMsg2PdcchOccasion
             hsfn, sfn, slot, firstSymb = validCss0Msg2[pdcchOccasion]
 
             numCandidates = min(self.nrCss0MaxNumCandidates, self.coreset0NumCces // self.nrCss0AggLevel)
