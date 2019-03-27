@@ -97,9 +97,11 @@ class NgRawPmParser(object):
 
                 x = kpi[2]
                 y = kpi[3]
-                invalid = False
-                agg = None
-                if not invalid and x is not None:
+                invalidx = False
+                invalidy = False
+                aggx = None
+                aggy = None
+                if not invalidx and x is not None:
                     tokens = x.split(';')
                     tokens = list(map(lambda z:z.strip(), tokens))
                     if len(tokens) == 1 and not(tokens[0].startswith('(') and tokens[0].endswith(')')):
@@ -111,18 +113,17 @@ class NgRawPmParser(object):
                                 a,b = item[1:-1].split(',')
                                 kpi[2].append([a, int(b)])
                                 #all counters involved must have the same aggregation level
-                                if agg is None:
-                                    agg = self.aggMap[a]
+                                if aggx is None:
+                                    aggx = self.aggMap[a]
                                 else:
-                                    if self.aggMap[a] != agg:
-                                        invalid = True
+                                    if self.aggMap[a] != aggx:
+                                        invalidx = True
                                         break
                             else:
-                                invalid = True
+                                invalidx = True
                                 break
 
-
-                if not invalid and y is not None:
+                if not invalidy and y is not None:
                     tokens = y.split(';')
                     tokens = list(map(lambda z:z.strip(), tokens))
                     if len(tokens) == 1 and not(tokens[0].startswith('(') and tokens[0].endswith(')')):
@@ -134,27 +135,27 @@ class NgRawPmParser(object):
                                 a,b = item[1:-1].split(',')
                                 kpi[3].append([a, int(b)])
                                 #all counters involved must have the same aggregation level
-                                if agg is None:
-                                    agg = self.aggMap[a]
+                                if aggy is None:
+                                    aggy = self.aggMap[a]
                                 else:
-                                    if self.aggMap[a] != agg:
-                                        invalid = True
+                                    if self.aggMap[a] != aggy:
+                                        invalidy = True
                                         break
                             else:
-                                invalid = True
+                                invalidy = True
                                 break
 
-                if invalid or agg is None:
-                    self.ngwin.logEdit.append('Invalid KPI definition(name=%s,agg=%s), which will be ignored!' % (kpi[0], agg if agg is not None else 'None'))
+                if invalidx or invalidy or aggx is None or (aggx is not None and aggy is not None and aggx != aggy):
+                    self.ngwin.logEdit.append('Invalid KPI definition(name=%s,aggx=%s,aggy=%s), which will be ignored!' % (kpi[0], aggx if aggx is not None else 'None', aggy if aggy is not None else 'None'))
                     kpi[0] = None
                 else:
-                    kpi[5] = agg
+                    kpi[5] = aggx
             except Exception as e:
                 #self.ngwin.logEdit.append(str(e))
                 #self.ngwin.logEdit.append(repr(e))
                 #self.ngwin.logEdit.append(e.message)
                 self.ngwin.logEdit.append(traceback.format_exc())
-                self.ngwin.logEdit.append('Invalid KPI definition(name=%s,agg=%s), which will be ignored!' % (kpi[0], agg if agg is not None else 'None'))
+                self.ngwin.logEdit.append('Invalid KPI definition(name=%s,aggx=%s,aggy=%s), which will be ignored!' % (kpi[0], aggx if aggx is not None else 'None', aggy if aggy is not None else 'None'))
                 kpi[0] = None
                 continue
 
@@ -184,50 +185,52 @@ class NgRawPmParser(object):
                 self.ngwin.logEdit.append('|--pm_tag=%s,pm_val=%s'%(key2,val2))
         '''
 
-        try:
-            for key1,val1 in self.gnbKpiReport.items():
-                agg = key1
-                for key2,val2 in val1.items():
+        for key1,val1 in self.gnbKpiReport.items():
+            agg = key1
+            for key2,val2 in val1.items():
                     #calculate valid kpi for key2('stime_interval_dn')
                     for kpi in self.gnbKpis:
-                        if kpi[0] is None or kpi[5] != agg:
+                        try:
+                            if kpi[0] is None or kpi[5] != agg:
+                                continue
+
+                            f = kpi[1]
+                            x = kpi[2]
+                            y = kpi[3]
+                            p = kpi[4]
+
+                            #calculate x and y
+                            if x is not None:
+                                if not isinstance(x, int):
+                                    xval = 0
+                                    for item in x:
+                                        xval = xval + int(data2[key2][item[0]]) * item[1]
+                                else:
+                                    xval = x
+
+                            if y is not None:
+                                if not isinstance(y, int):
+                                    yval = 0
+                                    for item in y:
+                                        yval = yval + int(data2[key2][item[0]]) * item[1]
+                                else:
+                                    yval = y
+
+                            #calculate kpi
+                            if f is not None and x is not None and y is not None and p is not None:
+                                if yval != 0:
+                                    kpival = '{:0.{precision}f}'.format(f * xval / yval, precision=p)
+                                else:
+                                    kpival = 0
+
+                            if f is None and x is not None and y is None and p is None:
+                                kpival = xval
+
+                            self.gnbKpiReport[agg][key2][kpi[0]] = kpival
+                        except Exception as e:
+                            self.gnbKpiReport[agg][key2][kpi[0]] = 'NA'
+                            self.ngwin.logEdit.append('Error when calculating KPI(=%s) for DN=%s:\n%s' % (kpi[0], key2, traceback.format_exc()))
                             continue
-
-                        f = kpi[1]
-                        x = kpi[2]
-                        y = kpi[3]
-                        p = kpi[4]
-
-                        #calculate x and y
-                        if x is not None:
-                            if not isinstance(x, int):
-                                xval = 0
-                                for item in x:
-                                    xval = xval + int(data2[key2][item[0]]) * item[1]
-                            else:
-                                xval = x
-
-                        if y is not None:
-                            if not isinstance(y, int):
-                                yval = 0
-                                for item in y:
-                                    yval = yval + int(data2[key2][item[0]]) * item[1]
-                            else:
-                                yval = y
-
-                        #calculate kpi
-                        if f is not None and x is not None and y is not None and p is not None:
-                            if yval != 0:
-                                kpival = '{:0.{precision}f}'.format(f * xval / yval, precision=p)
-                            else:
-                                kpival = 0
-
-                        if f is None and x is not None and y is None and p is None:
-                            kpival = xval
-
-                        self.gnbKpiReport[agg][key2][kpi[0]] = kpival
-        except Exception as e:
-            self.ngwin.logEdit.append(traceback.format_exc())
 
         '''
         for key1,val1 in self.gnbKpiReport.items():

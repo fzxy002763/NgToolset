@@ -10616,6 +10616,7 @@ class NgNrGridUi(QDialog):
         if not self.nrAdvCfgFileEdit.text():
             return False
 
+        self.ngwin.logEdit.append('-->inside parseCfgFile')
         fn = self.nrAdvCfgFileEdit.text()
         self.args = dict()
         try:
