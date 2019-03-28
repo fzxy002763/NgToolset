@@ -1,4 +1,4 @@
-#KPI definitions for CMCC 5GNSA v1.0.1
+#KPI definitions for CMCC 5GNSA gNB v1.0.1
 
 #EU0101 = 100*GNBHD05/GNBHD04
 #Note: RLC packet loss is not supported in 5G19!

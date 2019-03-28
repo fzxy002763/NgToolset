@@ -1,0 +1,44 @@
+#KPI definitions for CMCC 5GNSA eNB v1.0
+
+#EU0101 = 100*NSAENBHV04/NSAENBHV03
+kpi_name=CMCC_NSAENB_EU0101
+kpi_f=100
+kpi_x=(M8080C14,1)
+kpi_y=(M8080C0,1)
+kpi_p=2
+
+#EU0102 = 100*(NSAENBHV08.DC.NbrReqSnRelbySn+NSAENBHV08.DC.NbrReqSnRelbyMn-NSAENBHV08.DC.NbrReqSnRelbySn.Normal-NSAENBHV08.DC.NbrReqSnRelbyMn.Normal)/(NSAENBHV08.DC.NbrReqSnRelbySn+NSAENBHV08.DC.NbrReqSnRelbyMn)
+kpi_name=CMCC_NSAENB_EU0102
+kpi_f=100
+kpi_x=(M8080C9,1);(M8080C7,1);(M8080C8,-1);(M8080C6,-1)
+kpi_y=(M8080C9,1);(M8080C7,1)
+kpi_p=2
+
+#EU0103 = 100*NSAENBHC04/NSAENBHC01
+kpi_name=CMCC_NSAENB_EU0103
+kpi_f=100
+kpi_x=(M8080C31,1)
+kpi_y=(M8080C29,1)
+kpi_p=2
+
+#EU0401 = 100*NSAENBHU04/NSAENBHU03
+kpi_name=CMCC_NSAENB_EU0401
+kpi_f=100
+kpi_x=0
+kpi_y=(M8001C132,1)
+kpi_p=2
+
+#EU0501 = NSAENBHU01/1000 (MB)
+kpi_name=CMCC_NSAENB_EU0501
+kpi_f=1
+kpi_x=(M8012C79,1)
+kpi_y=1000
+kpi_p=2
+
+#EU0502 = NSAENBHU02/1000 (MB)
+kpi_name=CMCC_NSAENB_EU0502
+kpi_f=1
+kpi_x=(M8012C80,1)
+kpi_y=1000
+kpi_p=2
+
