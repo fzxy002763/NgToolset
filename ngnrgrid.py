@@ -138,6 +138,13 @@ class NgNrGrid(object):
         self.nrMibCommonScs = int(self.args['mib']['commonScs'][:-3])
         self.nrPci = int(self.args['pci'])
 
+        self.nrIniDlBwpId = int(self.args['iniDlBwp']['bwpId'])
+        self.nrIniDlBwpScs = int(self.args['iniDlBwp']['scs'][:-3])
+        self.nrIniDlBwpCp = self.args['iniDlBwp']['cp']
+        self.nrIniDlBwpLocAndBw = int(self.args['iniDlBwp']['locAndBw'])
+        self.nrIniDlBwpStartRb = int(self.args['iniDlBwp']['startRb'])
+        self.nrIniDlBwpNumRbs = int(self.args['iniDlBwp']['numRbs'])
+
         if self.nrSsbMaxL == 64:
             self.ssbSet = ''
             for group in self.nrSsbGroupPresence:
@@ -182,7 +189,7 @@ class NgNrGrid(object):
 
         self.ssbFirstSymbInBaseScsTd = dict()
         self.ssbSymbsInBaseScsTd = dict()
-        self.ssbFirstSc = self.nrSsbNCrbSsb * self.nrScPerPrb + self.nrSsbKssb * (self.nrMibCommonScs // self.baseScsFd if self.nrFreqRange == 'FR2' else 1)
+        self.ssbFirstSc = self.nrSsbNCrbSsb * self.nrScPerPrb + self.nrSsbKssb * (self.nrMibCommonScs // self.baseScsFd if self.nrFreqRange == 'FR2' else 1) + self.nrIniDlBwpStartRb * self.nrScPerPrb * (self.nrIniDlBwpScs // self.baseScsFd)
         self.ssbScsInBaseScsFd = {self.ssbFirstSc+k for k in range(20 * self.nrScPerPrb * (self.nrSsbScs // self.baseScsFd))}
 
         ssbFirstSymbSetStr = []
@@ -207,7 +214,7 @@ class NgNrGrid(object):
             return False
 
         #self.coreset0FirstSc = self.ssbFirstSc - self.nrCoreset0Offset * self.nrScPerPrb * (self.nrMibCommonScs // self.baseScsFd)
-        self.coreset0FirstSc = self.nrSsbNCrbSsb * self.nrScPerPrb - self.nrCoreset0Offset * self.nrScPerPrb * (self.nrMibCommonScs // self.baseScsFd)
+        self.coreset0FirstSc = self.nrSsbNCrbSsb * self.nrScPerPrb - self.nrCoreset0Offset * self.nrScPerPrb * (self.nrMibCommonScs // self.baseScsFd) + self.nrIniDlBwpStartRb * self.nrScPerPrb * (self.nrIniDlBwpScs // self.baseScsFd)
         #CORESET0 CCE-to-REG mapping
         self.coreset0RegBundles, self.coreset0Cces = self.coresetCce2RegMapping(coreset='coreset0', numRbs=self.nrCoreset0NumRbs, numSymbs=self.nrCoreset0NumSymbs, interleaved=True, L=6, R=2, nShift=self.nrPci)
 
@@ -342,7 +349,7 @@ class NgNrGrid(object):
             self.nrAdvPrachOccasion = None
 
         try:
-            self.nrAdvMsg2PdcchOccasion = int(self.args['advanced']['msg2PdcchSlot'])
+            self.nrAdvMsg2PdcchOccasion = int(self.args['advanced']['msg2PdcchOcc'])
         except Exception as e:
             self.nrAdvMsg2PdcchOccasion = None
 

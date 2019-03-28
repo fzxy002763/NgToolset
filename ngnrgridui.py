@@ -41,7 +41,7 @@ class NgNrGridUi(QDialog):
 
         self.nrCarrierBandInfoLabel = QLabel()
 
-        self.nrCarrierScsLabel = QLabel('subcarrierSpacingg:')
+        self.nrCarrierScsLabel = QLabel('subcarrierSpacing:')
         self.nrCarrierScsComb = QComboBox()
 
         self.nrCarrierBwLabel = QLabel('Transmission bandwidth:')
@@ -6362,7 +6362,7 @@ class NgNrGridUi(QDialog):
         self.coreset0Offset = 0
         #minimum channel bandwidth
         self.minChBw = 0
-        #minimum bandwidth of RMSI
+        #starting PRB of RMSI/CORESET0 w.r.t. first usable PRB of carrier
         self.coreset0StartRb = 0
 
         #initialize SLIV look-up tables
@@ -6435,6 +6435,8 @@ class NgNrGridUi(QDialog):
                     120k        240k        0~11	max(minGuardBand*scsCarrier/60+2*offset,4*minGuardBand240k)
         -----------------------------------------------------------
         '''
+        #note: N_CRB_SSB is calculated assuming that CORESET0 starts from first usable PRB of carrier
+
         self.ngwin.logEdit.append('-->inside updateKSsbAndNCrbSsb')
 
         #minGuardBand in carrier scs
@@ -7255,8 +7257,8 @@ class NgNrGridUi(QDialog):
             #initial dl bwp need to check against coreset0 bw
             if L_RBs < 1 or L_RBs > (numRbCommonScs - RB_start) or (RB_start + L_RBs) < (self.coreset0StartRb + self.coreset0NumRbs):
                 self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: RIV = %s, L_RBs = %s, RB_start = %s with bwRMSI = %s(coreset0StartRb=%s,coreset0NumRbs=%s)!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), riv, L_RBs, RB_start, numRbCommonScs, self.coreset0StartRb, self.coreset0NumRbs))
-                self.nrIniDlBwpGenericLRbsEdit.clear()
-                self.nrIniDlBwpGenericRbStartEdit.clear()
+                #self.nrIniDlBwpGenericLRbsEdit.clear()
+                #self.nrIniDlBwpGenericRbStartEdit.clear()
                 return
 
             self.nrIniDlBwpGenericLRbsEdit.setText(str(L_RBs))
@@ -7286,7 +7288,7 @@ class NgNrGridUi(QDialog):
         #initial dl bwp need to check against coreset0 bw
         if L_RBs < 1 or L_RBs > (numRbCommonScs - RB_start) or (RB_start + L_RBs) < (self.coreset0StartRb + self.coreset0NumRbs):
             self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: L_RBs = %s, RB_start = %s with bwRMSI = %s(coreset0StartRb=%s,coreset0NumRbs=%s)!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), L_RBs, RB_start, numRbCommonScs, self.coreset0StartRb, self.coreset0NumRbs))
-            self.nrIniDlBwpGenericLocAndBwEdit.clear()
+            #self.nrIniDlBwpGenericLocAndBwEdit.clear()
             return
 
         riv = self.makeRiv(L_RBs, RB_start, 275)
@@ -7315,8 +7317,8 @@ class NgNrGridUi(QDialog):
             numRbCarrierScs = int(self.nrCarrierNumRbEdit.text())
             if L_RBs < 1 or L_RBs > (numRbCarrierScs - RB_start):
                 self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: RIV = %s, L_RBs = %s, RB_start = %s with carrier bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), riv, L_RBs, RB_start, numRbCarrierScs))
-                self.nrIniUlBwpGenericLRbsEdit.clear()
-                self.nrIniUlBwpGenericRbStartEdit.clear()
+                #self.nrIniUlBwpGenericLRbsEdit.clear()
+                #self.nrIniUlBwpGenericRbStartEdit.clear()
                 return
 
             self.nrIniUlBwpGenericLRbsEdit.setText(str(L_RBs))
@@ -7341,7 +7343,7 @@ class NgNrGridUi(QDialog):
         numRbCarrierScs = int(self.nrCarrierNumRbEdit.text())
         if L_RBs < 1 or L_RBs > (numRbCarrierScs - RB_start):
             self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: L_RBs = %s, RB_start = %s with carrier bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), L_RBs, RB_start, numRbCarrierScs))
-            self.nrIniUlBwpGenericLocAndBwEdit.clear()
+            #self.nrIniUlBwpGenericLocAndBwEdit.clear()
             return
 
         riv = self.makeRiv(L_RBs, RB_start, 275)
@@ -7365,8 +7367,8 @@ class NgNrGridUi(QDialog):
             numRbCarrierScs = int(self.nrCarrierNumRbEdit.text())
             if L_RBs < 1 or L_RBs > (numRbCarrierScs - RB_start):
                 self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: RIV = %s, L_RBs = %s, RB_start = %s with carrier bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), riv, L_RBs, RB_start, numRbCarrierScs))
-                self.nrDedDlBwpGenericLRbsEdit.clear()
-                self.nrDedDlBwpGenericRbStartEdit.clear()
+                #self.nrDedDlBwpGenericLRbsEdit.clear()
+                #self.nrDedDlBwpGenericRbStartEdit.clear()
                 return
 
             self.nrDedDlBwpGenericLRbsEdit.setText(str(L_RBs))
@@ -7393,7 +7395,7 @@ class NgNrGridUi(QDialog):
         numRbCarrierScs = int(self.nrCarrierNumRbEdit.text())
         if L_RBs < 1 or L_RBs > (numRbCarrierScs - RB_start):
             self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: L_RBs = %s, RB_start = %s with carrier bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), L_RBs, RB_start, numRbCarrierScs))
-            self.nrDedDlBwpGenericLocAndBwEdit.clear()
+            #self.nrDedDlBwpGenericLocAndBwEdit.clear()
             return
 
         riv = self.makeRiv(L_RBs, RB_start, 275)
@@ -7415,8 +7417,8 @@ class NgNrGridUi(QDialog):
             numRbCarrierScs = int(self.nrCarrierNumRbEdit.text())
             if L_RBs < 1 or L_RBs > (numRbCarrierScs - RB_start):
                 self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: RIV = %s, L_RBs = %s, RB_start = %s with carrier bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), riv, L_RBs, RB_start, numRbCarrierScs))
-                self.nrDedUlBwpGenericLRbsEdit.clear()
-                self.nrIniUlBwpGenericRbStartEdit.clear()
+                #self.nrDedUlBwpGenericLRbsEdit.clear()
+                #self.nrIniUlBwpGenericRbStartEdit.clear()
                 return
 
             self.nrDedUlBwpGenericLRbsEdit.setText(str(L_RBs))
@@ -7442,7 +7444,7 @@ class NgNrGridUi(QDialog):
         numRbCarrierScs = int(self.nrCarrierNumRbEdit.text())
         if L_RBs < 1 or L_RBs > (numRbCarrierScs - RB_start):
             self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: L_RBs = %s, RB_start = %s with carrier bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), L_RBs, RB_start, numRbCarrierScs))
-            self.nrDedUlBwpGenericLocAndBwEdit.clear()
+            #self.nrDedUlBwpGenericLocAndBwEdit.clear()
             return
 
         riv = self.makeRiv(L_RBs, RB_start, 275)
@@ -10497,6 +10499,15 @@ class NgNrGridUi(QDialog):
         self.args['dci10Msg2']['tbs'] = self.nrDci10Msg2TbsEdit.text()
 
         #(4) 'bwp settings' tab
+        #Initial DL BWP
+        self.args['iniDlBwp'] = dict()
+        self.args['iniDlBwp']['bwpId'] = self.nrIniDlBwpGenericBwpIdEdit.text()
+        self.args['iniDlBwp']['scs'] = self.nrIniDlBwpGenericScsComb.currentText()
+        self.args['iniDlBwp']['cp'] = self.nrIniDlBwpGenericCpComb.currentText()
+        self.args['iniDlBwp']['locAndBw'] = self.nrIniDlBwpGenericLocAndBwEdit.text()
+        self.args['iniDlBwp']['startRb'] = self.nrIniDlBwpGenericRbStartEdit.text()
+        self.args['iniDlBwp']['numRbs'] = self.nrIniDlBwpGenericLRbsEdit.text()
+
         #DMRS for SIB1
         self.args['dmrsSib1'] = dict()
         self.args['dmrsSib1']['dmrsType'] = self.nrDmrsSib1DmrsTypeComb.currentText()
@@ -10580,7 +10591,7 @@ class NgNrGridUi(QDialog):
         self.args['advanced']['sib1PdcchSlot'] = self.nrAdvSib1PdcchSlotEdit.text()
         self.args['advanced']['sib1PdcchCand'] = self.nrAdvSib1PdcchCandEdit.text()
         self.args['advanced']['prachOccasion'] = self.nrAdvPrachOccasionEdit.text()
-        self.args['advanced']['msg2PdcchSlot'] = self.nrAdvMsg2PdcchOccasionEdit.text()
+        self.args['advanced']['msg2PdcchOcc'] = self.nrAdvMsg2PdcchOccasionEdit.text()
         self.args['advanced']['msg2PdcchCand'] = self.nrAdvMsg2PdcchCandEdit.text()
 
         #print dict info
