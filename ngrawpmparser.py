@@ -64,6 +64,14 @@ class NgRawPmParser(object):
                     if key3 not in self.aggMap:
                         self.aggMap[key3] = agg
 
+        #sort self.gnbKpiReport[agg].keys()
+        for agg in self.gnbKpiReport.keys():
+            keys = list(self.gnbKpiReport[agg].keys())
+            keys.sort()
+            val = {key:self.gnbKpiReport[agg][key] for key in keys}
+            self.gnbKpiReport[agg].clear()
+            self.gnbKpiReport[agg] = val
+
         #print self.data
         '''
         for key1,val1 in self.data.items():
@@ -85,7 +93,7 @@ class NgRawPmParser(object):
         self.gnbKpis = []
         self.confDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config')
         for root, dirs, files in os.walk(self.confDir):
-            self.kpiDefs = sorted([os.path.join(root, fn) for fn in files if os.path.basename(fn).lower().startswith('kpi_def') and not fn.endswith('~')], key=str.lower)
+            self.kpiDefs = sorted([os.path.join(root, fn) for fn in files if (os.path.basename(fn).lower().startswith('kpi_def') or os.path.basename(fn).lower().startswith('menb_kpi_def')) and not fn.endswith('~')], key=str.lower)
             for fn in self.kpiDefs:
                 self.parseKpiDef(fn)
 
@@ -146,7 +154,8 @@ class NgRawPmParser(object):
                                 break
 
                 if invalidx or invalidy or aggx is None or (aggx is not None and aggy is not None and aggx != aggy):
-                    self.ngwin.logEdit.append('Invalid KPI definition(name=%s,aggx=%s,aggy=%s), which will be ignored!' % (kpi[0], aggx if aggx is not None else 'None', aggy if aggy is not None else 'None'))
+                    self.ngwin.logEdit.append('<font color=purple>Invalid KPI definition(name=%s,aggx=%s,aggy=%s), which will be ignored!</font>' % (kpi[0], aggx if aggx is not None else 'None', aggy if aggy is not None else 'None'))
+                    qApp.processEvents()
                     kpi[0] = None
                 else:
                     kpi[5] = aggx
@@ -154,8 +163,9 @@ class NgRawPmParser(object):
                 #self.ngwin.logEdit.append(str(e))
                 #self.ngwin.logEdit.append(repr(e))
                 #self.ngwin.logEdit.append(e.message)
+                self.ngwin.logEdit.append('<font color=purple>Invalid KPI definition(name=%s,aggx=%s,aggy=%s), which will be ignored!</font>' % (kpi[0], aggx if aggx is not None else 'None', aggy if aggy is not None else 'None'))
                 self.ngwin.logEdit.append(traceback.format_exc())
-                self.ngwin.logEdit.append('Invalid KPI definition(name=%s,aggx=%s,aggy=%s), which will be ignored!' % (kpi[0], aggx if aggx is not None else 'None', aggy if aggy is not None else 'None'))
+                qApp.processEvents()
                 kpi[0] = None
                 continue
 
@@ -168,6 +178,8 @@ class NgRawPmParser(object):
         '''
 
         #calculate kpi
+        self.ngwin.logEdit.append('<font color=blue>Calculating KPIs, please wait...</font>')
+        qApp.processEvents()
         #reconstruct self.data to {'stime_interval_dn', {pm_tag, pm_value}}
         data2 = dict()
         for key1,val1 in self.data.items():
@@ -229,21 +241,22 @@ class NgRawPmParser(object):
                             self.gnbKpiReport[agg][key2][kpi[0]] = kpival
                         except Exception as e:
                             self.gnbKpiReport[agg][key2][kpi[0]] = 'NA'
-                            self.ngwin.logEdit.append('Error when calculating KPI(=%s) for DN=%s:\n%s' % (kpi[0], key2, traceback.format_exc()))
+                            self.ngwin.logEdit.append('<font color=purple>Error when calculating KPI(=%s) for DN=%s:</font>' % (kpi[0], key2))
+                            self.ngwin.logEdit.append(traceback.format_exc())
+                            qApp.processEvents()
                             continue
 
-        '''
-        for key1,val1 in self.gnbKpiReport.items():
-            self.ngwin.logEdit.append('|agg=%s'%key1)
-            for key2,val2 in val1.items():
-                self.ngwin.logEdit.append('|--key=%s'%key2)
-                for key3,val3 in val2.items():
-                    self.ngwin.logEdit.append('|----kpi_name=%s,kpi_val=%s'%(key3,val3))
-            qApp.processEvents()
-        '''
+        if self.ngwin.enableDebug:
+            for key1,val1 in self.gnbKpiReport.items():
+                self.ngwin.logEdit.append('|agg=%s'%key1)
+                for key2,val2 in val1.items():
+                    self.ngwin.logEdit.append('|--key=%s'%key2)
+                    for key3,val3 in val2.items():
+                        self.ngwin.logEdit.append('|----kpi_name=%s,kpi_val=%s'%(key3,val3))
+                qApp.processEvents()
 
         #export to excel
-        self.ngwin.logEdit.append('Exporting to excel(engine=xlsxwriter), please wait...')
+        self.ngwin.logEdit.append('<font color=blue>Exporting to excel(engine=xlsxwriter), please wait...</font>')
         qApp.processEvents()
 
         workbook = xlsxwriter.Workbook(os.path.join(self.outDir, '%s_kpi_report_%s.xlsx' % (rat, time.strftime('%Y%m%d%H%M%S', time.localtime()))))
@@ -257,6 +270,10 @@ class NgRawPmParser(object):
                     continue
                 horizontalHeader.extend(val2.keys())
                 break
+
+            #skip unused agg
+            if key1 in ('NRCUUP', 'SFP', 'MNLENT', 'ETHLK', 'ETHIF', 'IPIF', 'IPADDRESSV4', 'IPNO', 'LNMME', 'VLANIF', 'IPVOL', 'SMOD', 'LTAC', 'LNADJ', 'FSTSCH'):
+                continue
 
             sheet1 = workbook.add_worksheet('KPI_%s' % key1)
             sheet1.set_zoom(90)
@@ -284,7 +301,7 @@ class NgRawPmParser(object):
             tags.sort()
             horizontalHeader.extend(tags)
 
-            sheet1 = workbook.add_worksheet(measType)
+            sheet1 = workbook.add_worksheet(measType[:31] if len(measType) > 31 else measType)
             sheet1.set_zoom(90)
             sheet1.freeze_panes(1, 3)
 
@@ -298,7 +315,10 @@ class NgRawPmParser(object):
                 stime, interval, dn = key.split(';')
                 row = [stime, interval, dn]
                 for tag in tags:
-                    row.append(val[tag])
+                    if tag in val:
+                        row.append(val[tag])
+                    else:
+                        row.append('NA')
 
                 sheet1.write_row(count+1, 0, row, fmtCell)
                 count = count + 1
@@ -306,7 +326,7 @@ class NgRawPmParser(object):
         workbook.close()
 
     def parseRawPmXml(self, fn, rat):
-        self.ngwin.logEdit.append('Parsing raw PM:%s (rat=%s)' % (fn, rat))
+        self.ngwin.logEdit.append('<font color=blue>Parsing raw PM:%s (rat=%s)</font>' % (fn, rat))
         qApp.processEvents()
 
         if rat == '5g':
@@ -330,7 +350,7 @@ class NgRawPmParser(object):
                         mo = pmmoresult.find('MO')
                         dn = mo.find('DN')
 
-                        pmtarget = pmmoresult.find('PMTarget')
+                        pmtarget = pmmoresult.find('PMTarget') if pmmoresult.find('PMTarget') is not None else pmmoresult.find('NE-WBTS_1.0')
                         measType = pmtarget.get('measurementType')
                         for child in pmtarget:
                             key = '%s;%s;%s' % (startTime, interval, dn.text[len('PLMN-PLMN/'):])
@@ -374,7 +394,7 @@ class NgRawPmParser(object):
                         pmtarget = pmmoresult.find('NE-WBTS_1.0')
                         measType = pmtarget.get('measurementType')
                         for child in pmtarget:
-                            key = '%s;%s;%s' % (startTime, interval, dn.text[len('PLMN-PLMN/'):])
+                            key = '%s;%s;%s' % (startTime, interval, dn.text[len('NE-'):])
                             if measType not in self.data:
                                 self.data[measType] = dict()
                             if key not in self.data[measType]:
@@ -394,7 +414,7 @@ class NgRawPmParser(object):
     def parseKpiDef(self, fn):
         try:
             with open(fn, 'r') as f:
-                self.ngwin.logEdit.append('Parsing KPI definition: %s' % fn)
+                self.ngwin.logEdit.append('<font color=blue>Parsing KPI definition: %s</font>' % fn)
                 qApp.processEvents()
 
                 #[name, f, x, y, p, agg]
@@ -402,6 +422,9 @@ class NgRawPmParser(object):
                 while True:
                     line = f.readline()
                     if not line:
+                        #don't forget the last KPI!
+                        if kpi[0] is not None and kpi[2] is not None:
+                            self.gnbKpis.append(kpi)
                         break
                     if line.startswith('#') or line.strip() == '':
                         continue
@@ -429,3 +452,4 @@ class NgRawPmParser(object):
         except Exception as e:
             #self.ngwin.logEdit.append(str(e))
             self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()

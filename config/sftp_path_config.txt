@@ -1,6 +1,14 @@
 #SFTP path configurations
+#5G configuration
 scf_path=/ffs/run/config/node_0xe000/siteoam/config/SBTS_SCF.xml
 vendor_path=/ffs/run/config/node_0xe000/config/Vendor_DU.xml
 swconfig_path=/ffs/run/swconfig.txt
 freq_history_path=/tmp/FrequencyHistory.xml
 raw_pm_path=/tmp/node_0xe000/tmp/pm/reports
+
+#4G configuration
+4g_scf_path=
+4g_vendor_path=/ffs/run/swpool/OAM
+4g_swconfig_path=/ffs/run/swconfig.txt
+4g_freq_history_path=/ram/FrequencyHistory.xml
+4g_raw_pm_path=/ram

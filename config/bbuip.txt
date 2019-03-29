@@ -1,3 +1,5 @@
-#bts_id, bts_ip, bts_name
-53760,10.140.7.4,Bole
-53775,10.140.7.76,Jiapanyuan
+#bts_rat,bts_id, bts_ip, bts_name
+5g,53760,10.140.7.4,Bole5g
+#5g,53775,10.140.7.76,Jiapanyuan5g
+4g,117876,10.140.22.193,Bole4g
+#4g,,10.140.22.201,Jiapanyuan4g
