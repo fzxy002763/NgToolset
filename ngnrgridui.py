@@ -6439,50 +6439,60 @@ class NgNrGridUi(QDialog):
 
         self.ngwin.logEdit.append('-->inside updateKSsbAndNCrbSsb')
 
-        #minGuardBand in carrier scs
-        minGuardBand = int(self.nrMinGuardBandEdit.text())
-        scsCarrier = int(self.nrCarrierScsComb.currentText()[:-3])
+        try:
+            #minGuardBand in carrier scs
+            minGuardBand = int(self.nrMinGuardBandEdit.text())
+            scsCarrier = int(self.nrCarrierScsComb.currentText()[:-3])
 
-        #key = self.nrCarrierScsComb.currentText()[:-3] + '_' + self.nrSsbScsComb.currentText()[:-3]
-        key = self.nrMibScsCommonComb.currentText()[:-3] + '_' + self.nrSsbScsComb.currentText()[:-3]
-        if key in ('15_15', '15_30'):
-            self.nrSsbKssbLabel.setText('k_SSB[0-11]:')
-            self.nrSsbKssbEdit.setValidator(QIntValidator(0, 11))
-            self.nrSsbNCrbSsbEdit.setText(str(minGuardBand*scsCarrier//15+offset))
-        elif key in ('30_15', '30_30'):
-            self.nrSsbKssbLabel.setText('k_SSB[0-23]:')
-            self.nrSsbKssbEdit.setValidator(QIntValidator(0, 23))
-            self.nrSsbNCrbSsbEdit.setText(str(minGuardBand*scsCarrier//15+2*offset))
-        elif key == '60_120':
-            self.nrSsbKssbLabel.setText('k_SSB[0-11]:')
-            self.nrSsbKssbEdit.setValidator(QIntValidator(0, 11))
-            self.nrSsbNCrbSsbEdit.setText(str(minGuardBand*scsCarrier//60+offset))
-        elif key == '60_240':
-            self.nrSsbKssbLabel.setText('k_SSB[0-11]:')
-            self.nrSsbKssbEdit.setValidator(QIntValidator(0, 11))
-            minGuardBand240k = int(self.nrSsbMinGuardBandScs240kEdit.text())
-            self.nrSsbNCrbSsbEdit.setText(str(max(minGuardBand*scsCarrier//60+offset, 4*minGuardBand240k)))
-        elif key == '120_120':
-            self.nrSsbKssbLabel.setText('k_SSB[0-11]:')
-            self.nrSsbKssbEdit.setValidator(QIntValidator(0, 11))
-            self.nrSsbNCrbSsbEdit.setText(str(minGuardBand*scsCarrier//60+2*offset))
-        elif key == '120_240':
-            self.nrSsbKssbLabel.setText('k_SSB[0-11]:')
-            self.nrSsbKssbEdit.setValidator(QIntValidator(0, 11))
-            minGuardBand240k = int(self.nrSsbMinGuardBandScs240kEdit.text())
-            self.nrSsbNCrbSsbEdit.setText(str(max(minGuardBand*scsCarrier//60+2*offset, 4*minGuardBand240k)))
-        else:
-            pass
+            #key = self.nrCarrierScsComb.currentText()[:-3] + '_' + self.nrSsbScsComb.currentText()[:-3]
+            key = self.nrMibScsCommonComb.currentText()[:-3] + '_' + self.nrSsbScsComb.currentText()[:-3]
+            if key in ('15_15', '15_30'):
+                self.nrSsbKssbLabel.setText('k_SSB[0-11]:')
+                self.nrSsbKssbEdit.setValidator(QIntValidator(0, 11))
+                self.nrSsbNCrbSsbEdit.setText(str(minGuardBand*scsCarrier//15+offset))
+            elif key in ('30_15', '30_30'):
+                self.nrSsbKssbLabel.setText('k_SSB[0-23]:')
+                self.nrSsbKssbEdit.setValidator(QIntValidator(0, 23))
+                self.nrSsbNCrbSsbEdit.setText(str(minGuardBand*scsCarrier//15+2*offset))
+            elif key == '60_120':
+                self.nrSsbKssbLabel.setText('k_SSB[0-11]:')
+                self.nrSsbKssbEdit.setValidator(QIntValidator(0, 11))
+                self.nrSsbNCrbSsbEdit.setText(str(minGuardBand*scsCarrier//60+offset))
+            elif key == '60_240':
+                self.nrSsbKssbLabel.setText('k_SSB[0-11]:')
+                self.nrSsbKssbEdit.setValidator(QIntValidator(0, 11))
+                minGuardBand240k = int(self.nrSsbMinGuardBandScs240kEdit.text())
+                self.nrSsbNCrbSsbEdit.setText(str(max(minGuardBand*scsCarrier//60+offset, 4*minGuardBand240k)))
+            elif key == '120_120':
+                self.nrSsbKssbLabel.setText('k_SSB[0-11]:')
+                self.nrSsbKssbEdit.setValidator(QIntValidator(0, 11))
+                self.nrSsbNCrbSsbEdit.setText(str(minGuardBand*scsCarrier//60+2*offset))
+            elif key == '120_240':
+                self.nrSsbKssbLabel.setText('k_SSB[0-11]:')
+                self.nrSsbKssbEdit.setValidator(QIntValidator(0, 11))
+                minGuardBand240k = int(self.nrSsbMinGuardBandScs240kEdit.text())
+                self.nrSsbNCrbSsbEdit.setText(str(max(minGuardBand*scsCarrier//60+2*offset, 4*minGuardBand240k)))
+            else:
+                pass
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
     def updateRachConfig(self):
         self.ngwin.logEdit.append('-->inside updateRachConfig')
 
-        if self.freqRange == 'FR1' and self.duplexMode == 'FDD':
-            self.raFormat, self.raX, self.raY, self.raSubfNumFr1SlotNumFr2, self.raStartingSymb, self.raNumSlotsPerSubfFr1Per60KSlotFr2, self.raNumOccasionsPerSlot, self.raDuration = self.nrRaCfgFr1FddSUl[int(self.nrRachGenericPrachConfIdEdit.text())]
-        elif self.freqRange == 'FR1' and self.duplexMode == 'TDD':
-            self.raFormat, self.raX, self.raY, self.raSubfNumFr1SlotNumFr2, self.raStartingSymb, self.raNumSlotsPerSubfFr1Per60KSlotFr2, self.raNumOccasionsPerSlot, self.raDuration = self.nrRaCfgFr1Tdd[int(self.nrRachGenericPrachConfIdEdit.text())]
-        else:   #self.freqRange == 'FR2'
-            self.raFormat, self.raX, self.raY, self.raSubfNumFr1SlotNumFr2, self.raStartingSymb, self.raNumSlotsPerSubfFr1Per60KSlotFr2, self.raNumOccasionsPerSlot, self.raDuration = self.nrRaCfgFr2Tdd[int(self.nrRachGenericPrachConfIdEdit.text())]
+        try:
+            if self.freqRange == 'FR1' and self.duplexMode == 'FDD':
+                self.raFormat, self.raX, self.raY, self.raSubfNumFr1SlotNumFr2, self.raStartingSymb, self.raNumSlotsPerSubfFr1Per60KSlotFr2, self.raNumOccasionsPerSlot, self.raDuration = self.nrRaCfgFr1FddSUl[int(self.nrRachGenericPrachConfIdEdit.text())]
+            elif self.freqRange == 'FR1' and self.duplexMode == 'TDD':
+                self.raFormat, self.raX, self.raY, self.raSubfNumFr1SlotNumFr2, self.raStartingSymb, self.raNumSlotsPerSubfFr1Per60KSlotFr2, self.raNumOccasionsPerSlot, self.raDuration = self.nrRaCfgFr1Tdd[int(self.nrRachGenericPrachConfIdEdit.text())]
+            else:   #self.freqRange == 'FR2'
+                self.raFormat, self.raX, self.raY, self.raSubfNumFr1SlotNumFr2, self.raStartingSymb, self.raNumSlotsPerSubfFr1Per60KSlotFr2, self.raNumOccasionsPerSlot, self.raDuration = self.nrRaCfgFr2Tdd[int(self.nrRachGenericPrachConfIdEdit.text())]
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
         self.nrRachGenericPrachFmtEdit.setText(self.raFormat)
         if self.raFormat in ('0', '1', '2', '3'):
@@ -6501,8 +6511,14 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside updateCoreset1FreqRes')
-        bwpStart = int(self.nrDedDlBwpGenericRbStartEdit.text())
-        bwpSize = int(self.nrDedDlBwpGenericLRbsEdit.text())
+        try:
+            bwpStart = int(self.nrDedDlBwpGenericRbStartEdit.text())
+            bwpSize = int(self.nrDedDlBwpGenericLRbsEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
+
         #refer to 3GPP 38.213 10.1
         #...the first common RB of the first group of 6 PRBs has index 6*ceil(N_BWP_start/6).
         firstPrbFirstGrp = 6 * math.ceil(bwpStart / 6)
@@ -6942,7 +6958,13 @@ class NgNrGridUi(QDialog):
 
         #(3) if k_ssb is configured, further validate CORESET0
         if self.nrSsbKssbEdit.text():
-            kSsb = int(self.nrSsbKssbEdit.text())
+            try:
+                kSsb = int(self.nrSsbKssbEdit.text())
+            except Exception as e:
+                self.ngwin.logEdit.append(traceback.format_exc())
+                qApp.processEvents()
+                return False
+
             if len(self.coreset0OffsetList) == 2:
                 self.coreset0Offset = self.coreset0OffsetList[0] if kSsb == 0 else self.coreset0OffsetList[1]
             else:
@@ -7031,21 +7053,26 @@ class NgNrGridUi(QDialog):
 
         self.ngwin.logEdit.append('-->inside validateCss0')
 
-        if self.coreset0MultiplexingPat == 1:
-            if self.freqRange == 'FR1':
-                return True
+        try:
+            if self.coreset0MultiplexingPat == 1:
+                if self.freqRange == 'FR1':
+                    return True
 
-            if self.freqRange == 'FR2' and int(self.nrMibCss0Edit.text()) in range(14):
-                return True
-            else:
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid CSS0 setting: searchSpaceZero can be [0, 13] for CORESET0/CSS0 with multiplexing pattern 1 and FR2!' % time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
-                return False
-        else:   #self.coreset0MultiplexingPat = 2/3
-            if int(self.nrMibCss0Edit.text()) == 0:
-                return True
-            else:
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid CSS0 setting: searchSpaceZero can be [0] for CORESET0/CSS0 with multiplexing pattern %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.coreset0MultiplexingPat))
-                return False
+                if self.freqRange == 'FR2' and int(self.nrMibCss0Edit.text()) in range(14):
+                    return True
+                else:
+                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid CSS0 setting: searchSpaceZero can be [0, 13] for CORESET0/CSS0 with multiplexing pattern 1 and FR2!' % time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
+                    return False
+            else:   #self.coreset0MultiplexingPat = 2/3
+                if int(self.nrMibCss0Edit.text()) == 0:
+                    return True
+                else:
+                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid CSS0 setting: searchSpaceZero can be [0] for CORESET0/CSS0 with multiplexing pattern %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.coreset0MultiplexingPat))
+                    return False
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return False
 
     def onMibCoreset0EditTextChanged(self, text):
         if not text:
@@ -7092,13 +7119,18 @@ class NgNrGridUi(QDialog):
         self.validateDci10Msg2TimeAllocField()
         self.validateDci10Msg4TimeAllocField()
         if self.nrDci11PdschTimeAllocFieldEdit.text():
-            timeAllocFieldDci11 = int(self.nrDci11PdschTimeAllocFieldEdit.text())
-            if timeAllocFieldDci11 in range(16):
-                self.validateDci11PdschTimeAllocField()
-            else:
-                if self.nrDci11PdschTimeAllocMappingTypeComb.currentText() == 'Type A' and self.nrDci11PdschTimeAllocSEdit.text() and int(self.nrDci11PdschTimeAllocSEdit.text()) == 3 and self.nrMibDmRsTypeAPosComb.currentText() != 'pos3':
-                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid setting: S of SLIV = %s but dmrs-TypeA-Position = "%s" when PDSCH mapping type is "Type A"!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.nrDci11PdschTimeAllocSEdit.text(), self.nrMibDmRsTypeAPosComb.currentText()))
-                    self.nrDci11PdschTimeAllocSEdit.clear()
+            try:
+                timeAllocFieldDci11 = int(self.nrDci11PdschTimeAllocFieldEdit.text())
+                if timeAllocFieldDci11 in range(16):
+                    self.validateDci11PdschTimeAllocField()
+                else:
+                    if self.nrDci11PdschTimeAllocMappingTypeComb.currentText() == 'Type A' and self.nrDci11PdschTimeAllocSEdit.text() and int(self.nrDci11PdschTimeAllocSEdit.text()) == 3 and self.nrMibDmRsTypeAPosComb.currentText() != 'pos3':
+                        self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid setting: S of SLIV = %s but dmrs-TypeA-Position = "%s" when PDSCH mapping type is "Type A"!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.nrDci11PdschTimeAllocSEdit.text(), self.nrMibDmRsTypeAPosComb.currentText()))
+                        self.nrDci11PdschTimeAllocSEdit.clear()
+            except Exception as e:
+                self.ngwin.logEdit.append(traceback.format_exc())
+                qApp.processEvents()
+                return
 
         #validate 'dmrs-AdditionalPosition' of dmrs for pdsch
         if self.nrDmrsDedPdschAddPosComb.currentText() == 'pos3' and self.nrMibDmRsTypeAPosComb.currentText() != 'pos2':
@@ -7246,7 +7278,12 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onIniDlBwpLocAndBwEditTextChanged')
-        riv = int(self.nrIniDlBwpGenericLocAndBwEdit.text())
+        try:
+            riv = int(self.nrIniDlBwpGenericLocAndBwEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         L_RBs, RB_start= self.parseRiv(riv, 275)
         if L_RBs is not None and RB_start is not None:
             commonScs = int(self.nrMibScsCommonComb.currentText()[:-3])
@@ -7273,13 +7310,19 @@ class NgNrGridUi(QDialog):
         if not self.nrIniDlBwpGenericLRbsEdit.text() or not self.nrIniDlBwpGenericRbStartEdit.text():
             return
 
-        if int(self.nrIniDlBwpGenericLRbsEdit.text()) <= 1:
-            self.nrIniDlBwpGenericLocAndBwEdit.clear()
+        try:
+            if int(self.nrIniDlBwpGenericLRbsEdit.text()) <= 1:
+                self.nrIniDlBwpGenericLocAndBwEdit.clear()
+                return
+
+            self.ngwin.logEdit.append('-->inside onIniDlBwpLRBsOrRBStartEditTextChanged')
+            L_RBs = int(self.nrIniDlBwpGenericLRbsEdit.text())
+            RB_start = int(self.nrIniDlBwpGenericRbStartEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
             return
 
-        self.ngwin.logEdit.append('-->inside onIniDlBwpLRBsOrRBStartEditTextChanged')
-        L_RBs = int(self.nrIniDlBwpGenericLRbsEdit.text())
-        RB_start = int(self.nrIniDlBwpGenericRbStartEdit.text())
         commonScs = int(self.nrMibScsCommonComb.currentText()[:-3])
         if self.freqRange == 'FR1':
             numRbCommonScs = self.nrNrbFr1[commonScs][self.nrBwSetFr1.index(self.nrCarrierBwComb.currentText())]
@@ -7311,148 +7354,177 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onIniUlBwpLocAndBwEditTextChanged')
-        riv = int(self.nrIniUlBwpGenericLocAndBwEdit.text())
-        L_RBs, RB_start= self.parseRiv(riv, 275)
-        if L_RBs is not None and RB_start is not None:
-            numRbCarrierScs = int(self.nrCarrierNumRbEdit.text())
-            if L_RBs < 1 or L_RBs > (numRbCarrierScs - RB_start):
-                self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: RIV = %s, L_RBs = %s, RB_start = %s with carrier bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), riv, L_RBs, RB_start, numRbCarrierScs))
-                #self.nrIniUlBwpGenericLRbsEdit.clear()
-                #self.nrIniUlBwpGenericRbStartEdit.clear()
-                return
+        try:
+            riv = int(self.nrIniUlBwpGenericLocAndBwEdit.text())
+            L_RBs, RB_start= self.parseRiv(riv, 275)
+            if L_RBs is not None and RB_start is not None:
+                numRbCarrierScs = int(self.nrCarrierNumRbEdit.text())
+                if L_RBs < 1 or L_RBs > (numRbCarrierScs - RB_start):
+                    self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: RIV = %s, L_RBs = %s, RB_start = %s with carrier bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), riv, L_RBs, RB_start, numRbCarrierScs))
+                    #self.nrIniUlBwpGenericLRbsEdit.clear()
+                    #self.nrIniUlBwpGenericRbStartEdit.clear()
+                    return
 
-            self.nrIniUlBwpGenericLRbsEdit.setText(str(L_RBs))
-            self.nrIniUlBwpGenericRbStartEdit.setText(str(RB_start))
-            self.updateIniUlBwpInfo()
-        else:
-            self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid RIV = %d!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), riv))
-            self.nrIniUlBwpGenericLRbsEdit.clear()
-            self.nrIniUlBwpGenericRbStartEdit.clear()
+                self.nrIniUlBwpGenericLRbsEdit.setText(str(L_RBs))
+                self.nrIniUlBwpGenericRbStartEdit.setText(str(RB_start))
+                self.updateIniUlBwpInfo()
+            else:
+                self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid RIV = %d!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), riv))
+                self.nrIniUlBwpGenericLRbsEdit.clear()
+                self.nrIniUlBwpGenericRbStartEdit.clear()
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
     def onIniUlBwpLRBsOrRBStartEditTextChanged(self, text):
         if not self.nrIniUlBwpGenericLRbsEdit.text() or not self.nrIniUlBwpGenericRbStartEdit.text():
             return
 
-        if int(self.nrIniUlBwpGenericLRbsEdit.text()) <= 1:
-            self.nrIniUlBwpGenericLocAndBwEdit.clear()
-            return
+        try:
+            if int(self.nrIniUlBwpGenericLRbsEdit.text()) <= 1:
+                self.nrIniUlBwpGenericLocAndBwEdit.clear()
+                return
 
-        self.ngwin.logEdit.append('-->inside onIniUlBwpLRBsOrRBStartEditTextChanged')
-        L_RBs = int(self.nrIniUlBwpGenericLRbsEdit.text())
-        RB_start = int(self.nrIniUlBwpGenericRbStartEdit.text())
-        numRbCarrierScs = int(self.nrCarrierNumRbEdit.text())
-        if L_RBs < 1 or L_RBs > (numRbCarrierScs - RB_start):
-            self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: L_RBs = %s, RB_start = %s with carrier bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), L_RBs, RB_start, numRbCarrierScs))
-            #self.nrIniUlBwpGenericLocAndBwEdit.clear()
-            return
+            self.ngwin.logEdit.append('-->inside onIniUlBwpLRBsOrRBStartEditTextChanged')
+            L_RBs = int(self.nrIniUlBwpGenericLRbsEdit.text())
+            RB_start = int(self.nrIniUlBwpGenericRbStartEdit.text())
+            numRbCarrierScs = int(self.nrCarrierNumRbEdit.text())
+            if L_RBs < 1 or L_RBs > (numRbCarrierScs - RB_start):
+                self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: L_RBs = %s, RB_start = %s with carrier bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), L_RBs, RB_start, numRbCarrierScs))
+                #self.nrIniUlBwpGenericLocAndBwEdit.clear()
+                return
 
-        riv = self.makeRiv(L_RBs, RB_start, 275)
-        if riv is not None and riv in range(37950):
-            self.nrIniUlBwpGenericLocAndBwEdit.setText(str(riv))
-            #set 'prb offset' of pucch-sib1 for msg4 harq feedback
-            if self.nrPucchSib1PucchResCommonEdit.text() and int(self.nrPucchSib1PucchResCommonEdit.text()) == 15:
-                self.nrPucchSib1PrbOffsetEdit.setText(str(math.floor(L_RBs / 4)))
-        else:
-            self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid RIV = %s(with L_RBs = %s, RB_start = %s)!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), 'None' if riv is None else str(riv), L_RBs, RB_start))
-            self.nrIniUlBwpGenericLocAndBwEdit.clear()
+            riv = self.makeRiv(L_RBs, RB_start, 275)
+            if riv is not None and riv in range(37950):
+                self.nrIniUlBwpGenericLocAndBwEdit.setText(str(riv))
+                #set 'prb offset' of pucch-sib1 for msg4 harq feedback
+                if self.nrPucchSib1PucchResCommonEdit.text() and int(self.nrPucchSib1PucchResCommonEdit.text()) == 15:
+                    self.nrPucchSib1PrbOffsetEdit.setText(str(math.floor(L_RBs / 4)))
+            else:
+                self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid RIV = %s(with L_RBs = %s, RB_start = %s)!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), 'None' if riv is None else str(riv), L_RBs, RB_start))
+                self.nrIniUlBwpGenericLocAndBwEdit.clear()
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
     def onDedDlBwpLocAndBwEditTextChanged(self, text):
         if not text:
             return
 
         self.ngwin.logEdit.append('-->inside onDedDlBwpLocAndBwEditTextChanged')
-        riv = int(self.nrDedDlBwpGenericLocAndBwEdit.text())
-        L_RBs, RB_start= self.parseRiv(riv, 275)
-        if L_RBs is not None and RB_start is not None:
-            numRbCarrierScs = int(self.nrCarrierNumRbEdit.text())
-            if L_RBs < 1 or L_RBs > (numRbCarrierScs - RB_start):
-                self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: RIV = %s, L_RBs = %s, RB_start = %s with carrier bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), riv, L_RBs, RB_start, numRbCarrierScs))
-                #self.nrDedDlBwpGenericLRbsEdit.clear()
-                #self.nrDedDlBwpGenericRbStartEdit.clear()
-                return
+        try:
+            riv = int(self.nrDedDlBwpGenericLocAndBwEdit.text())
+            L_RBs, RB_start= self.parseRiv(riv, 275)
+            if L_RBs is not None and RB_start is not None:
+                numRbCarrierScs = int(self.nrCarrierNumRbEdit.text())
+                if L_RBs < 1 or L_RBs > (numRbCarrierScs - RB_start):
+                    self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: RIV = %s, L_RBs = %s, RB_start = %s with carrier bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), riv, L_RBs, RB_start, numRbCarrierScs))
+                    #self.nrDedDlBwpGenericLRbsEdit.clear()
+                    #self.nrDedDlBwpGenericRbStartEdit.clear()
+                    return
 
-            self.nrDedDlBwpGenericLRbsEdit.setText(str(L_RBs))
-            self.nrDedDlBwpGenericRbStartEdit.setText(str(RB_start))
-            self.updateCoreset1FreqRes()
-            self.updateDedDlBwpInfo()
-        else:
-            self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid RIV = %d!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), riv))
-            self.nrDedDlBwpGenericLRbsEdit.clear()
-            self.nrDedDlBwpGenericRbStartEdit.clear()
-
+                self.nrDedDlBwpGenericLRbsEdit.setText(str(L_RBs))
+                self.nrDedDlBwpGenericRbStartEdit.setText(str(RB_start))
+                self.updateCoreset1FreqRes()
+                self.updateDedDlBwpInfo()
+            else:
+                self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid RIV = %d!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), riv))
+                self.nrDedDlBwpGenericLRbsEdit.clear()
+                self.nrDedDlBwpGenericRbStartEdit.clear()
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
     def onDedDlBwpLRBsOrRBStartEditTextChanged(self, text):
         if not self.nrDedDlBwpGenericLRbsEdit.text() or not self.nrDedDlBwpGenericRbStartEdit.text():
             return
 
-        if int(self.nrDedDlBwpGenericLRbsEdit.text()) <= 1:
-            self.nrDedDlBwpGenericLocAndBwEdit.clear()
-            return
+        try:
+            if int(self.nrDedDlBwpGenericLRbsEdit.text()) <= 1:
+                self.nrDedDlBwpGenericLocAndBwEdit.clear()
+                return
 
-        self.ngwin.logEdit.append('-->inside onDedDlBwpLRBsOrRBStartEditTextChanged')
-        L_RBs = int(self.nrDedDlBwpGenericLRbsEdit.text())
-        RB_start = int(self.nrDedDlBwpGenericRbStartEdit.text())
-        numRbCarrierScs = int(self.nrCarrierNumRbEdit.text())
-        if L_RBs < 1 or L_RBs > (numRbCarrierScs - RB_start):
-            self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: L_RBs = %s, RB_start = %s with carrier bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), L_RBs, RB_start, numRbCarrierScs))
-            #self.nrDedDlBwpGenericLocAndBwEdit.clear()
-            return
+            self.ngwin.logEdit.append('-->inside onDedDlBwpLRBsOrRBStartEditTextChanged')
+            L_RBs = int(self.nrDedDlBwpGenericLRbsEdit.text())
+            RB_start = int(self.nrDedDlBwpGenericRbStartEdit.text())
+            numRbCarrierScs = int(self.nrCarrierNumRbEdit.text())
+            if L_RBs < 1 or L_RBs > (numRbCarrierScs - RB_start):
+                self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: L_RBs = %s, RB_start = %s with carrier bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), L_RBs, RB_start, numRbCarrierScs))
+                #self.nrDedDlBwpGenericLocAndBwEdit.clear()
+                return
 
-        riv = self.makeRiv(L_RBs, RB_start, 275)
-        if riv is not None and riv in range(37950):
-            self.nrDedDlBwpGenericLocAndBwEdit.setText(str(riv))
-            self.updateCoreset1FreqRes()
-        else:
-            self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid RIV = %s(with L_RBs = %s, RB_start = %s)!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), 'None' if riv is None else str(riv), L_RBs, RB_start))
-            self.nrDedDlBwpGenericLocAndBwEdit.clear()
+            riv = self.makeRiv(L_RBs, RB_start, 275)
+            if riv is not None and riv in range(37950):
+                self.nrDedDlBwpGenericLocAndBwEdit.setText(str(riv))
+                self.updateCoreset1FreqRes()
+            else:
+                self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid RIV = %s(with L_RBs = %s, RB_start = %s)!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), 'None' if riv is None else str(riv), L_RBs, RB_start))
+                self.nrDedDlBwpGenericLocAndBwEdit.clear()
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
     def onDedUlBwpLocAndBwEditTextChanged(self, text):
         if not text:
             return
 
         self.ngwin.logEdit.append('-->inside onDedUlBwpLocAndBwEditTextChanged')
-        riv = int(self.nrDedUlBwpGenericLocAndBwEdit.text())
-        L_RBs, RB_start= self.parseRiv(riv, 275)
-        if L_RBs is not None and RB_start is not None:
-            numRbCarrierScs = int(self.nrCarrierNumRbEdit.text())
-            if L_RBs < 1 or L_RBs > (numRbCarrierScs - RB_start):
-                self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: RIV = %s, L_RBs = %s, RB_start = %s with carrier bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), riv, L_RBs, RB_start, numRbCarrierScs))
-                #self.nrDedUlBwpGenericLRbsEdit.clear()
-                #self.nrIniUlBwpGenericRbStartEdit.clear()
-                return
+        try:
+            riv = int(self.nrDedUlBwpGenericLocAndBwEdit.text())
+            L_RBs, RB_start= self.parseRiv(riv, 275)
+            if L_RBs is not None and RB_start is not None:
+                numRbCarrierScs = int(self.nrCarrierNumRbEdit.text())
+                if L_RBs < 1 or L_RBs > (numRbCarrierScs - RB_start):
+                    self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: RIV = %s, L_RBs = %s, RB_start = %s with carrier bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), riv, L_RBs, RB_start, numRbCarrierScs))
+                    #self.nrDedUlBwpGenericLRbsEdit.clear()
+                    #self.nrIniUlBwpGenericRbStartEdit.clear()
+                    return
 
-            self.nrDedUlBwpGenericLRbsEdit.setText(str(L_RBs))
-            self.nrDedUlBwpGenericRbStartEdit.setText(str(RB_start))
-            self.updateDedUlBwpInfo()
-        else:
-            self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid RIV = %d!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), riv))
-            self.nrDedUlBwpGenericLRbsEdit.clear()
-            self.nrDedUlBwpGenericRbStartEdit.clear()
+                self.nrDedUlBwpGenericLRbsEdit.setText(str(L_RBs))
+                self.nrDedUlBwpGenericRbStartEdit.setText(str(RB_start))
+                self.updateDedUlBwpInfo()
+            else:
+                self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid RIV = %d!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), riv))
+                self.nrDedUlBwpGenericLRbsEdit.clear()
+                self.nrDedUlBwpGenericRbStartEdit.clear()
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
 
     def onDedUlBwpLRBsOrRBStartEditTextChanged(self, text):
         if not self.nrDedUlBwpGenericLRbsEdit.text() or not self.nrDedUlBwpGenericRbStartEdit.text():
             return
 
-        if int(self.nrDedUlBwpGenericLRbsEdit.text()) <= 1:
-            self.nrDedUlBwpGenericLocAndBwEdit.clear()
-            return
+        try:
+            if int(self.nrDedUlBwpGenericLRbsEdit.text()) <= 1:
+                self.nrDedUlBwpGenericLocAndBwEdit.clear()
+                return
 
-        self.ngwin.logEdit.append('-->inside onDedUlBwpLRBsOrRBStartEditTextChanged')
-        L_RBs = int(self.nrDedUlBwpGenericLRbsEdit.text())
-        RB_start = int(self.nrDedUlBwpGenericRbStartEdit.text())
-        numRbCarrierScs = int(self.nrCarrierNumRbEdit.text())
-        if L_RBs < 1 or L_RBs > (numRbCarrierScs - RB_start):
-            self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: L_RBs = %s, RB_start = %s with carrier bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), L_RBs, RB_start, numRbCarrierScs))
-            #self.nrDedUlBwpGenericLocAndBwEdit.clear()
-            return
+            self.ngwin.logEdit.append('-->inside onDedUlBwpLRBsOrRBStartEditTextChanged')
+            L_RBs = int(self.nrDedUlBwpGenericLRbsEdit.text())
+            RB_start = int(self.nrDedUlBwpGenericRbStartEdit.text())
+            numRbCarrierScs = int(self.nrCarrierNumRbEdit.text())
+            if L_RBs < 1 or L_RBs > (numRbCarrierScs - RB_start):
+                self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: L_RBs = %s, RB_start = %s with carrier bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), L_RBs, RB_start, numRbCarrierScs))
+                #self.nrDedUlBwpGenericLocAndBwEdit.clear()
+                return
 
-        riv = self.makeRiv(L_RBs, RB_start, 275)
-        if riv is not None and riv in range(37950):
-            self.nrDedUlBwpGenericLocAndBwEdit.setText(str(riv))
-        else:
-            self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid RIV = %s(with L_RBs = %s, RB_start = %s)!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), 'None' if riv is None else str(riv), L_RBs, RB_start))
-            self.nrDedUlBwpGenericLocAndBwEdit.clear()
+            riv = self.makeRiv(L_RBs, RB_start, 275)
+            if riv is not None and riv in range(37950):
+                self.nrDedUlBwpGenericLocAndBwEdit.setText(str(riv))
+            else:
+                self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid RIV = %s(with L_RBs = %s, RB_start = %s)!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), 'None' if riv is None else str(riv), L_RBs, RB_start))
+                self.nrDedUlBwpGenericLocAndBwEdit.clear()
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
     def onCoreset1DurationCombCurIndChanged(self, index):
         if index < 0:
@@ -7603,7 +7675,12 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside validateDci10Sib1TimeAllocField')
-        row = int(self.nrDci10Sib1TimeAllocFieldEdit.text()) + 1
+        try:
+            row = int(self.nrDci10Sib1TimeAllocFieldEdit.text()) + 1
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         key = '%s_%s' % (row, self.nrMibDmRsTypeAPosComb.currentText()[3:])
         if self.coreset0MultiplexingPat == 1:
             if not key in self.nrPdschTimeAllocDefANormCp.keys():
@@ -7673,38 +7750,48 @@ class NgNrGridUi(QDialog):
         if not self.nrDci10Sib1Cw0McsEdit.text():
             return
 
-        td = int(self.nrDci10Sib1TimeAllocLEdit.text())
-        fd = int(self.nrDci10Sib1FreqAllocType1LRbsEdit.text())
-        mcs = int(self.nrDci10Sib1Cw0McsEdit.text())
+        try:
+            td = int(self.nrDci10Sib1TimeAllocLEdit.text())
+            fd = int(self.nrDci10Sib1FreqAllocType1LRbsEdit.text())
+            mcs = int(self.nrDci10Sib1Cw0McsEdit.text())
 
-        #calculate dmrs overhead
-        key = '%s_%s_%s' % (td, self.nrDci10Sib1TimeAllocMappingTypeComb.currentText(), self.nrDmrsSib1AddPosComb.currentText())
-        if not key in self.nrDmrsPdschPosOneSymb.keys() or self.nrDmrsPdschPosOneSymb[key] is None:
-            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDmrsPdschPosOneSymb!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+            #calculate dmrs overhead
+            key = '%s_%s_%s' % (td, self.nrDci10Sib1TimeAllocMappingTypeComb.currentText(), self.nrDmrsSib1AddPosComb.currentText())
+            if not key in self.nrDmrsPdschPosOneSymb.keys() or self.nrDmrsPdschPosOneSymb[key] is None:
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDmrsPdschPosOneSymb!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+                return
+            val = self.nrDmrsPdschPosOneSymb[key]
+
+            #refer to 3GPP 38.211 vf40
+            #For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to 'pos2'.
+            ld = int(self.nrDci10Sib1TimeAllocSEdit.text()) + int(self.nrDci10Sib1TimeAllocLEdit.text())
+            if self.nrDci10Sib1TimeAllocMappingTypeComb.currentText() == 'Type A' and ld in (3, 4) and self.nrMibDmRsTypeAPosComb.currentText() != 'pos2':
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to "pos2".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+                return
+
+            #FIXME For PDSCH mapping type B, when PDSCH allocation collides with CORESET/SearchSpace
+
+            dmrsOh = (2 * int(self.nrDmrsSib1CdmGroupsWoDataEdit.text())) * len(val)
+            self.ngwin.logEdit.append('SIB1 DMRS overhead: cdmGroupsWoData=%s, key="%s", val=%s' % (self.nrDmrsSib1CdmGroupsWoDataEdit.text(), key, val))
+
+            tbs = self.getTbs(sch='pdsch', tp=0, rnti='si-rnti', tab='qam64', td=td, fd=fd, mcs=mcs, layer=1, dmrs=dmrsOh, xoh=0, scale=1)
+            self.nrDci10Sib1TbsEdit.setText(str(tbs) if tbs is not None else '')
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
             return
-        val = self.nrDmrsPdschPosOneSymb[key]
-
-        #refer to 3GPP 38.211 vf40
-        #For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to 'pos2'.
-        ld = int(self.nrDci10Sib1TimeAllocSEdit.text()) + int(self.nrDci10Sib1TimeAllocLEdit.text())
-        if self.nrDci10Sib1TimeAllocMappingTypeComb.currentText() == 'Type A' and ld in (3, 4) and self.nrMibDmRsTypeAPosComb.currentText() != 'pos2':
-            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to "pos2".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
-            return
-
-        #FIXME For PDSCH mapping type B, when PDSCH allocation collides with CORESET/SearchSpace
-
-        dmrsOh = (2 * int(self.nrDmrsSib1CdmGroupsWoDataEdit.text())) * len(val)
-        self.ngwin.logEdit.append('SIB1 DMRS overhead: cdmGroupsWoData=%s, key="%s", val=%s' % (self.nrDmrsSib1CdmGroupsWoDataEdit.text(), key, val))
-
-        tbs = self.getTbs(sch='pdsch', tp=0, rnti='si-rnti', tab='qam64', td=td, fd=fd, mcs=mcs, layer=1, dmrs=dmrsOh, xoh=0, scale=1)
-        self.nrDci10Sib1TbsEdit.setText(str(tbs) if tbs is not None else '')
 
     def validateDci10Msg2TimeAllocField(self):
         if not self.nrDci10Msg2TimeAllocFieldEdit.text():
             return
 
         self.ngwin.logEdit.append('-->inside validateDci10Msg2TimeAllocField')
-        row = int(self.nrDci10Msg2TimeAllocFieldEdit.text()) + 1
+        try:
+            row = int(self.nrDci10Msg2TimeAllocFieldEdit.text()) + 1
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         key = '%s_%s' % (row, self.nrMibDmRsTypeAPosComb.currentText()[3:])
         if self.nrIniDlBwpGenericCpComb.currentText() == 'normal':
             if not key in self.nrPdschTimeAllocDefANormCp.keys():
@@ -7760,41 +7847,51 @@ class NgNrGridUi(QDialog):
         if not self.nrDci10Msg2TbScalingEdit.text():
             return
 
-        td = int(self.nrDci10Msg2TimeAllocLEdit.text())
-        fd = int(self.nrDci10Msg2FreqAllocType1LRbsEdit.text())
-        mcs = int(self.nrDci10Msg2Cw0McsEdit.text())
-        #refer to 3GPP 38.214 vf30
-        #Table 5.1.3.2-2: Scaling factor of Ninfo for P-RNTI and RA-RNTI
-        scale = {'0':1, '1':0.5, '2':0.25}[self.nrDci10Msg2TbScalingEdit.text()]
+        try:
+            td = int(self.nrDci10Msg2TimeAllocLEdit.text())
+            fd = int(self.nrDci10Msg2FreqAllocType1LRbsEdit.text())
+            mcs = int(self.nrDci10Msg2Cw0McsEdit.text())
+            #refer to 3GPP 38.214 vf30
+            #Table 5.1.3.2-2: Scaling factor of Ninfo for P-RNTI and RA-RNTI
+            scale = {'0':1, '1':0.5, '2':0.25}[self.nrDci10Msg2TbScalingEdit.text()]
 
-        #calculate dmrs overhead
-        key = '%s_%s_%s' % (td, self.nrDci10Msg2TimeAllocMappingTypeComb.currentText(), self.nrDmrsMsg2AddPosComb.currentText())
-        if not key in self.nrDmrsPdschPosOneSymb.keys() or self.nrDmrsPdschPosOneSymb[key] is None:
-            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDmrsPdschPosOneSymb!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+            #calculate dmrs overhead
+            key = '%s_%s_%s' % (td, self.nrDci10Msg2TimeAllocMappingTypeComb.currentText(), self.nrDmrsMsg2AddPosComb.currentText())
+            if not key in self.nrDmrsPdschPosOneSymb.keys() or self.nrDmrsPdschPosOneSymb[key] is None:
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDmrsPdschPosOneSymb!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+                return
+            val = self.nrDmrsPdschPosOneSymb[key]
+
+            #refer to 3GPP 38.211 vf40
+            #For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to 'pos2'.
+            ld = int(self.nrDci10Msg2TimeAllocSEdit.text()) + int(self.nrDci10Msg2TimeAllocLEdit.text())
+            if self.nrDci10Msg2TimeAllocMappingTypeComb.currentText() == 'Type A' and ld in (3, 4) and self.nrMibDmRsTypeAPosComb.currentText() != 'pos2':
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to "pos2".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+                return
+
+            #FIXME For PDSCH mapping type B, when PDSCH allocation collides with CORESET/SearchSpace
+
+            dmrsOh = (2 * int(self.nrDmrsMsg2CdmGroupsWoDataEdit.text())) * len(val)
+            self.ngwin.logEdit.append('Msg2 DMRS overhead: cdmGroupsWoData=%s, key="%s", val=%s' % (self.nrDmrsMsg2CdmGroupsWoDataEdit.text(), key, val))
+
+            tbs = self.getTbs(sch='pdsch', tp=0, rnti='ra-rnti', tab='qam64', td=td, fd=fd, mcs=mcs, layer=1, dmrs=dmrsOh, xoh=0, scale=scale)
+            self.nrDci10Msg2TbsEdit.setText(str(tbs) if tbs is not None else '')
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
             return
-        val = self.nrDmrsPdschPosOneSymb[key]
-
-        #refer to 3GPP 38.211 vf40
-        #For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to 'pos2'.
-        ld = int(self.nrDci10Msg2TimeAllocSEdit.text()) + int(self.nrDci10Msg2TimeAllocLEdit.text())
-        if self.nrDci10Msg2TimeAllocMappingTypeComb.currentText() == 'Type A' and ld in (3, 4) and self.nrMibDmRsTypeAPosComb.currentText() != 'pos2':
-            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to "pos2".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
-            return
-
-        #FIXME For PDSCH mapping type B, when PDSCH allocation collides with CORESET/SearchSpace
-
-        dmrsOh = (2 * int(self.nrDmrsMsg2CdmGroupsWoDataEdit.text())) * len(val)
-        self.ngwin.logEdit.append('Msg2 DMRS overhead: cdmGroupsWoData=%s, key="%s", val=%s' % (self.nrDmrsMsg2CdmGroupsWoDataEdit.text(), key, val))
-
-        tbs = self.getTbs(sch='pdsch', tp=0, rnti='ra-rnti', tab='qam64', td=td, fd=fd, mcs=mcs, layer=1, dmrs=dmrsOh, xoh=0, scale=scale)
-        self.nrDci10Msg2TbsEdit.setText(str(tbs) if tbs is not None else '')
 
     def validateDci10Msg4TimeAllocField(self):
         if not self.nrDci10Msg4TimeAllocFieldEdit.text():
             return
 
         self.ngwin.logEdit.append('-->inside validateDci10Msg4TimeAllocField')
-        row = int(self.nrDci10Msg4TimeAllocFieldEdit.text()) + 1
+        try:
+            row = int(self.nrDci10Msg4TimeAllocFieldEdit.text()) + 1
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         key = '%s_%s' % (row, self.nrMibDmRsTypeAPosComb.currentText()[3:])
         if self.nrIniDlBwpGenericCpComb.currentText() == 'normal':
             if not key in self.nrPdschTimeAllocDefANormCp.keys():
@@ -7847,38 +7944,48 @@ class NgNrGridUi(QDialog):
         if not self.nrDci10Msg4Cw0McsEdit.text():
             return
 
-        td = int(self.nrDci10Msg4TimeAllocLEdit.text())
-        fd = int(self.nrDci10Msg4FreqAllocType1LRbsEdit.text())
-        mcs = int(self.nrDci10Msg4Cw0McsEdit.text())
+        try:
+            td = int(self.nrDci10Msg4TimeAllocLEdit.text())
+            fd = int(self.nrDci10Msg4FreqAllocType1LRbsEdit.text())
+            mcs = int(self.nrDci10Msg4Cw0McsEdit.text())
 
-        #calculate dmrs overhead
-        key = '%s_%s_%s' % (td, self.nrDci10Msg4TimeAllocMappingTypeComb.currentText(), self.nrDmrsMsg4AddPosComb.currentText())
-        if not key in self.nrDmrsPdschPosOneSymb.keys() or self.nrDmrsPdschPosOneSymb[key] is None:
-            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDmrsPdschPosOneSymb!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+            #calculate dmrs overhead
+            key = '%s_%s_%s' % (td, self.nrDci10Msg4TimeAllocMappingTypeComb.currentText(), self.nrDmrsMsg4AddPosComb.currentText())
+            if not key in self.nrDmrsPdschPosOneSymb.keys() or self.nrDmrsPdschPosOneSymb[key] is None:
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDmrsPdschPosOneSymb!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+                return
+            val = self.nrDmrsPdschPosOneSymb[key]
+
+            #refer to 3GPP 38.211 vf40
+            #For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to 'pos2'.
+            ld = int(self.nrDci10Msg4TimeAllocSEdit.text()) + int(self.nrDci10Msg4TimeAllocLEdit.text())
+            if self.nrDci10Msg4TimeAllocMappingTypeComb.currentText() == 'Type A' and ld in (3, 4) and self.nrMibDmRsTypeAPosComb.currentText() != 'pos2':
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to "pos2".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+                return
+
+            #FIXME For PDSCH mapping type B, when PDSCH allocation collides with CORESET/SearchSpace
+
+            dmrsOh = (2 * int(self.nrDmrsMsg4CdmGroupsWoDataEdit.text())) * len(val)
+            self.ngwin.logEdit.append('Msg4 DMRS overhead: cdmGroupsWoData=%s, key="%s", val=%s' % (self.nrDmrsMsg4CdmGroupsWoDataEdit.text(), key, val))
+
+            tbs = self.getTbs(sch='pdsch', tp=0, rnti='tc-rnti', tab='qam64', td=td, fd=fd, mcs=mcs, layer=1, dmrs=dmrsOh, xoh=0, scale=1)
+            self.nrDci10Msg4TbsEdit.setText(str(tbs) if tbs is not None else '')
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
             return
-        val = self.nrDmrsPdschPosOneSymb[key]
-
-        #refer to 3GPP 38.211 vf40
-        #For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to 'pos2'.
-        ld = int(self.nrDci10Msg4TimeAllocSEdit.text()) + int(self.nrDci10Msg4TimeAllocLEdit.text())
-        if self.nrDci10Msg4TimeAllocMappingTypeComb.currentText() == 'Type A' and ld in (3, 4) and self.nrMibDmRsTypeAPosComb.currentText() != 'pos2':
-            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to "pos2".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
-            return
-
-        #FIXME For PDSCH mapping type B, when PDSCH allocation collides with CORESET/SearchSpace
-
-        dmrsOh = (2 * int(self.nrDmrsMsg4CdmGroupsWoDataEdit.text())) * len(val)
-        self.ngwin.logEdit.append('Msg4 DMRS overhead: cdmGroupsWoData=%s, key="%s", val=%s' % (self.nrDmrsMsg4CdmGroupsWoDataEdit.text(), key, val))
-
-        tbs = self.getTbs(sch='pdsch', tp=0, rnti='tc-rnti', tab='qam64', td=td, fd=fd, mcs=mcs, layer=1, dmrs=dmrsOh, xoh=0, scale=1)
-        self.nrDci10Msg4TbsEdit.setText(str(tbs) if tbs is not None else '')
 
     def validateDci11PdschTimeAllocField(self):
         if not self.nrDci11PdschTimeAllocFieldEdit.text():
             return
 
         self.ngwin.logEdit.append('-->inside validateDci11PdschTimeAllocField')
-        row = int(self.nrDci11PdschTimeAllocFieldEdit.text()) + 1
+        try:
+            row = int(self.nrDci11PdschTimeAllocFieldEdit.text()) + 1
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         if row in range(1, 17):
             #use default time-domain allocation schemes
             key = '%s_%s' % (row, self.nrMibDmRsTypeAPosComb.currentText()[3:])
@@ -7922,7 +8029,12 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside validateMsg3PuschTimeAllocField')
-        key = int(self.nrMsg3PuschTimeAllocFieldEdit.text()) + 1
+        try:
+            key = int(self.nrMsg3PuschTimeAllocFieldEdit.text()) + 1
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         if self.nrIniUlBwpGenericCpComb.currentText() == 'normal':
             if not key in self.nrPuschTimeAllocDefANormCp.keys():
                 self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrPuschTimeAllocDefANormCp.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
@@ -7960,78 +8072,88 @@ class NgNrGridUi(QDialog):
         if not self.nrMsg3PuschTimeAllocFieldEdit.text() or not self.nrMsg3PuschTimeAllocLEdit.text() or not self.nrMsg3PuschTimeAllocSEdit.text() or not self.nrMsg3PuschTimeAllocSlivEdit.text():
             return
 
-        #update 'cdm groups without data' of dmrs for msg3 pusch
-        td = int(self.nrMsg3PuschTimeAllocLEdit.text())
-        if td <= 2 and self.nrRachMsg3TpComb.currentText() == 'disabled':
-            cdmGroups = 1
-        else:
-            cdmGroups = 2
-        self.nrDmrsMsg3CdmGroupsWoDataEdit.setText(str(cdmGroups))
+        try:
+            #update 'cdm groups without data' of dmrs for msg3 pusch
+            td = int(self.nrMsg3PuschTimeAllocLEdit.text())
+            if td <= 2 and self.nrRachMsg3TpComb.currentText() == 'disabled':
+                cdmGroups = 1
+            else:
+                cdmGroups = 2
+            self.nrDmrsMsg3CdmGroupsWoDataEdit.setText(str(cdmGroups))
 
-        #set tbs by calling getTbs
-        if self.nrMsg3PuschFreqAllocTypeComb.currentText() == 'RA Type1' and (not self.nrMsg3PuschFreqAllocType1LRbsEdit.text() or not self.nrMsg3PuschFreqAllocType1RbStartEdit.text() or not self.nrMsg3PuschFreqAllocFieldEdit.text()):
-            return
-
-        fd = int(self.nrMsg3PuschFreqAllocType1LRbsEdit.text())
-
-        if not self.nrMsg3PuschCw0McsEdit.text():
-            return
-
-        #calculate dmrs overhead
-        mappingType = self.nrMsg3PuschTimeAllocMappingTypeComb.currentText()
-        freqHop = self.nrMsg3PuschFreqAllocFreqHopComb.currentText()
-        #refer to 3GPP 38.214 vf30 6.2.2
-        '''
-        When transmitted PUSCH is not scheduled by PDCCH format 0_1 with CRC scrambled by C-RNTI, CS-RNTI or MCS-RNTI,...
-        If frequency hopping is disabled:
-            -	The UE shall assume dmrs-AdditionalPosition equals to 'pos2' and up to two additional DM-RS can be transmitted according to PUSCH duration, or
-        If frequency hopping is enabled:
-            -	The UE shall assume dmrs-AdditionalPosition equals to 'pos1' and up to one additional DM-RS can be transmitted according to PUSCH duration.
-        '''
-        if freqHop == 'enabled':
-            #refer to 3GPP 38.211 vf30 6.4.1.1.3
-            #if the higher-layer parameter dmrs-AdditionalPosition is not set to 'pos0' and intra-slot frequency hopping is enabled according to clause 7.3.1.1.2 in [4, TS 38.212] and by higher layer, Tables 6.4.1.1.3-6 shall be used assuming dmrs-AdditionalPosition is equal to 'pos1' for each hop.
-            #refer to 3GPP 38.214 vf30 6.3
-            #In case of intra-slot frequency hopping is configured, the number of symbols in the first hop is given by floor(N_PUSCH_symb/2) , the number of symbols in the second hop is given by N_PUSCH_symb - floor(N_PUSCH_symb/2) , where N_PUSCH_symb is the length of the PUSCH transmission in OFDM symbols in one slot.
-            key1 = '%s_%s_%s_%s_1st' % (math.floor(td / 2), mappingType, self.nrMibDmRsTypeAPosComb.currentText()[3:] if mappingType == 'Type A' else '0', 'pos1' if self.nrDmrsMsg3AddPosComb.currentText() != 'pos0' else 'pos0')
-            key2 = '%s_%s_%s_%s_2nd' % (td - math.floor(td / 2), mappingType, self.nrMibDmRsTypeAPosComb.currentText()[3:] if mappingType == 'Type A' else '0', 'pos1' if self.nrDmrsMsg3AddPosComb.currentText() != 'pos0' else 'pos0')
-            if not key1 in self.nrDmrsPuschPosOneSymbWithIntraSlotFh or not key2 in self.nrDmrsPuschPosOneSymbWithIntraSlotFh or self.nrDmrsPuschPosOneSymbWithIntraSlotFh[key1] is None or self.nrDmrsPuschPosOneSymbWithIntraSlotFh[key2] is None:
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(key_1stHop="%s", key_2ndHop="%s") when referring nrDmrsPuschPosOneSymbWithIntraSlotFh!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key1, key2))
+            #set tbs by calling getTbs
+            if self.nrMsg3PuschFreqAllocTypeComb.currentText() == 'RA Type1' and (not self.nrMsg3PuschFreqAllocType1LRbsEdit.text() or not self.nrMsg3PuschFreqAllocType1RbStartEdit.text() or not self.nrMsg3PuschFreqAllocFieldEdit.text()):
                 return
-            val1 = self.nrDmrsPuschPosOneSymbWithIntraSlotFh[key1]
-            val2 = self.nrDmrsPuschPosOneSymbWithIntraSlotFh[key2]
-        else:
-            key = '%s_%s_%s' % (td, self.nrMsg3PuschTimeAllocMappingTypeComb.currentText(), self.nrDmrsMsg3AddPosComb.currentText())
-            if not key in self.nrDmrsPuschPosOneSymbWoIntraSlotFh.keys() or self.nrDmrsPuschPosOneSymbWoIntraSlotFh[key] is None:
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDmrsPuschPosOneSymbWoIntraSlotFh!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+
+            fd = int(self.nrMsg3PuschFreqAllocType1LRbsEdit.text())
+
+            if not self.nrMsg3PuschCw0McsEdit.text():
                 return
-            val = self.nrDmrsPuschPosOneSymbWoIntraSlotFh[key]
 
-        #refer to 3GPP 38.211 vf30
-        #For PUSCH mapping type A, duration of 4 symbols in Table 6.4.1.1.3-4 is only applicable when dmrs-TypeA-Position is equal to 'pos2'.
-        if self.nrMsg3PuschTimeAllocMappingTypeComb.currentText() == 'Type A' and td == 4 and self.nrMibDmRsTypeAPosComb.currentText() != 'pos2':
-            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PUSCH mapping type A, duration of 4 symbols in Table 6.4.1.1.3-4 is only applicable when dmrs-TypeA-Position is equal to "pos2".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+            #calculate dmrs overhead
+            mappingType = self.nrMsg3PuschTimeAllocMappingTypeComb.currentText()
+            freqHop = self.nrMsg3PuschFreqAllocFreqHopComb.currentText()
+            #refer to 3GPP 38.214 vf30 6.2.2
+            '''
+            When transmitted PUSCH is not scheduled by PDCCH format 0_1 with CRC scrambled by C-RNTI, CS-RNTI or MCS-RNTI,...
+            If frequency hopping is disabled:
+                -	The UE shall assume dmrs-AdditionalPosition equals to 'pos2' and up to two additional DM-RS can be transmitted according to PUSCH duration, or
+            If frequency hopping is enabled:
+                -	The UE shall assume dmrs-AdditionalPosition equals to 'pos1' and up to one additional DM-RS can be transmitted according to PUSCH duration.
+            '''
+            if freqHop == 'enabled':
+                #refer to 3GPP 38.211 vf30 6.4.1.1.3
+                #if the higher-layer parameter dmrs-AdditionalPosition is not set to 'pos0' and intra-slot frequency hopping is enabled according to clause 7.3.1.1.2 in [4, TS 38.212] and by higher layer, Tables 6.4.1.1.3-6 shall be used assuming dmrs-AdditionalPosition is equal to 'pos1' for each hop.
+                #refer to 3GPP 38.214 vf30 6.3
+                #In case of intra-slot frequency hopping is configured, the number of symbols in the first hop is given by floor(N_PUSCH_symb/2) , the number of symbols in the second hop is given by N_PUSCH_symb - floor(N_PUSCH_symb/2) , where N_PUSCH_symb is the length of the PUSCH transmission in OFDM symbols in one slot.
+                key1 = '%s_%s_%s_%s_1st' % (math.floor(td / 2), mappingType, self.nrMibDmRsTypeAPosComb.currentText()[3:] if mappingType == 'Type A' else '0', 'pos1' if self.nrDmrsMsg3AddPosComb.currentText() != 'pos0' else 'pos0')
+                key2 = '%s_%s_%s_%s_2nd' % (td - math.floor(td / 2), mappingType, self.nrMibDmRsTypeAPosComb.currentText()[3:] if mappingType == 'Type A' else '0', 'pos1' if self.nrDmrsMsg3AddPosComb.currentText() != 'pos0' else 'pos0')
+                if not key1 in self.nrDmrsPuschPosOneSymbWithIntraSlotFh or not key2 in self.nrDmrsPuschPosOneSymbWithIntraSlotFh or self.nrDmrsPuschPosOneSymbWithIntraSlotFh[key1] is None or self.nrDmrsPuschPosOneSymbWithIntraSlotFh[key2] is None:
+                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(key_1stHop="%s", key_2ndHop="%s") when referring nrDmrsPuschPosOneSymbWithIntraSlotFh!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key1, key2))
+                    return
+                val1 = self.nrDmrsPuschPosOneSymbWithIntraSlotFh[key1]
+                val2 = self.nrDmrsPuschPosOneSymbWithIntraSlotFh[key2]
+            else:
+                key = '%s_%s_%s' % (td, self.nrMsg3PuschTimeAllocMappingTypeComb.currentText(), self.nrDmrsMsg3AddPosComb.currentText())
+                if not key in self.nrDmrsPuschPosOneSymbWoIntraSlotFh.keys() or self.nrDmrsPuschPosOneSymbWoIntraSlotFh[key] is None:
+                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDmrsPuschPosOneSymbWoIntraSlotFh!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+                    return
+                val = self.nrDmrsPuschPosOneSymbWoIntraSlotFh[key]
+
+            #refer to 3GPP 38.211 vf30
+            #For PUSCH mapping type A, duration of 4 symbols in Table 6.4.1.1.3-4 is only applicable when dmrs-TypeA-Position is equal to 'pos2'.
+            if self.nrMsg3PuschTimeAllocMappingTypeComb.currentText() == 'Type A' and td == 4 and self.nrMibDmRsTypeAPosComb.currentText() != 'pos2':
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PUSCH mapping type A, duration of 4 symbols in Table 6.4.1.1.3-4 is only applicable when dmrs-TypeA-Position is equal to "pos2".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+                return
+
+            if freqHop == 'enabled':
+                dmrsOh = (2 * cdmGroups) * (len(val1) + len(val2))
+                self.ngwin.logEdit.append('Msg3 PUSCH(RAR UL Grant) DMRS overhead: cdmGroupsWoData=%d, key1="%s", val1=%s, key2="%s", val2=%s' % (cdmGroups, key1, val1, key2, val2))
+            else:
+                dmrsOh = (2 * cdmGroups) * len(val)
+                self.ngwin.logEdit.append('Msg3 PUSCH(RAR UL Grant) DMRS overhead: cdmGroupsWoData=%d, key="%s", val=%s' % (cdmGroups, key, val))
+
+            tp = 1 if self.nrRachMsg3TpComb.currentText() == 'enabled' else 0
+            mcsCw0 = int(self.nrMsg3PuschCw0McsEdit.text())
+
+            tbs = self.getTbs(sch='pusch', tp=tp, rnti='msg3', tab='qam64', td=td, fd=fd, mcs=mcsCw0, layer=1, dmrs=dmrsOh, xoh=0, scale=1)
+            self.nrMsg3PuschTbsEdit.setText(str(tbs) if tbs is not None else '')
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
             return
-
-        if freqHop == 'enabled':
-            dmrsOh = (2 * cdmGroups) * (len(val1) + len(val2))
-            self.ngwin.logEdit.append('Msg3 PUSCH(RAR UL Grant) DMRS overhead: cdmGroupsWoData=%d, key1="%s", val1=%s, key2="%s", val2=%s' % (cdmGroups, key1, val1, key2, val2))
-        else:
-            dmrsOh = (2 * cdmGroups) * len(val)
-            self.ngwin.logEdit.append('Msg3 PUSCH(RAR UL Grant) DMRS overhead: cdmGroupsWoData=%d, key="%s", val=%s' % (cdmGroups, key, val))
-
-        tp = 1 if self.nrRachMsg3TpComb.currentText() == 'enabled' else 0
-        mcsCw0 = int(self.nrMsg3PuschCw0McsEdit.text())
-
-        tbs = self.getTbs(sch='pusch', tp=tp, rnti='msg3', tab='qam64', td=td, fd=fd, mcs=mcsCw0, layer=1, dmrs=dmrsOh, xoh=0, scale=1)
-        self.nrMsg3PuschTbsEdit.setText(str(tbs) if tbs is not None else '')
 
     def validateDci01PuschTimeAllocField(self):
         if not self.nrDci01PuschTimeAllocFieldEdit.text():
             return
 
         self.ngwin.logEdit.append('-->inside validateDci01PuschTimeAllocField')
-        key = int(self.nrDci01PuschTimeAllocFieldEdit.text()) + 1
+        try:
+            key = int(self.nrDci01PuschTimeAllocFieldEdit.text()) + 1
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         if key in range(1, 17):
             #use default time-domain allocation schemes
             if self.nrDedUlBwpGenericCpComb.currentText() == 'normal':
@@ -8074,7 +8196,12 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onDci11PdschTimeAllocSlivEditTextChanged')
-        sliv = int(self.nrDci11PdschTimeAllocSlivEdit.text())
+        try:
+            sliv = int(self.nrDci11PdschTimeAllocSlivEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         S,L = self.fromSliv(sliv, sch='pdsch', type=self.nrDci11PdschTimeAllocMappingTypeComb.currentText(), cp=self.nrDedDlBwpGenericCpComb.currentText())
         if S is not None and L is not None:
             self.nrDci11PdschTimeAllocSEdit.setText(str(S))
@@ -8089,23 +8216,28 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onDci11PdschTimeAllocSOrLEditTextChanged')
-        S = int(self.nrDci11PdschTimeAllocSEdit.text())
+        try:
+            S = int(self.nrDci11PdschTimeAllocSEdit.text())
 
-        #validate S against 'dmrs-TypeA-Position' when mappingType is 'Type A'
-        if self.nrDci11PdschTimeAllocMappingTypeComb.currentText() == 'Type A' and S == 3 and self.nrMibDmRsTypeAPosComb.currentText() != 'pos3':
-            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid setting: S of SLIV = %s but dmrs-TypeA-Position = "%s" when PDSCH mapping type is "Type A"!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.nrDci11PdschTimeAllocSEdit.text(), self.nrMibDmRsTypeAPosComb.currentText()))
-            self.nrDci11PdschTimeAllocSEdit.clear()
+            #validate S against 'dmrs-TypeA-Position' when mappingType is 'Type A'
+            if self.nrDci11PdschTimeAllocMappingTypeComb.currentText() == 'Type A' and S == 3 and self.nrMibDmRsTypeAPosComb.currentText() != 'pos3':
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid setting: S of SLIV = %s but dmrs-TypeA-Position = "%s" when PDSCH mapping type is "Type A"!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.nrDci11PdschTimeAllocSEdit.text(), self.nrMibDmRsTypeAPosComb.currentText()))
+                self.nrDci11PdschTimeAllocSEdit.clear()
+                return
+
+            L = int(self.nrDci11PdschTimeAllocLEdit.text())
+            sliv = self.toSliv(S, L, sch='pdsch', type=self.nrDci11PdschTimeAllocMappingTypeComb.currentText(), cp=self.nrDedDlBwpGenericCpComb.currentText())
+            if sliv is not None:
+                self.nrDci11PdschTimeAllocSlivEdit.setText(str(sliv))
+                #update 'tbs' by calling getTbs when necessary
+                self.validatePdschAntPorts()
+            else:
+                self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid S/L combination(S=%s, L=%s) and prefix info: type="%s", cp="%s".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), S, L, self.nrDci11PdschTimeAllocMappingTypeComb.currentText(), self.nrDedDlBwpGenericCpComb.currentText()))
+                self.nrDci11PdschTimeAllocSlivEdit.clear()
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
             return
-
-        L = int(self.nrDci11PdschTimeAllocLEdit.text())
-        sliv = self.toSliv(S, L, sch='pdsch', type=self.nrDci11PdschTimeAllocMappingTypeComb.currentText(), cp=self.nrDedDlBwpGenericCpComb.currentText())
-        if sliv is not None:
-            self.nrDci11PdschTimeAllocSlivEdit.setText(str(sliv))
-            #update 'tbs' by calling getTbs when necessary
-            self.validatePdschAntPorts()
-        else:
-            self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid S/L combination(S=%s, L=%s) and prefix info: type="%s", cp="%s".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), S, L, self.nrDci11PdschTimeAllocMappingTypeComb.currentText(), self.nrDedDlBwpGenericCpComb.currentText()))
-            self.nrDci11PdschTimeAllocSlivEdit.clear()
 
     def onDci11MappingTypeOrDedDlBwpCpCombCurIndChanged(self, index):
         if index < 0:
@@ -8154,7 +8286,12 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onDci01PuschTimeAllocSlivEditTextChanged')
-        sliv = int(self.nrDci01PuschTimeAllocSlivEdit.text())
+        try:
+            sliv = int(self.nrDci01PuschTimeAllocSlivEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         S,L = self.fromSliv(sliv, sch='pusch', type=self.nrDci01PuschTimeAllocMappingTypeComb.currentText(), cp=self.nrDedUlBwpGenericCpComb.currentText())
         if S is not None and L is not None:
             self.nrDci01PuschTimeAllocSEdit.setText(str(S))
@@ -8169,8 +8306,13 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onDci01PuschTimeAllocSOrLEditTextChanged')
-        S = int(self.nrDci01PuschTimeAllocSEdit.text())
-        L = int(self.nrDci01PuschTimeAllocLEdit.text())
+        try:
+            S = int(self.nrDci01PuschTimeAllocSEdit.text())
+            L = int(self.nrDci01PuschTimeAllocLEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         sliv = self.toSliv(S, L, sch='pusch', type=self.nrDci01PuschTimeAllocMappingTypeComb.currentText(), cp=self.nrDedUlBwpGenericCpComb.currentText())
         if sliv is not None:
             self.nrDci01PuschTimeAllocSlivEdit.setText(str(sliv))
@@ -8227,8 +8369,13 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onDci10Sib1Type1LRBsOrRBStartEditTextChanged')
-        L_RBs = int(self.nrDci10Sib1FreqAllocType1LRbsEdit.text())
-        RB_start = int(self.nrDci10Sib1FreqAllocType1RbStartEdit.text())
+        try:
+            L_RBs = int(self.nrDci10Sib1FreqAllocType1LRbsEdit.text())
+            RB_start = int(self.nrDci10Sib1FreqAllocType1RbStartEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         if L_RBs < 1 or L_RBs > (self.coreset0NumRbs - RB_start):
             self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: L_RBs = %s, RB_start = %s with CORESET0 bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), L_RBs, RB_start, self.coreset0NumRbs))
             self.nrDci10Sib1FreqAllocFieldEdit.clear()
@@ -8248,8 +8395,13 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onDci10Msg2Type1LRBsOrRBStartEditTextChanged')
-        L_RBs = int(self.nrDci10Msg2FreqAllocType1LRbsEdit.text())
-        RB_start = int(self.nrDci10Msg2FreqAllocType1RbStartEdit.text())
+        try:
+            L_RBs = int(self.nrDci10Msg2FreqAllocType1LRbsEdit.text())
+            RB_start = int(self.nrDci10Msg2FreqAllocType1RbStartEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         if L_RBs < 1 or L_RBs > (self.coreset0NumRbs - RB_start):
             self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: L_RBs = %s, RB_start = %s with CORESET0 bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), L_RBs, RB_start, self.coreset0NumRbs))
             self.nrDci10Msg2FreqAllocFieldEdit.clear()
@@ -8269,8 +8421,13 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onDci10Msg4Type1LRBsOrRBStartEditTextChanged')
-        L_RBs = int(self.nrDci10Msg4FreqAllocType1LRbsEdit.text())
-        RB_start = int(self.nrDci10Msg4FreqAllocType1RbStartEdit.text())
+        try:
+            L_RBs = int(self.nrDci10Msg4FreqAllocType1LRbsEdit.text())
+            RB_start = int(self.nrDci10Msg4FreqAllocType1RbStartEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         if L_RBs < 1 or L_RBs > (self.coreset0NumRbs - RB_start):
             self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: L_RBs = %s, RB_start = %s with CORESET0 bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), L_RBs, RB_start, self.coreset0NumRbs))
             self.nrDci10Msg4FreqAllocFieldEdit.clear()
@@ -8293,7 +8450,12 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onDedPdschCfgRbgConfigCombCurIndChanged, index=%d' % index)
-        bwpSize = int(self.nrDedDlBwpGenericLRbsEdit.text())
+        try:
+            bwpSize = int(self.nrDedDlBwpGenericLRbsEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         P = self.getNomRbgSizeP(bwpSize, sch='pdsch', config=self.nrDedPdschCfgRbgConfigComb.currentText())
         if P is None:
             self.ngwin.logEdit.append('Error: The nominal RBG size P is None!')
@@ -8403,17 +8565,22 @@ class NgNrGridUi(QDialog):
         maxLength = self.nrDmrsDedPdschMaxLengthComb.currentText()
         numCw = 0
         mcsSet = []
-        if self.nrDci11PdschCw0McsEdit.text():
-            numCw = numCw + 1
-            mcsSet.append(int(self.nrDci11PdschCw0McsEdit.text()))
-        else:
-            mcsSet.append(None)
+        try:
+            if self.nrDci11PdschCw0McsEdit.text():
+                numCw = numCw + 1
+                mcsSet.append(int(self.nrDci11PdschCw0McsEdit.text()))
+            else:
+                mcsSet.append(None)
 
-        if self.nrDci11PdschCw1McsEdit.text():
-            numCw = numCw + 1
-            mcsSet.append(int(self.nrDci11PdschCw1McsEdit.text()))
-        else:
-            mcsSet.append(None)
+            if self.nrDci11PdschCw1McsEdit.text():
+                numCw = numCw + 1
+                mcsSet.append(int(self.nrDci11PdschCw1McsEdit.text()))
+            else:
+                mcsSet.append(None)
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
         if dmrsType == 'Type 1' and maxLength == 'len1' and numCw == 1:
             self.nrDci11PdschAntPortsFieldLabel.setText('Antenna port(s)[%s]:' % self.nrDci11AntPortsDmrsType1MaxLen1OneCwValid)
@@ -8470,11 +8637,16 @@ class NgNrGridUi(QDialog):
         dmrsType = self.nrDmrsDedPdschDmrsTypeComb.currentText()
         maxLength = self.nrDmrsDedPdschMaxLengthComb.currentText()
         mcsSet = []
-        if self.nrDci11PdschCw0McsEdit.text():
-            mcsSet.append(int(self.nrDci11PdschCw0McsEdit.text()))
+        try:
+            if self.nrDci11PdschCw0McsEdit.text():
+                mcsSet.append(int(self.nrDci11PdschCw0McsEdit.text()))
 
-        if self.nrDci11PdschCw1McsEdit.text():
-            mcsSet.append(int(self.nrDci11PdschCw1McsEdit.text()))
+            if self.nrDci11PdschCw1McsEdit.text():
+                mcsSet.append(int(self.nrDci11PdschCw1McsEdit.text()))
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
         if dmrsType == 'Type 1' and maxLength == 'len1' and len(mcsSet) == 1:
             minVal, maxVal = self.nrDci11AntPortsDmrsType1MaxLen1OneCwValid.split('-')
@@ -8493,7 +8665,12 @@ class NgNrGridUi(QDialog):
         else:
             return
 
-        ap = int(self.nrDci11PdschAntPortsFieldEdit.text())
+        try:
+            ap = int(self.nrDci11PdschAntPortsFieldEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         if ap < int(minVal) or ap > int(maxVal):
             self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid "Antenna port(s)"(=%s), which must be %s-%s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), ap, minVal, maxVal))
             self.nrDci11PdschAntPortsFieldEdit.clear()
@@ -8559,14 +8736,19 @@ class NgNrGridUi(QDialog):
         if self.nrDci11PdschFreqAllocTypeComb.currentText() == 'RA Type1' and (not self.nrDci11PdschFreqAllocType1LRbsEdit.text() or not self.nrDci11PdschFreqAllocType1RbStartEdit.text() or not self.nrDci11PdschFreqAllocFieldEdit.text()):
             return
 
-        if self.nrDci11PdschFreqAllocTypeComb.currentText() == 'RA Type0' and (not self.nrDci11PdschFreqAllocFieldEdit.text() or len(self.nrDci11PdschFreqAllocFieldEdit.text()) != self.bitwidthType0Pdsch or int(self.nrDci11PdschFreqAllocFieldEdit.text(), 2) == 0):
-            return
+        try:
+            if self.nrDci11PdschFreqAllocTypeComb.currentText() == 'RA Type0' and (not self.nrDci11PdschFreqAllocFieldEdit.text() or len(self.nrDci11PdschFreqAllocFieldEdit.text()) != self.bitwidthType0Pdsch or int(self.nrDci11PdschFreqAllocFieldEdit.text(), 2) == 0):
+                return
 
-        td = int(self.nrDci11PdschTimeAllocLEdit.text())
-        if self.nrDci11PdschFreqAllocTypeComb.currentText() == 'RA Type1':
-            fd = int(self.nrDci11PdschFreqAllocType1LRbsEdit.text())
-        else:
-            fd = sum([self.rbgsType0Pdsch[i] for i in range(self.bitwidthType0Pdsch) if self.nrDci11PdschFreqAllocFieldEdit.text()[i] == '1'])
+            td = int(self.nrDci11PdschTimeAllocLEdit.text())
+            if self.nrDci11PdschFreqAllocTypeComb.currentText() == 'RA Type1':
+                fd = int(self.nrDci11PdschFreqAllocType1LRbsEdit.text())
+            else:
+                fd = sum([self.rbgsType0Pdsch[i] for i in range(self.bitwidthType0Pdsch) if self.nrDci11PdschFreqAllocFieldEdit.text()[i] == '1'])
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
         #calculate dmrs overhead
         key = '%s_%s_%s' % (td, self.nrDci11PdschTimeAllocMappingTypeComb.currentText(), self.nrDmrsDedPdschAddPosComb.currentText())
@@ -8583,7 +8765,12 @@ class NgNrGridUi(QDialog):
 
         #refer to 3GPP 38.211 vf40
         #For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to 'pos2'.
-        ld = int(self.nrDci11PdschTimeAllocSEdit.text()) + int(self.nrDci11PdschTimeAllocLEdit.text())
+        try:
+            ld = int(self.nrDci11PdschTimeAllocSEdit.text()) + int(self.nrDci11PdschTimeAllocLEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         if self.nrDci11PdschTimeAllocMappingTypeComb.currentText() == 'Type A' and ld in (3, 4) and self.nrMibDmRsTypeAPosComb.currentText() != 'pos2':
             self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PDSCH mapping type A, ld = 3 and ld = 4 symbols in Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 respectively is only applicable when dmrs-TypeA-Position is equal to "pos2".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
             return
@@ -8682,8 +8869,13 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside updateDedDlBwpInfo')
-        bwpSize = int(self.nrDedDlBwpGenericLRbsEdit.text())
-        bwpStart = int(self.nrDedDlBwpGenericRbStartEdit.text())
+        try:
+            bwpSize = int(self.nrDedDlBwpGenericLRbsEdit.text())
+            bwpStart = int(self.nrDedDlBwpGenericRbStartEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
         #update nominal rbg size P
         P = self.getNomRbgSizeP(bwpSize, sch='pdsch', config=self.nrDedPdschCfgRbgConfigComb.currentText())
@@ -8755,9 +8947,14 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onDci11PdschType1LRBsOrRBStartEditTextChanged')
-        L_RBs = int(self.nrDci11PdschFreqAllocType1LRbsEdit.text())
-        RB_start = int(self.nrDci11PdschFreqAllocType1RbStartEdit.text())
-        bwpSize = int(self.nrDedDlBwpGenericLRbsEdit.text())
+        try:
+            L_RBs = int(self.nrDci11PdschFreqAllocType1LRbsEdit.text())
+            RB_start = int(self.nrDci11PdschFreqAllocType1RbStartEdit.text())
+            bwpSize = int(self.nrDedDlBwpGenericLRbsEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         if L_RBs < 1 or L_RBs > (bwpSize - RB_start):
             self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: L_RBs = %s, RB_start = %s with BWP bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), L_RBs, RB_start, bwpSize))
             self.nrDci11PdschFreqAllocFieldEdit.clear()
@@ -8777,19 +8974,29 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onDci11PdschFreqAllocFieldEditTextChanged')
-        if len(self.nrDci11PdschFreqAllocFieldEdit.text()) != self.bitwidthType0Pdsch or int(self.nrDci11PdschFreqAllocFieldEdit.text(), 2) == 0:
+        try:
+            if len(self.nrDci11PdschFreqAllocFieldEdit.text()) != self.bitwidthType0Pdsch or int(self.nrDci11PdschFreqAllocFieldEdit.text(), 2) == 0:
+                return
+            else:
+                #update 'tbs' by calling getTbs when necessary
+                self.validatePdschAntPorts()
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
             return
-        else:
-            #update 'tbs' by calling getTbs when necessary
-            self.validatePdschAntPorts()
 
     def updateIniUlBwpInfo(self):
         if not self.nrIniUlBwpGenericLocAndBwEdit.text() or not self.nrIniUlBwpGenericLRbsEdit.text() or not self.nrIniUlBwpGenericRbStartEdit.text():
             return
 
         self.ngwin.logEdit.append('-->inside updateIniUlBwpInfo')
-        bwpSize = int(self.nrIniUlBwpGenericLRbsEdit.text())
-        #bwpStart = int(self.nrIniUlBwpGenericRbStartEdit.text())
+        try:
+            bwpSize = int(self.nrIniUlBwpGenericLRbsEdit.text())
+            #bwpStart = int(self.nrIniUlBwpGenericRbStartEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
         if self.nrRachMsg3TpComb.currentText() == 'enabled':
             self.updateLRBsMsg3PuschTp()
@@ -8856,9 +9063,14 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onMsg3PuschLRBsOrRBStartEditTextChanged')
-        L_RBs = int(self.nrMsg3PuschFreqAllocType1LRbsEdit.text())
-        RB_start = int(self.nrMsg3PuschFreqAllocType1RbStartEdit.text())
-        bwpSize = int(self.nrIniUlBwpGenericLRbsEdit.text())
+        try:
+            L_RBs = int(self.nrMsg3PuschFreqAllocType1LRbsEdit.text())
+            RB_start = int(self.nrMsg3PuschFreqAllocType1RbStartEdit.text())
+            bwpSize = int(self.nrIniUlBwpGenericLRbsEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
         if L_RBs < 1 or L_RBs > (bwpSize - RB_start):
             self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: L_RBs = %s, RB_start = %s with BWP bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), L_RBs, RB_start, bwpSize))
@@ -8909,10 +9121,15 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onMsg3PuschFreqAllocFieldEditTextChanged')
-        riv = int(self.nrMsg3PuschFreqAllocFieldEdit.text()[14-self.bitwidthType1IniUlBwp:], 2)
-        L_RBs = int(self.nrMsg3PuschFreqAllocType1LRbsEdit.text())
-        RB_start = int(self.nrMsg3PuschFreqAllocType1RbStartEdit.text())
-        bwpSize = int(self.nrIniUlBwpGenericLRbsEdit.text())
+        try:
+            riv = int(self.nrMsg3PuschFreqAllocFieldEdit.text()[14-self.bitwidthType1IniUlBwp:], 2)
+            L_RBs = int(self.nrMsg3PuschFreqAllocType1LRbsEdit.text())
+            RB_start = int(self.nrMsg3PuschFreqAllocType1RbStartEdit.text())
+            bwpSize = int(self.nrIniUlBwpGenericLRbsEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
         riv2 = self.makeRiv(L_RBs, RB_start, bwpSize)
         if riv != riv2:
@@ -8974,7 +9191,12 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside updateMsg3Pusch2ndHopFreqOff')
-        bwpSize = int(self.nrIniUlBwpGenericLRbsEdit.text())
+        try:
+            bwpSize = int(self.nrIniUlBwpGenericLRbsEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         if self.nrMsg3PuschFreqAllocFreqHopComb.currentText() == 'enabled':
             nUlHop = 1 if bwpSize < 50 else 2
             freqHopBits = self.nrMsg3PuschFreqAllocFieldEdit.text()[:nUlHop]
@@ -9012,7 +9234,12 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside updateLRBsMsg3PuschTp')
-        bwpSize = int(self.nrIniUlBwpGenericLRbsEdit.text())
+        try:
+            bwpSize = int(self.nrIniUlBwpGenericLRbsEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
         self.lrbsMsg3PuschTp = []
         for x in range(math.ceil(math.log(bwpSize, 2))):
@@ -9035,7 +9262,12 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside updateLRBsDedPuschTp')
-        bwpSize = int(self.nrDedUlBwpGenericLRbsEdit.text())
+        try:
+            bwpSize = int(self.nrDedUlBwpGenericLRbsEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
         self.lrbsDedPuschTp = []
         for x in range(math.ceil(math.log(bwpSize, 2))):
@@ -9072,8 +9304,13 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside updateDedUlBwpInfo')
-        bwpSize = int(self.nrDedUlBwpGenericLRbsEdit.text())
-        bwpStart = int(self.nrDedUlBwpGenericRbStartEdit.text())
+        try:
+            bwpSize = int(self.nrDedUlBwpGenericLRbsEdit.text())
+            bwpStart = int(self.nrDedUlBwpGenericRbStartEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
         #update nominal rbg size P
         P = self.getNomRbgSizeP(bwpSize, sch='pusch', config=self.nrDedPuschCfgRbgConfigComb.currentText())
@@ -9164,9 +9401,14 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onDci01PuschType1LRBsOrRBStartEditTextChanged')
-        L_RBs = int(self.nrDci01PuschFreqAllocType1LRbsEdit.text())
-        RB_start = int(self.nrDci01PuschFreqAllocType1RbStartEdit.text())
-        bwpSize = int(self.nrDedUlBwpGenericLRbsEdit.text())
+        try:
+            L_RBs = int(self.nrDci01PuschFreqAllocType1LRbsEdit.text())
+            RB_start = int(self.nrDci01PuschFreqAllocType1RbStartEdit.text())
+            bwpSize = int(self.nrDedUlBwpGenericLRbsEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         if L_RBs < 1 or L_RBs > (bwpSize - RB_start):
             self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid setting: L_RBs = %s, RB_start = %s with BWP bandwidth = %s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), L_RBs, RB_start, bwpSize))
             self.nrDci01PuschFreqAllocFieldEdit.clear()
@@ -9203,11 +9445,16 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onDci01PuschFreqAllocFieldEditTextChanged')
-        if len(self.nrDci01PuschFreqAllocFieldEdit.text()) != self.bitwidthType0Pusch or int(self.nrDci01PuschFreqAllocFieldEdit.text(), 2) == 0:
+        try:
+            if len(self.nrDci01PuschFreqAllocFieldEdit.text()) != self.bitwidthType0Pusch or int(self.nrDci01PuschFreqAllocFieldEdit.text(), 2) == 0:
+                return
+            else:
+                #update 'tbs' by calling getTbs when necessary
+                self.validatePuschAntPorts()
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
             return
-        else:
-            #update 'tbs' by calling getTbs when necessary
-            self.validatePuschAntPorts()
 
     def onDci01PuschFreqHopCombCurIndChanged(self, index):
         if index < 0:
@@ -9220,13 +9467,18 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onDci01PuschFreqHopCombCurIndChanged, index=%d' % index)
-        if self.nrDci01PuschFreqAllocFreqHopComb.currentText() != 'disabled':
-            bwpSize = int(self.nrDedUlBwpGenericLRbsEdit.text())
-            nUlHop = 1 if bwpSize < 50 else 2
-            if int(self.nrDci01PuschFreqAllocFieldEdit.text()[:nUlHop], 2) != 0:
-                #FIXME It's better not put constraints of 'The N_UL_HOP MSBs must be all zeros', which limits the RB_start + L_RBs combinations
-                self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: The %d MSB of "Freq domain resource assignment" field(="%s") must be all zero when frequency hopping is enabled!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), nUlHop, self.nrDci01PuschFreqAllocFieldEdit.text()))
-                return
+        try:
+            if self.nrDci01PuschFreqAllocFreqHopComb.currentText() != 'disabled':
+                bwpSize = int(self.nrDedUlBwpGenericLRbsEdit.text())
+                nUlHop = 1 if bwpSize < 50 else 2
+                if int(self.nrDci01PuschFreqAllocFieldEdit.text()[:nUlHop], 2) != 0:
+                    #FIXME It's better not put constraints of 'The N_UL_HOP MSBs must be all zeros', which limits the RB_start + L_RBs combinations
+                    self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: The %d MSB of "Freq domain resource assignment" field(="%s") must be all zero when frequency hopping is enabled!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), nUlHop, self.nrDci01PuschFreqAllocFieldEdit.text()))
+                    return
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
         if self.nrDci01PuschAntPortsFieldEdit.text():
             self.validatePuschAntPorts()
@@ -9244,7 +9496,12 @@ class NgNrGridUi(QDialog):
             self.nrDci01PuschAntPortsFieldEdit.clear()
             return
 
-        mcsCw0 = int(self.nrDci01PuschCw0McsEdit.text())
+        try:
+            mcsCw0 = int(self.nrDci01PuschCw0McsEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         mcsTable = self.nrDedPuschCfgMcsTableComb.currentText()
         if mcsTable == 'qam256':
             if mcsCw0 > 27:
@@ -9267,11 +9524,16 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onDci01PuschPrecodingLayersEditTextChanged')
-        numUeAp = int(self.nrUeAntPortsComb.currentText()[:-2])
-        tp = self.nrDedPuschCfgTpComb.currentText()
-        maxRank = int(self.nrDedPuschCfgCbMaxRankEdit.text())
-        cbSubset = self.nrDedPuschCfgCbSubsetComb.currentText()
-        precoding = int(self.nrDci01PuschPrecodingLayersFieldEdit.text())
+        try:
+            numUeAp = int(self.nrUeAntPortsComb.currentText()[:-2])
+            tp = self.nrDedPuschCfgTpComb.currentText()
+            maxRank = int(self.nrDedPuschCfgCbMaxRankEdit.text())
+            cbSubset = self.nrDedPuschCfgCbSubsetComb.currentText()
+            precoding = int(self.nrDci01PuschPrecodingLayersFieldEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         key = '%s_%s' % ({'fullyAndPartialAndNonCoherent':0, 'partialAndNonCoherent':1, 'nonCoherent':2}[cbSubset], precoding)
         if numUeAp == 4 and tp == 'disabled' and maxRank in (2,3,4):
             if not key in self.nrDci01TpmiAp4Tp0MaxRank234 or self.nrDci01TpmiAp4Tp0MaxRank234[key] is None:
@@ -9311,32 +9573,35 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onDci01PuschSriEditTextChanged')
-        if self.nrDedPuschCfgTxCfgComb.currentText() == 'nonCodebook':
-            if not self.nrDedPuschCfgNonCbMaxLayersEdit.text() or not self.nrSrsResSet1ResourceIdListEdit.text():
-                return
-
-            Lmax = int(self.nrDedPuschCfgNonCbMaxLayersEdit.text())
-
-            try:
-                srsSet1 = [int(i) for i in self.nrSrsResSet1ResourceIdListEdit.text().split(',') if len(i) > 0]
-            except Exception as e:
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Exception raised when parsing srs-resourceSet1:\n%s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), traceback.format_exc()))
-                return
-
-            Nsrs = len(srsSet1)
-            if Nsrs > 1:
-                sri = int(self.nrDci01PuschSriFieldEdit.text())
-                key = '%d_%d_%d' % (Lmax, Nsrs, sri)
-                if not key in self.nrDci01NonCbSri or self.nrDci01NonCbSri[key] is None:
-                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDci01NonCbSri.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+        try:
+            if self.nrDedPuschCfgTxCfgComb.currentText() == 'nonCodebook':
+                if not self.nrDedPuschCfgNonCbMaxLayersEdit.text() or not self.nrSrsResSet1ResourceIdListEdit.text():
                     return
-                else:
-                    val = self.nrDci01NonCbSri[key]
 
-            self.ngwin.logEdit.append('SRI(DCI 0_1) info: rank=%s (key="%s",val=%s)' % (len(val) if Nsrs > 1 else 1, key, val))
+                Lmax = int(self.nrDedPuschCfgNonCbMaxLayersEdit.text())
 
-            if self.nrDci01PuschAntPortsFieldEdit.text():
-                self.validatePuschAntPorts()
+                srsSet1 = [int(i) for i in self.nrSrsResSet1ResourceIdListEdit.text().split(',') if len(i) > 0]
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Exception raised when parsing srs-resourceSet1.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+                return
+
+                Nsrs = len(srsSet1)
+                if Nsrs > 1:
+                    sri = int(self.nrDci01PuschSriFieldEdit.text())
+                    key = '%d_%d_%d' % (Lmax, Nsrs, sri)
+                    if not key in self.nrDci01NonCbSri or self.nrDci01NonCbSri[key] is None:
+                        self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDci01NonCbSri.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+                        return
+                    else:
+                        val = self.nrDci01NonCbSri[key]
+
+                self.ngwin.logEdit.append('SRI(DCI 0_1) info: rank=%s (key="%s",val=%s)' % (len(val) if Nsrs > 1 else 1, key, val))
+
+                if self.nrDci01PuschAntPortsFieldEdit.text():
+                    self.validatePuschAntPorts()
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
     def onDci01PuschAntPortsEditTextChanged(self, text):
         if not self.nrDci01PuschAntPortsFieldEdit.text():
@@ -9365,7 +9630,12 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onDedPuschCfgRbgConfigCombCurIndChanged, index=%d' % index)
-        bwpSize = int(self.nrDedUlBwpGenericLRbsEdit.text())
+        try:
+            bwpSize = int(self.nrDedUlBwpGenericLRbsEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         P = self.getNomRbgSizeP(bwpSize, sch='pusch', config=self.nrDedPuschCfgRbgConfigComb.currentText())
         if P is None:
             self.ngwin.logEdit.append('Error: The nominal RBG size P is None!')
@@ -9534,10 +9804,15 @@ class NgNrGridUi(QDialog):
                 self.nrDci01PuschPrecodingLayersFieldLabel.setText('Precoding info and num of layers:')
                 self.nrDci01PuschPrecodingLayersFieldEdit.setValidator(0)
                 return
-            numUeAp = int(self.nrUeAntPortsComb.currentText()[:-2])
-            tp = self.nrDedPuschCfgTpComb.currentText()
-            maxRank = int(self.nrDedPuschCfgCbMaxRankEdit.text())
-            cbSubset = self.nrDedPuschCfgCbSubsetComb.currentText()
+            try:
+                numUeAp = int(self.nrUeAntPortsComb.currentText()[:-2])
+                tp = self.nrDedPuschCfgTpComb.currentText()
+                maxRank = int(self.nrDedPuschCfgCbMaxRankEdit.text())
+                cbSubset = self.nrDedPuschCfgCbSubsetComb.currentText()
+            except Exception as e:
+                self.ngwin.logEdit.append(traceback.format_exc())
+                qApp.processEvents()
+                return
             #refer to 3GPP 38.212 vf30
             #Table 7.3.1.1.2-2: Precoding information and number of layers, for 4 antenna ports, if transform precoder is disabled and maxRank = 2 or 3 or 4
             #Table 7.3.1.1.2-3: Precoding information and number of layers for 4 antenna ports, if transform precoder is enabled, or if transform precoder is disabled and maxRank = 1
@@ -9589,102 +9864,103 @@ class NgNrGridUi(QDialog):
     def updateDci01SriFieldLabel(self):
         self.ngwin.logEdit.append('-->inside updateDci01SriFieldLabel')
 
-        if self.nrDedPuschCfgTxCfgComb.currentText() == 'nonCodebook':
-            if not self.nrDedPuschCfgNonCbMaxLayersEdit.text() or not self.nrSrsResSet1ResourceIdListEdit.text():
-                self.nrDci01PuschSriFieldLabel.setText('SRS resource indicator:')
-                self.nrDci01PuschSriFieldEdit.setValidator(0)
-                return
-
-            Lmax = int(self.nrDedPuschCfgNonCbMaxLayersEdit.text())
-
-            try:
-                srsSet1 = [int(i) for i in self.nrSrsResSet1ResourceIdListEdit.text().split(',') if len(i) > 0]
-            except Exception as e:
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Exception raised when parsing srs-resourceSet1:\n%s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), traceback.format_exc()))
-                return
-
-            Nsrs = len(srsSet1)
-            if Nsrs == 0 or sum([1 for i in srsSet1 if i in range(4)]) != Nsrs:
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: srs-ResourceIdList of srsSet1 should be a comma-separated string which contains valid srs-ResourceId[0-3], for example, "0,1,2,3".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
-                return
-
-            if Nsrs > 4:
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: The maximum number of SRS resources that can be configured for non-codebook based uplink transmission is 4.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
-                return
-
-            if ((0 in srsSet1 and self.nrSrsRes0NumAntPortsComb.currentText() != 'port1')
-                or (1 in srsSet1 and self.nrSrsRes1NumAntPortsComb.currentText() != 'port1')
-                or (2 in srsSet1 and self.nrSrsRes2NumAntPortsComb.currentText() != 'port1')
-                or (3 in srsSet1 and self.nrSrsRes3NumAntPortsComb.currentText() != 'port1')):
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Only one SRS port can be configured for each SRS resource of the SRS resource set configured with usage set to "nonCodebook".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
-                return
-
-            if Nsrs == 1:
-                self.nrDci01PuschSriFieldLabel.setText('SRS resource indicator:')
-                self.nrDci01PuschSriFieldEdit.clear()
-                self.nrDci01PuschSriFieldEdit.setEnabled(False)
-            else:
-                self.nrDci01PuschSriFieldEdit.setEnabled(True)
-                #refer to 3GPP 38.212 vf30
-                #Table 7.3.1.1.2-28: SRI indication for non-codebook based PUSCH transmission, Lmax=1
-                #Table 7.3.1.1.2-29: SRI indication for non-codebook based PUSCH transmission, Lmax=2
-                #Table 7.3.1.1.2-30: SRI indication for non-codebook based PUSCH transmission, Lmax=3
-                #Table 7.3.1.1.2-31: SRI indication for non-codebook based PUSCH transmission, Lmax=4
-                nonCbSriRange = {
-                    '1_2' : (0,1),
-                    '1_3' : (0,3),
-                    '1_4' : (0,3),
-                    '2_2' : (0,3),
-                    '2_3' : (0,7),
-                    '2_4' : (0,15),
-                    '3_2' : (0,3),
-                    '3_3' : (0,7),
-                    '3_4' : (0,15),
-                    '4_2' : (0,3),
-                    '4_3' : (0,7),
-                    '4_4' : (0,15),
-                    }
-                key = '%s_%s' % (Lmax, Nsrs)
-                minSri, maxSri = nonCbSriRange[key]
-                self.nrDci01PuschSriFieldLabel.setText('SRS resource indicator[%d-%d]:' % (minSri, maxSri))
-                self.nrDci01PuschSriFieldEdit.setValidator(QIntValidator(minSri, maxSri))
-        else:
-            if not self.nrSrsResSet0ResourceIdListEdit.text():
-                self.nrDci01PuschSriFieldLabel.setText('SRS resource indicator:')
-                self.nrDci01PuschSriFieldEdit.setValidator(0)
-                return
-
-            try:
-                srsSet0 = [int(i) for i in self.nrSrsResSet0ResourceIdListEdit.text().split(',') if len(i) > 0]
-            except Exception as e:
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Exception raised when parsing srs-resourceSet0:\n%s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), traceback.format_exc()))
-                return
-
-            Nsrs = len(srsSet0)
-            if Nsrs == 0 or sum([1 for i in srsSet0 if i in range(4)]) != Nsrs:
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: srs-ResourceIdList of srsSet0 should be a comma-separated string which contains valid srs-ResourceId[0-3], for example, "0,1,2,3".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
-                return
-
-            if Nsrs > 2:
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: The maximum number of SRS resources that can be configured for codebook based uplink transmission is 2.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
-                return
-
-            if Nsrs == 1:
-                self.nrDci01PuschSriFieldLabel.setText('SRS resource indicator:')
-                self.nrDci01PuschSriFieldEdit.clear()
-                self.nrDci01PuschSriFieldEdit.setEnabled(False)
-            else:
-                #refer to 3GPP 38.214 vf30 6.1.1.1
-                #When multiple SRS resources are configured by SRS-ResourceSet with usage set to 'codebook', the UE shall expect that higher layer parameters nrofSRS-Ports in SRS-Resource in SRS-ResourceSet shall be configured with the same value for all these SRS resources.
-                srsApSet = {0:self.nrSrsRes0NumAntPortsComb.currentText(), 1:self.nrSrsRes1NumAntPortsComb.currentText(), 2:self.nrSrsRes2NumAntPortsComb.currentText(), 3:self.nrSrsRes3NumAntPortsComb.currentText()}
-
-                if srsApSet[srsSet0[0]] != srsApSet[srsSet0[1]]:
-                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Parameter nrOfSRS-Ports must be the same when multiple SRS resources are configured for codebook based uplink transmission.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+        try:
+            if self.nrDedPuschCfgTxCfgComb.currentText() == 'nonCodebook':
+                if not self.nrDedPuschCfgNonCbMaxLayersEdit.text() or not self.nrSrsResSet1ResourceIdListEdit.text():
+                    self.nrDci01PuschSriFieldLabel.setText('SRS resource indicator:')
+                    self.nrDci01PuschSriFieldEdit.setValidator(0)
                     return
 
-                self.nrDci01PuschSriFieldLabel.setText('SRS resource indicator[0-1]:')
-                self.nrDci01PuschSriFieldEdit.setValidator(QIntValidator(0, 1))
-                self.nrDci01PuschSriFieldEdit.setEnabled(True)
+                Lmax = int(self.nrDedPuschCfgNonCbMaxLayersEdit.text())
+
+                srsSet1 = [int(i) for i in self.nrSrsResSet1ResourceIdListEdit.text().split(',') if len(i) > 0]
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Exception raised when parsing srs-resourceSet1.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+                return
+
+                Nsrs = len(srsSet1)
+                if Nsrs == 0 or sum([1 for i in srsSet1 if i in range(4)]) != Nsrs:
+                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: srs-ResourceIdList of srsSet1 should be a comma-separated string which contains valid srs-ResourceId[0-3], for example, "0,1,2,3".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+                    return
+
+                if Nsrs > 4:
+                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: The maximum number of SRS resources that can be configured for non-codebook based uplink transmission is 4.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+                    return
+
+                if ((0 in srsSet1 and self.nrSrsRes0NumAntPortsComb.currentText() != 'port1')
+                    or (1 in srsSet1 and self.nrSrsRes1NumAntPortsComb.currentText() != 'port1')
+                    or (2 in srsSet1 and self.nrSrsRes2NumAntPortsComb.currentText() != 'port1')
+                    or (3 in srsSet1 and self.nrSrsRes3NumAntPortsComb.currentText() != 'port1')):
+                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Only one SRS port can be configured for each SRS resource of the SRS resource set configured with usage set to "nonCodebook".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+                    return
+
+                if Nsrs == 1:
+                    self.nrDci01PuschSriFieldLabel.setText('SRS resource indicator:')
+                    self.nrDci01PuschSriFieldEdit.clear()
+                    self.nrDci01PuschSriFieldEdit.setEnabled(False)
+                else:
+                    self.nrDci01PuschSriFieldEdit.setEnabled(True)
+                    #refer to 3GPP 38.212 vf30
+                    #Table 7.3.1.1.2-28: SRI indication for non-codebook based PUSCH transmission, Lmax=1
+                    #Table 7.3.1.1.2-29: SRI indication for non-codebook based PUSCH transmission, Lmax=2
+                    #Table 7.3.1.1.2-30: SRI indication for non-codebook based PUSCH transmission, Lmax=3
+                    #Table 7.3.1.1.2-31: SRI indication for non-codebook based PUSCH transmission, Lmax=4
+                    nonCbSriRange = {
+                        '1_2' : (0,1),
+                        '1_3' : (0,3),
+                        '1_4' : (0,3),
+                        '2_2' : (0,3),
+                        '2_3' : (0,7),
+                        '2_4' : (0,15),
+                        '3_2' : (0,3),
+                        '3_3' : (0,7),
+                        '3_4' : (0,15),
+                        '4_2' : (0,3),
+                        '4_3' : (0,7),
+                        '4_4' : (0,15),
+                        }
+                    key = '%s_%s' % (Lmax, Nsrs)
+                    minSri, maxSri = nonCbSriRange[key]
+                    self.nrDci01PuschSriFieldLabel.setText('SRS resource indicator[%d-%d]:' % (minSri, maxSri))
+                    self.nrDci01PuschSriFieldEdit.setValidator(QIntValidator(minSri, maxSri))
+            else:
+                if not self.nrSrsResSet0ResourceIdListEdit.text():
+                    self.nrDci01PuschSriFieldLabel.setText('SRS resource indicator:')
+                    self.nrDci01PuschSriFieldEdit.setValidator(0)
+                    return
+
+                srsSet0 = [int(i) for i in self.nrSrsResSet0ResourceIdListEdit.text().split(',') if len(i) > 0]
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Exception raised when parsing srs-resourceSet0.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+                return
+
+                Nsrs = len(srsSet0)
+                if Nsrs == 0 or sum([1 for i in srsSet0 if i in range(4)]) != Nsrs:
+                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: srs-ResourceIdList of srsSet0 should be a comma-separated string which contains valid srs-ResourceId[0-3], for example, "0,1,2,3".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+                    return
+
+                if Nsrs > 2:
+                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: The maximum number of SRS resources that can be configured for codebook based uplink transmission is 2.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+                    return
+
+                if Nsrs == 1:
+                    self.nrDci01PuschSriFieldLabel.setText('SRS resource indicator:')
+                    self.nrDci01PuschSriFieldEdit.clear()
+                    self.nrDci01PuschSriFieldEdit.setEnabled(False)
+                else:
+                    #refer to 3GPP 38.214 vf30 6.1.1.1
+                    #When multiple SRS resources are configured by SRS-ResourceSet with usage set to 'codebook', the UE shall expect that higher layer parameters nrofSRS-Ports in SRS-Resource in SRS-ResourceSet shall be configured with the same value for all these SRS resources.
+                    srsApSet = {0:self.nrSrsRes0NumAntPortsComb.currentText(), 1:self.nrSrsRes1NumAntPortsComb.currentText(), 2:self.nrSrsRes2NumAntPortsComb.currentText(), 3:self.nrSrsRes3NumAntPortsComb.currentText()}
+
+                    if srsApSet[srsSet0[0]] != srsApSet[srsSet0[1]]:
+                        self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Parameter nrOfSRS-Ports must be the same when multiple SRS resources are configured for codebook based uplink transmission.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+                        return
+
+                    self.nrDci01PuschSriFieldLabel.setText('SRS resource indicator[0-1]:')
+                    self.nrDci01PuschSriFieldEdit.setValidator(QIntValidator(0, 1))
+                    self.nrDci01PuschSriFieldEdit.setEnabled(True)
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
     def updateDci01AntPortsFieldLabel(self):
         self.ngwin.logEdit.append('-->inside updateDci01AntPortsFieldLabel')
@@ -9719,210 +9995,213 @@ class NgNrGridUi(QDialog):
 
         self.ngwin.logEdit.append('-->inside validatePuschAntPorts')
 
-        #determine rank
-        if self.nrDedPuschCfgTxCfgComb.currentText() == 'codebook':
-            if not self.nrDedPuschCfgCbMaxRankEdit.text() or not self.nrDci01PuschPrecodingLayersFieldEdit.text() or not self.nrSrsResSet0ResourceIdListEdit.text():
-                return
-            numUeAp = int(self.nrUeAntPortsComb.currentText()[:-2])
-            tp = self.nrDedPuschCfgTpComb.currentText()
-            maxRank = int(self.nrDedPuschCfgCbMaxRankEdit.text())
-            cbSubset = self.nrDedPuschCfgCbSubsetComb.currentText()
-            precoding = int(self.nrDci01PuschPrecodingLayersFieldEdit.text())
-            key = '%s_%s' % ({'fullyAndPartialAndNonCoherent':0, 'partialAndNonCoherent':1, 'nonCoherent':2}[cbSubset], precoding)
-            if numUeAp == 4 and tp == 'disabled' and maxRank in (2,3,4):
-                if key in self.nrDci01TpmiAp4Tp0MaxRank234 and self.nrDci01TpmiAp4Tp0MaxRank234[key] is not None:
-                    rank, tpmi = self.nrDci01TpmiAp4Tp0MaxRank234[key]
-                else:
-                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDci01TpmiAp4Tp0MaxRank234.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+        try:
+            #determine rank
+            if self.nrDedPuschCfgTxCfgComb.currentText() == 'codebook':
+                if not self.nrDedPuschCfgCbMaxRankEdit.text() or not self.nrDci01PuschPrecodingLayersFieldEdit.text() or not self.nrSrsResSet0ResourceIdListEdit.text():
                     return
-            elif numUeAp == 4 and (tp == 'enabled' or (tp == 'disabled' and maxRank == 1)):
-                if key in self.nrDci01TpmiAp4Tp1OrTp0MaxRank1 and self.nrDci01TpmiAp4Tp1OrTp0MaxRank1[key] is not None:
-                    rank, tpmi = self.nrDci01TpmiAp4Tp1OrTp0MaxRank1[key]
+                numUeAp = int(self.nrUeAntPortsComb.currentText()[:-2])
+                tp = self.nrDedPuschCfgTpComb.currentText()
+                maxRank = int(self.nrDedPuschCfgCbMaxRankEdit.text())
+                cbSubset = self.nrDedPuschCfgCbSubsetComb.currentText()
+                precoding = int(self.nrDci01PuschPrecodingLayersFieldEdit.text())
+                key = '%s_%s' % ({'fullyAndPartialAndNonCoherent':0, 'partialAndNonCoherent':1, 'nonCoherent':2}[cbSubset], precoding)
+                if numUeAp == 4 and tp == 'disabled' and maxRank in (2,3,4):
+                    if key in self.nrDci01TpmiAp4Tp0MaxRank234 and self.nrDci01TpmiAp4Tp0MaxRank234[key] is not None:
+                        rank, tpmi = self.nrDci01TpmiAp4Tp0MaxRank234[key]
+                    else:
+                        self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDci01TpmiAp4Tp0MaxRank234.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+                        return
+                elif numUeAp == 4 and (tp == 'enabled' or (tp == 'disabled' and maxRank == 1)):
+                    if key in self.nrDci01TpmiAp4Tp1OrTp0MaxRank1 and self.nrDci01TpmiAp4Tp1OrTp0MaxRank1[key] is not None:
+                        rank, tpmi = self.nrDci01TpmiAp4Tp1OrTp0MaxRank1[key]
+                    else:
+                        self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDci01TpmiAp4Tp1OrTp0MaxRank1.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+                        return
+                elif numUeAp == 2 and tp == 'disabled' and maxRank == 2:
+                    if key in self.nrDci01TpmiAp2Tp0MaxRank2 and self.nrDci01TpmiAp2Tp0MaxRank2[key] is not None:
+                        rank, tpmi = self.nrDci01TpmiAp2Tp0MaxRank2[key]
+                    else:
+                        self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDci01TpmiAp2Tp0MaxRank2.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+                        return
+                elif numUeAp == 2 and (tp == 'enabled' or (tp == 'disabled' and maxRank == 1)):
+                    if key in self.nrDci01TpmiAp2Tp1OrTp0MaxRank1 and self.nrDci01TpmiAp2Tp1OrTp0MaxRank1[key] is not None:
+                        rank, tpmi = self.nrDci01TpmiAp2Tp1OrTp0MaxRank1[key]
+                    else:
+                        self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDci01TpmiAp2Tp1OrTp0MaxRank1.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+                        return
                 else:
-                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDci01TpmiAp4Tp1OrTp0MaxRank1.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
-                    return
-            elif numUeAp == 2 and tp == 'disabled' and maxRank == 2:
-                if key in self.nrDci01TpmiAp2Tp0MaxRank2 and self.nrDci01TpmiAp2Tp0MaxRank2[key] is not None:
-                    rank, tpmi = self.nrDci01TpmiAp2Tp0MaxRank2[key]
+                    rank = 1
+
+                #refer to 3GPP 38.214 vf30 6.1.1.1
+                #The transmission precoder is selected from the uplink codebook that has a number of antenna ports equal to higher layer parameter nrofSRS-Ports in SRS-Config, as defined in Subclause 6.3.1.5 of [4, TS 38.211].
+                firstResSrsSet0 = int(self.nrSrsResSet0ResourceIdListEdit.text().split(',')[0])
+                if firstResSrsSet0 == 0:
+                    numSrsPorts = int(self.nrSrsRes0NumAntPortsComb.currentText()[-1])
+                elif firstResSrsSet0 == 1:
+                    numSrsPorts = int(self.nrSrsRes1NumAntPortsComb.currentText()[-1])
+                elif firstResSrsSet0 == 2:
+                    numSrsPorts = int(self.nrSrsRes2NumAntPortsComb.currentText()[-1])
+                elif firstResSrsSet0 == 3:
+                    numSrsPorts = int(self.nrSrsRes3NumAntPortsComb.currentText()[-1])
                 else:
-                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDci01TpmiAp2Tp0MaxRank2.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
-                    return
-            elif numUeAp == 2 and (tp == 'enabled' or (tp == 'disabled' and maxRank == 1)):
-                if key in self.nrDci01TpmiAp2Tp1OrTp0MaxRank1 and self.nrDci01TpmiAp2Tp1OrTp0MaxRank1[key] is not None:
-                    rank, tpmi = self.nrDci01TpmiAp2Tp1OrTp0MaxRank1[key]
-                else:
-                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDci01TpmiAp2Tp1OrTp0MaxRank1.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+                    pass
+                if rank > numSrsPorts:
+                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: TRI = %s while nrofSRS-Ports of the configured SRS resource(s) is "%s" for CB based PUSCH.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), rank, '%s%d' % ('ports' if numSrsPorts > 1 else 'port', numSrsPorts)))
                     return
             else:
-                rank = 1
+                if not self.nrDedPuschCfgNonCbMaxLayersEdit.text() or not self.nrSrsResSet1ResourceIdListEdit.text() or not self.nrDci01PuschSriFieldEdit.text():
+                    return
 
-            #refer to 3GPP 38.214 vf30 6.1.1.1
-            #The transmission precoder is selected from the uplink codebook that has a number of antenna ports equal to higher layer parameter nrofSRS-Ports in SRS-Config, as defined in Subclause 6.3.1.5 of [4, TS 38.211].
-            firstResSrsSet0 = int(self.nrSrsResSet0ResourceIdListEdit.text().split(',')[0])
-            if firstResSrsSet0 == 0:
-                numSrsPorts = int(self.nrSrsRes0NumAntPortsComb.currentText()[-1])
-            elif firstResSrsSet0 == 1:
-                numSrsPorts = int(self.nrSrsRes1NumAntPortsComb.currentText()[-1])
-            elif firstResSrsSet0 == 2:
-                numSrsPorts = int(self.nrSrsRes2NumAntPortsComb.currentText()[-1])
-            elif firstResSrsSet0 == 3:
-                numSrsPorts = int(self.nrSrsRes3NumAntPortsComb.currentText()[-1])
-            else:
-                pass
-            if rank > numSrsPorts:
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: TRI = %s while nrofSRS-Ports of the configured SRS resource(s) is "%s" for CB based PUSCH.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), rank, '%s%d' % ('ports' if numSrsPorts > 1 else 'port', numSrsPorts)))
-                return
-        else:
-            if not self.nrDedPuschCfgNonCbMaxLayersEdit.text() or not self.nrSrsResSet1ResourceIdListEdit.text() or not self.nrDci01PuschSriFieldEdit.text():
-                return
+                Lmax = int(self.nrDedPuschCfgNonCbMaxLayersEdit.text())
 
-            Lmax = int(self.nrDedPuschCfgNonCbMaxLayersEdit.text())
-
-            try:
                 srsSet1 = [int(i) for i in self.nrSrsResSet1ResourceIdListEdit.text().split(',') if len(i) > 0]
-            except Exception as e:
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Exception raised:\n%s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), traceback.format_exc()))
-                return
-            Nsrs = len(srsSet1)
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Exception raised when parsing srs-resourceSet1.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
 
-            sri = int(self.nrDci01PuschSriFieldEdit.text())
+                Nsrs = len(srsSet1)
 
-            key = '%s_%s_%s' % (Lmax, Nsrs, sri)
-            self.dci01NonCbSrsList = None
-            if Nsrs == 1:
-                rank = 1
-                self.dci01NonCbSrsList = [srsSet1[0]]
-            else:
-                if key in self.nrDci01NonCbSri and self.nrDci01NonCbSri[key] is not None:
-                    rank = len(self.nrDci01NonCbSri[key])
-                    self.dci01NonCbSrsList = self.nrDci01NonCbSri[key]
+                sri = int(self.nrDci01PuschSriFieldEdit.text())
+
+                key = '%s_%s_%s' % (Lmax, Nsrs, sri)
+                self.dci01NonCbSrsList = None
+                if Nsrs == 1:
+                    rank = 1
+                    self.dci01NonCbSrsList = [srsSet1[0]]
                 else:
-                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDci01NonCbSri.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
-                    return
+                    if key in self.nrDci01NonCbSri and self.nrDci01NonCbSri[key] is not None:
+                        rank = len(self.nrDci01NonCbSri[key])
+                        self.dci01NonCbSrsList = self.nrDci01NonCbSri[key]
+                    else:
+                        self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDci01NonCbSri.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+                        return
 
-        #set dmrs for pusch
-        tp = self.nrDedPuschCfgTpComb.currentText()
-        dmrsType = self.nrDmrsDedPuschDmrsTypeComb.currentText()
-        maxLen = self.nrDmrsDedPuschMaxLengthComb.currentText()
-        key = '%d_%s_%s_%d_%s' % (1 if tp == 'enabled' else 0, dmrsType[-1], maxLen[-1], rank, self.nrDci01PuschAntPortsFieldEdit.text())
-        if not key in self.nrDci01AntPorts or self.nrDci01AntPorts[key] is None:
-            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDci01AntPorts.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
-            return
+            #set dmrs for pusch
+            tp = self.nrDedPuschCfgTpComb.currentText()
+            dmrsType = self.nrDmrsDedPuschDmrsTypeComb.currentText()
+            maxLen = self.nrDmrsDedPuschMaxLengthComb.currentText()
+            key = '%d_%s_%s_%d_%s' % (1 if tp == 'enabled' else 0, dmrsType[-1], maxLen[-1], rank, self.nrDci01PuschAntPortsFieldEdit.text())
+            if not key in self.nrDci01AntPorts or self.nrDci01AntPorts[key] is None:
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDci01AntPorts.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+                return
 
-        cdmGroups, dmrsPorts, numDmrsSymbs = self.nrDci01AntPorts[key]
+            cdmGroups, dmrsPorts, numDmrsSymbs = self.nrDci01AntPorts[key]
 
-        self.nrDmrsDedPuschCdmGroupsWoDataEdit.setText(str(cdmGroups))
-        self.nrDmrsDedPuschDmrsPortsEdit.setText(','.join([str(i) for i in dmrsPorts]))
-        self.nrDmrsDedPuschFrontLoadSymbsEdit.setText(str(numDmrsSymbs))
+            self.nrDmrsDedPuschCdmGroupsWoDataEdit.setText(str(cdmGroups))
+            self.nrDmrsDedPuschDmrsPortsEdit.setText(','.join([str(i) for i in dmrsPorts]))
+            self.nrDmrsDedPuschFrontLoadSymbsEdit.setText(str(numDmrsSymbs))
 
-        #check and set ptrs for pusch
-        #refer to 3GPP 38.214 vf30 6.2.2
-        '''
-        If a UE transmitting PUSCH is configured with the higher layer parameter phaseTrackingRS in DMRS-UplinkConfig, the UE may assume that the following configurations are not occurring simultaneously for the transmitted PUSCH
-            -	any DM-RS ports among 4-7 or 6-11 for DM-RS configurations type 1 and type 2, respectively are scheduled for the UE and PT-RS is transmitted from the UE.
-        '''
-        dmrsApSetNoPtrs = list(range(4, 8)) if dmrsType == 'Type 1' else list(range(6, 12))
-        noPtrs = False
-        for i in dmrsPorts:
-            if i in dmrsApSetNoPtrs:
-                noPtrs = True
-                break
+            #check and set ptrs for pusch
+            #refer to 3GPP 38.214 vf30 6.2.2
+            '''
+            If a UE transmitting PUSCH is configured with the higher layer parameter phaseTrackingRS in DMRS-UplinkConfig, the UE may assume that the following configurations are not occurring simultaneously for the transmitted PUSCH
+                -	any DM-RS ports among 4-7 or 6-11 for DM-RS configurations type 1 and type 2, respectively are scheduled for the UE and PT-RS is transmitted from the UE.
+            '''
+            dmrsApSetNoPtrs = list(range(4, 8)) if dmrsType == 'Type 1' else list(range(6, 12))
+            noPtrs = False
+            for i in dmrsPorts:
+                if i in dmrsApSetNoPtrs:
+                    noPtrs = True
+                    break
 
-        if noPtrs:
-            self.nrPtrsPuschSwitchComb.setCurrentText('no')
-            self.nrPtrsPuschSwitchComb.setEnabled(False)
-            self.nrPtrsPuschDmrsAntPortsEdit.clear()
-            self.nrPtrsPuschTpDmrsAntPortsEdit.clear()
-            self.nrDci01PuschPtrsDmrsMappingEdit.setEnabled(False)
-            self.nrDci01PuschPtrsDmrsMappingEdit.clear()
-        else:
-            self.nrPtrsPuschSwitchComb.setEnabled(True)
-            if rank > 1:
-                self.nrDci01PuschPtrsDmrsMappingEdit.setEnabled(True)
+            if noPtrs:
+                self.nrPtrsPuschSwitchComb.setCurrentText('no')
+                self.nrPtrsPuschSwitchComb.setEnabled(False)
                 self.nrPtrsPuschDmrsAntPortsEdit.clear()
                 self.nrPtrsPuschTpDmrsAntPortsEdit.clear()
-            else:
                 self.nrDci01PuschPtrsDmrsMappingEdit.setEnabled(False)
                 self.nrDci01PuschPtrsDmrsMappingEdit.clear()
-                if tp == 'enabled':
-                    self.nrPtrsPuschTpDmrsAntPortsEdit.setText(str(dmrsPorts[0]))
+            else:
+                self.nrPtrsPuschSwitchComb.setEnabled(True)
+                if rank > 1:
+                    self.nrDci01PuschPtrsDmrsMappingEdit.setEnabled(True)
                     self.nrPtrsPuschDmrsAntPortsEdit.clear()
-                else:
-                    self.nrPtrsPuschDmrsAntPortsEdit.setText(str(dmrsPorts[0]))
                     self.nrPtrsPuschTpDmrsAntPortsEdit.clear()
+                else:
+                    self.nrDci01PuschPtrsDmrsMappingEdit.setEnabled(False)
+                    self.nrDci01PuschPtrsDmrsMappingEdit.clear()
+                    if tp == 'enabled':
+                        self.nrPtrsPuschTpDmrsAntPortsEdit.setText(str(dmrsPorts[0]))
+                        self.nrPtrsPuschDmrsAntPortsEdit.clear()
+                    else:
+                        self.nrPtrsPuschDmrsAntPortsEdit.setText(str(dmrsPorts[0]))
+                        self.nrPtrsPuschTpDmrsAntPortsEdit.clear()
 
-            self.updatePtrsPusch()
+                self.updatePtrsPusch()
 
-        #set tbs by calling getTbs
-        if not self.nrDci01PuschTimeAllocFieldEdit.text() or not self.nrDci01PuschTimeAllocLEdit.text() or not self.nrDci01PuschTimeAllocSEdit.text() or not self.nrDci01PuschTimeAllocSlivEdit.text():
-            return
-
-        if self.nrDci01PuschFreqAllocTypeComb.currentText() == 'RA Type1' and (not self.nrDci01PuschFreqAllocType1LRbsEdit.text() or not self.nrDci01PuschFreqAllocType1RbStartEdit.text() or not self.nrDci01PuschFreqAllocFieldEdit.text()):
-            return
-
-        if self.nrDci01PuschFreqAllocTypeComb.currentText() == 'RA Type0' and (not self.nrDci01PuschFreqAllocFieldEdit.text() or len(self.nrDci01PuschFreqAllocFieldEdit.text()) != self.bitwidthType0Pusch or int(self.nrDci01PuschFreqAllocFieldEdit.text(), 2) == 0):
-            return
-
-        if not self.nrDci01PuschCw0McsEdit.text():
-            return
-
-        td = int(self.nrDci01PuschTimeAllocLEdit.text())
-        if self.nrDci01PuschFreqAllocTypeComb.currentText() == 'RA Type1':
-            fd = int(self.nrDci01PuschFreqAllocType1LRbsEdit.text())
-        else:
-            fd = sum([self.rbgsType0Pusch[i] for i in range(self.bitwidthType0Pusch) if self.nrDci01PuschFreqAllocFieldEdit.text()[i] == '1'])
-
-        #calculate dmrs overhead
-        mappingType = self.nrDci01PuschTimeAllocMappingTypeComb.currentText()
-        freqHop = self.nrDci01PuschFreqAllocFreqHopComb.currentText()
-        if freqHop == 'intra-slot':
-            #refer to 3GPP 38.211 vf30 6.4.1.1.3
-            #if the higher-layer parameter dmrs-AdditionalPosition is not set to 'pos0' and intra-slot frequency hopping is enabled according to clause 7.3.1.1.2 in [4, TS 38.212] and by higher layer, Tables 6.4.1.1.3-6 shall be used assuming dmrs-AdditionalPosition is equal to 'pos1' for each hop.
-            #refer to 3GPP 38.214 vf30 6.3
-            #In case of intra-slot frequency hopping is configured, the number of symbols in the first hop is given by floor(N_PUSCH_symb/2) , the number of symbols in the second hop is given by N_PUSCH_symb - floor(N_PUSCH_symb/2) , where N_PUSCH_symb is the length of the PUSCH transmission in OFDM symbols in one slot.
-            key1 = '%s_%s_%s_%s_1st' % (math.floor(td / 2), mappingType, self.nrMibDmRsTypeAPosComb.currentText()[3:] if mappingType == 'Type A' else '0', 'pos1' if self.nrDmrsDedPuschAddPosComb.currentText() != 'pos0' else 'pos0')
-            key2 = '%s_%s_%s_%s_2nd' % (td - math.floor(td / 2), mappingType, self.nrMibDmRsTypeAPosComb.currentText()[3:] if mappingType == 'Type A' else '0', 'pos1' if self.nrDmrsDedPuschAddPosComb.currentText() != 'pos0' else 'pos0')
-            if numDmrsSymbs == 1:
-                if not key1 in self.nrDmrsPuschPosOneSymbWithIntraSlotFh or not key2 in self.nrDmrsPuschPosOneSymbWithIntraSlotFh or self.nrDmrsPuschPosOneSymbWithIntraSlotFh[key1] is None or self.nrDmrsPuschPosOneSymbWithIntraSlotFh[key2] is None:
-                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(key_1stHop="%s", key_2ndHop="%s") when referring nrDmrsPuschPosOneSymbWithIntraSlotFh!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key1, key2))
-                    return
-                val1 = self.nrDmrsPuschPosOneSymbWithIntraSlotFh[key1]
-                val2 = self.nrDmrsPuschPosOneSymbWithIntraSlotFh[key2]
-            else:
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Only single-symbol front-load DM-RS for PUSCH is supported when intra-slot frequency hopping is enabled!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+            #set tbs by calling getTbs
+            if not self.nrDci01PuschTimeAllocFieldEdit.text() or not self.nrDci01PuschTimeAllocLEdit.text() or not self.nrDci01PuschTimeAllocSEdit.text() or not self.nrDci01PuschTimeAllocSlivEdit.text():
                 return
-        else:
-            key = '%s_%s_%s' % (td, self.nrDci01PuschTimeAllocMappingTypeComb.currentText(), self.nrDmrsDedPuschAddPosComb.currentText())
-            if numDmrsSymbs == 1:
-                if not key in self.nrDmrsPuschPosOneSymbWoIntraSlotFh.keys() or self.nrDmrsPuschPosOneSymbWoIntraSlotFh[key] is None:
-                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDmrsPuschPosOneSymbWoIntraSlotFh!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
-                    return
-                val = self.nrDmrsPuschPosOneSymbWoIntraSlotFh[key]
+
+            if self.nrDci01PuschFreqAllocTypeComb.currentText() == 'RA Type1' and (not self.nrDci01PuschFreqAllocType1LRbsEdit.text() or not self.nrDci01PuschFreqAllocType1RbStartEdit.text() or not self.nrDci01PuschFreqAllocFieldEdit.text()):
+                return
+
+            if self.nrDci01PuschFreqAllocTypeComb.currentText() == 'RA Type0' and (not self.nrDci01PuschFreqAllocFieldEdit.text() or len(self.nrDci01PuschFreqAllocFieldEdit.text()) != self.bitwidthType0Pusch or int(self.nrDci01PuschFreqAllocFieldEdit.text(), 2) == 0):
+                return
+
+            if not self.nrDci01PuschCw0McsEdit.text():
+                return
+
+            td = int(self.nrDci01PuschTimeAllocLEdit.text())
+            if self.nrDci01PuschFreqAllocTypeComb.currentText() == 'RA Type1':
+                fd = int(self.nrDci01PuschFreqAllocType1LRbsEdit.text())
             else:
-                if not key in self.nrDmrsPuschPosTwoSymbsWoIntraSlotFh.keys() or self.nrDmrsPuschPosTwoSymbsWoIntraSlotFh[key] is None:
-                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDmrsPuschPosTwoSymbsWoIntraSlotFh!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+                fd = sum([self.rbgsType0Pusch[i] for i in range(self.bitwidthType0Pusch) if self.nrDci01PuschFreqAllocFieldEdit.text()[i] == '1'])
+
+            #calculate dmrs overhead
+            mappingType = self.nrDci01PuschTimeAllocMappingTypeComb.currentText()
+            freqHop = self.nrDci01PuschFreqAllocFreqHopComb.currentText()
+            if freqHop == 'intra-slot':
+                #refer to 3GPP 38.211 vf30 6.4.1.1.3
+                #if the higher-layer parameter dmrs-AdditionalPosition is not set to 'pos0' and intra-slot frequency hopping is enabled according to clause 7.3.1.1.2 in [4, TS 38.212] and by higher layer, Tables 6.4.1.1.3-6 shall be used assuming dmrs-AdditionalPosition is equal to 'pos1' for each hop.
+                #refer to 3GPP 38.214 vf30 6.3
+                #In case of intra-slot frequency hopping is configured, the number of symbols in the first hop is given by floor(N_PUSCH_symb/2) , the number of symbols in the second hop is given by N_PUSCH_symb - floor(N_PUSCH_symb/2) , where N_PUSCH_symb is the length of the PUSCH transmission in OFDM symbols in one slot.
+                key1 = '%s_%s_%s_%s_1st' % (math.floor(td / 2), mappingType, self.nrMibDmRsTypeAPosComb.currentText()[3:] if mappingType == 'Type A' else '0', 'pos1' if self.nrDmrsDedPuschAddPosComb.currentText() != 'pos0' else 'pos0')
+                key2 = '%s_%s_%s_%s_2nd' % (td - math.floor(td / 2), mappingType, self.nrMibDmRsTypeAPosComb.currentText()[3:] if mappingType == 'Type A' else '0', 'pos1' if self.nrDmrsDedPuschAddPosComb.currentText() != 'pos0' else 'pos0')
+                if numDmrsSymbs == 1:
+                    if not key1 in self.nrDmrsPuschPosOneSymbWithIntraSlotFh or not key2 in self.nrDmrsPuschPosOneSymbWithIntraSlotFh or self.nrDmrsPuschPosOneSymbWithIntraSlotFh[key1] is None or self.nrDmrsPuschPosOneSymbWithIntraSlotFh[key2] is None:
+                        self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(key_1stHop="%s", key_2ndHop="%s") when referring nrDmrsPuschPosOneSymbWithIntraSlotFh!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key1, key2))
+                        return
+                    val1 = self.nrDmrsPuschPosOneSymbWithIntraSlotFh[key1]
+                    val2 = self.nrDmrsPuschPosOneSymbWithIntraSlotFh[key2]
+                else:
+                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Only single-symbol front-load DM-RS for PUSCH is supported when intra-slot frequency hopping is enabled!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
                     return
-                val = self.nrDmrsPuschPosTwoSymbsWoIntraSlotFh[key]
+            else:
+                key = '%s_%s_%s' % (td, self.nrDci01PuschTimeAllocMappingTypeComb.currentText(), self.nrDmrsDedPuschAddPosComb.currentText())
+                if numDmrsSymbs == 1:
+                    if not key in self.nrDmrsPuschPosOneSymbWoIntraSlotFh.keys() or self.nrDmrsPuschPosOneSymbWoIntraSlotFh[key] is None:
+                        self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDmrsPuschPosOneSymbWoIntraSlotFh!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+                        return
+                    val = self.nrDmrsPuschPosOneSymbWoIntraSlotFh[key]
+                else:
+                    if not key in self.nrDmrsPuschPosTwoSymbsWoIntraSlotFh.keys() or self.nrDmrsPuschPosTwoSymbsWoIntraSlotFh[key] is None:
+                        self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrDmrsPuschPosTwoSymbsWoIntraSlotFh!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+                        return
+                    val = self.nrDmrsPuschPosTwoSymbsWoIntraSlotFh[key]
 
-        #refer to 3GPP 38.211 vf30
-        #For PUSCH mapping type A, duration of 4 symbols in Table 6.4.1.1.3-4 is only applicable when dmrs-TypeA-Position is equal to 'pos2'.
-        if self.nrDci01PuschTimeAllocMappingTypeComb.currentText() == 'Type A' and td == 4 and self.nrMibDmRsTypeAPosComb.currentText() != 'pos2':
-            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PUSCH mapping type A, duration of 4 symbols in Table 6.4.1.1.3-4 is only applicable when dmrs-TypeA-Position is equal to "pos2".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+            #refer to 3GPP 38.211 vf30
+            #For PUSCH mapping type A, duration of 4 symbols in Table 6.4.1.1.3-4 is only applicable when dmrs-TypeA-Position is equal to 'pos2'.
+            if self.nrDci01PuschTimeAllocMappingTypeComb.currentText() == 'Type A' and td == 4 and self.nrMibDmRsTypeAPosComb.currentText() != 'pos2':
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: For PUSCH mapping type A, duration of 4 symbols in Table 6.4.1.1.3-4 is only applicable when dmrs-TypeA-Position is equal to "pos2".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+                return
+
+            if freqHop == 'intra-slot':
+                dmrsOh = (2 * cdmGroups) * (len(val1) + len(val2))
+                self.ngwin.logEdit.append('PUSCH(DCI 0_1) DMRS overhead: cdmGroupsWoData=%d, key1="%s", val1=%s, key2="%s", val2=%s' % (cdmGroups, key1, val1, key2, val2))
+            else:
+                dmrsOh = (2 * cdmGroups) * len(val)
+                self.ngwin.logEdit.append('PUSCH(DCI 0_1) DMRS overhead: cdmGroupsWoData=%d, key="%s", val=%s' % (cdmGroups, key, val))
+
+            tp = 1 if self.nrDedPuschCfgTpComb.currentText() == 'enabled' else 0
+            mcsCw0 = int(self.nrDci01PuschCw0McsEdit.text())
+
+            tbs = self.getTbs(sch='pusch', tp=tp, rnti='c-rnti', tab=self.nrDedPuschCfgMcsTableComb.currentText(), td=td, fd=fd, mcs=mcsCw0, layer=len(dmrsPorts), dmrs=dmrsOh, xoh=int(self.nrDedPuschCfgXOverheadComb.currentText()[3:]), scale=1)
+
+            self.nrDci01PuschTbsEdit.setText(str(tbs) if tbs is not None else '')
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
             return
-
-        if freqHop == 'intra-slot':
-            dmrsOh = (2 * cdmGroups) * (len(val1) + len(val2))
-            self.ngwin.logEdit.append('PUSCH(DCI 0_1) DMRS overhead: cdmGroupsWoData=%d, key1="%s", val1=%s, key2="%s", val2=%s' % (cdmGroups, key1, val1, key2, val2))
-        else:
-            dmrsOh = (2 * cdmGroups) * len(val)
-            self.ngwin.logEdit.append('PUSCH(DCI 0_1) DMRS overhead: cdmGroupsWoData=%d, key="%s", val=%s' % (cdmGroups, key, val))
-
-        tp = 1 if self.nrDedPuschCfgTpComb.currentText() == 'enabled' else 0
-        mcsCw0 = int(self.nrDci01PuschCw0McsEdit.text())
-
-        tbs = self.getTbs(sch='pusch', tp=tp, rnti='c-rnti', tab=self.nrDedPuschCfgMcsTableComb.currentText(), td=td, fd=fd, mcs=mcsCw0, layer=len(dmrsPorts), dmrs=dmrsOh, xoh=int(self.nrDedPuschCfgXOverheadComb.currentText()[3:]), scale=1)
-
-        self.nrDci01PuschTbsEdit.setText(str(tbs) if tbs is not None else '')
 
     def onPtrsPuschTpGroupPatCombCurIndChanged(self, index):
         if index < 0:
@@ -9952,9 +10231,14 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside updatePtrsPusch')
-        dmrsPorts = [int(s) for s in self.nrDmrsDedPuschDmrsPortsEdit.text().split(',')]
-        ptrsDmrsMap = int(self.nrDci01PuschPtrsDmrsMappingEdit.text())
-        maxPtrsPorts = int(self.nrPtrsPuschMaxNumPortsComb.currentText()[-1])
+        try:
+            dmrsPorts = [int(s) for s in self.nrDmrsDedPuschDmrsPortsEdit.text().split(',')]
+            ptrsDmrsMap = int(self.nrDci01PuschPtrsDmrsMappingEdit.text())
+            maxPtrsPorts = int(self.nrPtrsPuschMaxNumPortsComb.currentText()[-1])
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         if maxPtrsPorts == 1:
             if ptrsDmrsMap in range(len(dmrsPorts)):
                 self.nrPtrsPuschDmrsAntPortsEdit.setText(str(dmrsPorts[ptrsDmrsMap]))
@@ -10033,7 +10317,12 @@ class NgNrGridUi(QDialog):
         '''
         if self.nrRachNumRaPreamblesEdit.text():
             ssbPerRachOccasion = max(1, self.nrSsbPerRachOccasion2Float[self.nrRachSsbPerRachOccasionComb.currentText()])
-            numRaPreambles = int(self.nrRachNumRaPreamblesEdit.text())
+            try:
+                numRaPreambles = int(self.nrRachNumRaPreamblesEdit.text())
+            except Exception as e:
+                self.ngwin.logEdit.append(traceback.format_exc())
+                qApp.processEvents()
+                return
             if numRaPreambles % ssbPerRachOccasion != 0:
                 self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Total number of RA preambles should be a multiple of the number of SSBs per RACH occasion.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
                 self.nrRachSsbPerRachOccasionComb.setCurrentIndex(-1)
@@ -10054,7 +10343,12 @@ class NgNrGridUi(QDialog):
         Total number of preambles used for contention based and contention free random access in the RACH resources defined in RACH-ConfigCommon, excluding preambles used for other purposes (e.g. for SI request). If the field is absent, the all 64 preambles are available for RA. The setting should be consistent with the setting of ssb-perRACH-OccasionAndCB-PreamblesPerSSB, i.e. it should be a multiple of the number of SSBs per RACH occasion.
         '''
         ssbPerRachOccasion = max(1, self.nrSsbPerRachOccasion2Float[self.nrRachSsbPerRachOccasionComb.currentText()])
-        numRaPreambles = int(self.nrRachNumRaPreamblesEdit.text())
+        try:
+            numRaPreambles = int(self.nrRachNumRaPreamblesEdit.text())
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
         if numRaPreambles % ssbPerRachOccasion != 0:
             self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Total number of RA preambles should be a multiple of the number of SSBs per RACH occasion.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
             self.nrRachSsbPerRachOccasionComb.setCurrentIndex(-1)
@@ -10071,21 +10365,26 @@ class NgNrGridUi(QDialog):
             return
 
         self.ngwin.logEdit.append('-->inside onPucchSib1PucchResCommonTextChanged')
-        pucchResInd = int(self.nrPucchSib1PucchResCommonEdit.text())
-        pucchFmt, firstSymb, numSymbs, prbOffset, initialCsSet = self.nrCommonPucchResSets[pucchResInd]
-        if pucchResInd == 15:
-            if self.nrIniUlBwpGenericLocAndBwEdit.text() and self.nrIniUlBwpGenericLRbsEdit.text() and self.nrIniUlBwpGenericRbStartEdit.text():
-                prbOffset = math.floor(int(self.nrIniUlBwpGenericLRbsEdit.text()) / 4)
-            else:
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Initial UL BWP must be configured properly when pucch-ResourceCommon(SIB1)=15.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
-                self.nrPucchSib1PucchResCommonEdit.clear()
-                return
+        try:
+            pucchResInd = int(self.nrPucchSib1PucchResCommonEdit.text())
+            pucchFmt, firstSymb, numSymbs, prbOffset, initialCsSet = self.nrCommonPucchResSets[pucchResInd]
+            if pucchResInd == 15:
+                if self.nrIniUlBwpGenericLocAndBwEdit.text() and self.nrIniUlBwpGenericLRbsEdit.text() and self.nrIniUlBwpGenericRbStartEdit.text():
+                    prbOffset = math.floor(int(self.nrIniUlBwpGenericLRbsEdit.text()) / 4)
+                else:
+                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Initial UL BWP must be configured properly when pucch-ResourceCommon(SIB1)=15.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+                    self.nrPucchSib1PucchResCommonEdit.clear()
+                    return
 
-        self.nrPucchSib1PucchFmtComb.setCurrentText('format %d' % pucchFmt)
-        self.nrPucchSib1StartingSymbEdit.setText(str(firstSymb))
-        self.nrPucchSib1NumSymbsEdit.setText(str(numSymbs))
-        self.nrPucchSib1PrbOffsetEdit.setText(str(prbOffset))
-        self.nrPucchSib1IniCsIndexesSetEdit.setText(str(initialCsSet))
+            self.nrPucchSib1PucchFmtComb.setCurrentText('format %d' % pucchFmt)
+            self.nrPucchSib1StartingSymbEdit.setText(str(firstSymb))
+            self.nrPucchSib1NumSymbsEdit.setText(str(numSymbs))
+            self.nrPucchSib1PrbOffsetEdit.setText(str(prbOffset))
+            self.nrPucchSib1IniCsIndexesSetEdit.setText(str(initialCsSet))
+        except Exception as e:
+            self.ngwin.logEdit.append(traceback.format_exc())
+            qApp.processEvents()
+            return
 
     def onSrsResNumAntPortsCombCurIndChanged(self, index):
         if index < 0:
@@ -10287,36 +10586,8 @@ class NgNrGridUi(QDialog):
         self.ngwin.logEdit.append('-->inside onOkBtnClicked')
         self.accept()
 
-        '''
-        #step 4: call NgNbiotGrid
-        nbGrid = NgNbiotGrid(self.ngwin, self.argsNbiot)
-        hsfn = self.argsNbiot['nbHsfn']
-        sfn = self.argsNbiot['nbSfn']
-
-        #NB DL SU scheduling simulation
-        self.ngwin.logEdit.append('<font color=green><b>Start NB DL SU scheduling simulation</b></font>')
-        self.ngwin.logEdit.append('<font color=green><b>[NB DL SU SIM]recv NPDCCH DCI N1</b></font>')
-        hsfn, sfn, subf = nbGrid.monitorNpdcch(hsfn, sfn)   #recv NPDCCH DCI N1
-        self.ngwin.logEdit.append('<font color=green><b>[NB DL SU SIM]recv NPDSCH w/o BCCH</b></font>')
-        hsfn, sfn, subf = nbGrid.recvNpdschWoBcch(hsfn, sfn, subf)  #recv NPDSCH w/o BCCH
-        self.ngwin.logEdit.append('<font color=green><b>[NB DL SU SIM]send NPUSCH Format 2</b></font>')
-        hsfn, sfn, subf = nbGrid.sendNpuschFormat2(hsfn, sfn, subf) #send NPUSCH format 2
-
-        self.ngwin.logEdit.append('<font color=green><b>Wait for next NPDCCH candidate</b></font>')
-        hsfn, sfn = incSfn(hsfn, sfn, 1) #wait for next NPDCCH candidate
-
-        #NB UL SU scheduling simulation
-        self.ngwin.logEdit.append('<font color=green><b>Start NB UL SU scheduling simulation</b></font>')
-        self.ngwin.logEdit.append('<font color=green><b>[NB UL SU SIM]recv NPDCCH DCI N0</b></font>')
-        hsfn, sfn, subf = nbGrid.monitorNpdcch(hsfn, sfn)   #recv NPDCCH DCI N0
-        self.ngwin.logEdit.append('<font color=green><b>[NB UL SU SIM]send NPUSCH Format 1</b></font>')
-        hsfn, sfn, subf = nbGrid.sendNpuschFormat1(hsfn, sfn, subf) #send NPUSCH format 1
-
-        #hsfn, sfn = incSfn(hsfn, sfn, 1) #wait for next NPDCCH candidate
-        '''
-
-        self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Prepare configurations</b></font>')
         try:
+            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Prepare configurations</b></font>')
             if self.nrAdvImportCfgChkBox.isChecked():
                 flag = self.parseCfgFile()
             else:
@@ -10324,77 +10595,77 @@ class NgNrGridUi(QDialog):
 
             if not flag:
                 return
+
+            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Start 5GNR simulation</b></font>')
+            nrGrid = NgNrGrid(self.ngwin, self.args)
+            hsfn = 0
+            sfn = int(self.args['mib']['sfn'])
+
+            #receiving SSB
+            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv SSB</b></font>')
+            nrGrid.recvSsb(hsfn, sfn)
+
+            #monitoring PDCCH for SIB1
+            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv PDCCH(DCI 1_0, SI-RNTI)</b></font>')
+            hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, 0, dci='dci10', rnti='si-rnti')
+
+            if hsfn is not None and sfn is not None and slot is not None:
+                #receiving SIB1
+                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv SIB1</b></font>')
+                hsfn, sfn, slot = nrGrid.recvSib1(hsfn, sfn, slot)
+
+            #sending Msg1(PRACH)
+            if hsfn is not None and sfn is not None and slot is not None:
+                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]send PRACH(Msg1)</b></font>')
+                hsfn, sfn, slot = nrGrid.sendMsg1(hsfn, sfn, slot)
+
+            #monitoring PDCCH for Msg2
+            if hsfn is not None and sfn is not None and slot is not None:
+                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv PDCCH(DCI 1_0, RA-RNTI)</b></font>')
+                hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, slot, dci='dci10', rnti='ra-rnti')
+
+            #receiving Msg2(RAR)
+            if hsfn is not None and sfn is not None and slot is not None:
+                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv RAR(Msg2)</b></font>')
+                hsfn, sfn, slot = nrGrid.recvMsg2(hsfn, sfn, slot)
+
+            '''
+            #sending Msg3(PUSCH)
+            hsfn, sfn = nrGrid.sendMsg3(hsfn, sfn)
+            #monitoring PDCCH for Msg4
+            hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci10', rnti='tc-rnti')
+            #receiving Msg4
+            hsfn, sfn = nrGrid.recvMsg4(hsfn, sfn)
+            #sending Msg4 HARQ feedback(PUCCH)
+            hsfn, sfn = nrGrid.sendPucch(hsfn, sfn)
+
+            #monitoring PDCCH for normal PDSCH
+            hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci11', rnti='c-rnti')
+            #receiving PDSCH
+            hsfn, sfn = nrGrid.recvPdsch(hsfn, sfn)
+            #sending PDSCH HARQ feedback(PUCCH), together with CSI
+            hsfn, sfn = nrGrid.sendPucch(hsfn, sfn)
+
+            #sending PUCCH for DSR
+            hsfn, sfn = nrGrid.sendPucch(hsfn, sfn)
+            #monitoring PDCCH for normal PUSCH
+            hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci01', rnti='c-rnti')
+            #sending PUSCH
+            hsfn, sfn = nrGrid.sendPusch(hsfn, sfn)
+            '''
+
+            #export grid to excel
+            if not nrGrid.error:
+                if self.ngwin.enableDebug:
+                    #Don't want waste time for waiting exportToExcel to finish!
+                    self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Exporting to excel skipped</b></font>')
+                    pass
+                else:
+                    self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Exporting to excel, please wait</b></font>')
+                    nrGrid.exportToExcel()
         except Exception as e:
             self.ngwin.logEdit.append(traceback.format_exc())
             return
-
-        self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Start 5GNR simulation</b></font>')
-        nrGrid = NgNrGrid(self.ngwin, self.args)
-        hsfn = 0
-        sfn = int(self.args['mib']['sfn'])
-
-        #receiving SSB
-        self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv SSB</b></font>')
-        nrGrid.recvSsb(hsfn, sfn)
-
-        #monitoring PDCCH for SIB1
-        self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv PDCCH(DCI 1_0, SI-RNTI)</b></font>')
-        hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, 0, dci='dci10', rnti='si-rnti')
-
-        if hsfn is not None and sfn is not None and slot is not None:
-            #receiving SIB1
-            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv SIB1</b></font>')
-            hsfn, sfn, slot = nrGrid.recvSib1(hsfn, sfn, slot)
-
-        #sending Msg1(PRACH)
-        if hsfn is not None and sfn is not None and slot is not None:
-            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]send PRACH(Msg1)</b></font>')
-            hsfn, sfn, slot = nrGrid.sendMsg1(hsfn, sfn, slot)
-
-        #monitoring PDCCH for Msg2
-        if hsfn is not None and sfn is not None and slot is not None:
-            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv PDCCH(DCI 1_0, RA-RNTI)</b></font>')
-            hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, slot, dci='dci10', rnti='ra-rnti')
-
-        #receiving Msg2(RAR)
-        if hsfn is not None and sfn is not None and slot is not None:
-            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv RAR(Msg2)</b></font>')
-            hsfn, sfn, slot = nrGrid.recvMsg2(hsfn, sfn, slot)
-
-        '''
-        #sending Msg3(PUSCH)
-        hsfn, sfn = nrGrid.sendMsg3(hsfn, sfn)
-        #monitoring PDCCH for Msg4
-        hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci10', rnti='tc-rnti')
-        #receiving Msg4
-        hsfn, sfn = nrGrid.recvMsg4(hsfn, sfn)
-        #sending Msg4 HARQ feedback(PUCCH)
-        hsfn, sfn = nrGrid.sendPucch(hsfn, sfn)
-
-        #monitoring PDCCH for normal PDSCH
-        hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci11', rnti='c-rnti')
-        #receiving PDSCH
-        hsfn, sfn = nrGrid.recvPdsch(hsfn, sfn)
-        #sending PDSCH HARQ feedback(PUCCH), together with CSI
-        hsfn, sfn = nrGrid.sendPucch(hsfn, sfn)
-
-        #sending PUCCH for DSR
-        hsfn, sfn = nrGrid.sendPucch(hsfn, sfn)
-        #monitoring PDCCH for normal PUSCH
-        hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci01', rnti='c-rnti')
-        #sending PUSCH
-        hsfn, sfn = nrGrid.sendPusch(hsfn, sfn)
-        '''
-
-        #export grid to excel
-        if not nrGrid.error:
-            if self.ngwin.enableDebug:
-                #Don't want waste time for waiting exportToExcel to finish!
-                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Exporting to excel skipped</b></font>')
-                pass
-            else:
-                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Exporting to excel, please wait</b></font>')
-                nrGrid.exportToExcel()
 
     def prepNrGrid(self):
         self.ngwin.logEdit.append('-->inside prepNrGrid')
@@ -10663,6 +10934,7 @@ class NgNrGridUi(QDialog):
         except Exception as e:
             #self.ngwin.logEdit.append(str(e))
             self.ngwin.logEdit.append(traceback.format_exc())
+            return False
 
         #print dict info
         for key in self.args.keys():
