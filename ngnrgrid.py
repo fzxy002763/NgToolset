@@ -327,6 +327,33 @@ class NgNrGrid(object):
 
         self.minNumValidPrachOccasionPerAssociationPeriod = math.ceil(self.numTxSsb / self.nrRachSsbPerRachOccasionM8 * 8)
 
+        self.nrMsg3MuPusch = int(self.args['msg3Pusch']['muPusch'])
+        self.nrMsg3TdRa = int(self.args['msg3Pusch']['tdRa'])
+        self.nrMsg3TdMappingType = self.args['msg3Pusch']['tdMappingType']
+        self.nrMsg3TdK2 = int(self.args['msg3Pusch']['tdK2'])
+        self.nrMsg3TdDelta = int(self.args['msg3Pusch']['tdDelta'])
+        self.nrMsg3TdSliv = int(self.args['msg3Pusch']['tdSliv'])
+        self.nrMsg3TdStartSymb = int(self.args['msg3Pusch']['tdStartSymb'])
+        self.nrMsg3TdNumSymbs = int(self.args['msg3Pusch']['tdNumSymbs'])
+        self.nrMsg3FdRaType = self.args['msg3Pusch']['fdRaType']
+        self.nrMsg3FdFreqHop = self.args['msg3Pusch']['fdFreqHop']
+        self.nrMsg3FdRa = self.args['msg3Pusch']['fdRa']
+        self.nrMsg3FdStartRb = int(self.args['msg3Pusch']['fdStartRb'])
+        self.nrMsg3FdNumRbs = int(self.args['msg3Pusch']['fdNumRbs'])
+        if self.nrMsg3FdFreqHop == 'enabled':
+            self.nrMsg3FdSecondHopFreqOff = int(self.args['msg3Pusch']['fdSecondHopFreqOff'])
+        else:
+            self.nrMsg3FdSecondHopFreqOff = None
+
+        self.nrMsg3DmrsType = self.args['dmrsMsg3']['dmrsType']
+        self.nrMsg3DmrsAddPos = self.args['dmrsMsg3']['dmrsAddPos']
+        self.nrMsg3DmrsMaxLen = self.args['dmrsMsg3']['maxLength']
+        self.nrMsg3DmrsPorts = self.args['dmrsMsg3']['dmrsPorts']
+        self.nrMsg3DmrsCdmGroupsWoData = int(self.args['dmrsMsg3']['cdmGroupsWoData'])
+        self.nrMsg3DmrsNumFrontLoadSymbs = int(self.args['dmrsMsg3']['numFrontLoadSymbs'])
+        self.nrMsg3DmrsTdL = self.args['dmrsMsg3']['tdL']
+        self.nrMsg3DmrsFdK = self.args['dmrsMsg3']['fdK']
+
         #advanced settings
         try:
             self.nrAdvBestSsb = int(self.args['advanced']['bestSsb'])
@@ -847,7 +874,7 @@ class NgNrGrid(object):
             tmpStr = 'converting from prachScs(=%dKHz) to commonScs(=%dKHz): [hsfn=%d, sfn=%d, slot=%d, msg1LastSymb=%d] --> ' % (self.prachScs, self.nrMibCommonScs, hsfn, sfn,  slot, self.msg1LastSymb)
 
             scaleTd = self.nrMibCommonScs / self.prachScs
-            firstSlotMonitoring = ((slot * self.nrSymbPerSlotNormCp + self.msg1LastSymb + 1) * scaleTd - 1) // self.nrSymbPerSlotNormCp
+            firstSlotMonitoring = math.ceil(((slot * self.nrSymbPerSlotNormCp + self.msg1LastSymb + 1) * scaleTd - 1) // self.nrSymbPerSlotNormCp)
             if firstSlotMonitoring >= self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]:
                 firstSlotMonitoring = firstSlotMonitoring % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]
                 hsfn, sfn = self.incSfn(hsfn, sfn, 1)
@@ -1614,6 +1641,7 @@ class NgNrGrid(object):
         scaleFd = self.nrMibCommonScs // self.baseScsFd
 
         slotMsg2 = math.floor(slot * 2 ** (self.nrMsg2MuPdsch - self.nrMsg2MuPdcch)) + self.nrMsg2TdK0
+        self.msg2LastSymb = self.nrMsg2TdStartSymb + self.nrMsg2TdNumSymbs - 1
         firstSymbMsg2InBaseScsTd = (slotMsg2 * self.nrSymbPerSlotNormCp + self.nrMsg2TdStartSymb) * scaleTd
         msg2SymbsInBaseScsTd = [firstSymbMsg2InBaseScsTd+k for k in range(self.nrMsg2TdNumSymbs*scaleTd)]
 
@@ -1681,9 +1709,143 @@ class NgNrGrid(object):
 
         return (hsfn, sfn, slotMsg2)
 
-    def sendMsg3(self, hsfn, sfn):
-        self.ngwin.logEdit.append('---->inside sendMsg3')
-        return (hsfn, sfn)
+    def sendMsg3(self, hsfn, sfn, slot):
+        self.ngwin.logEdit.append('---->inside sendMsg3(hsfn=%s,sfn=%s,slot=%s)' % (hsfn, sfn, slot))
+
+        #convert 'slot'+'msg2LastSymb' which based on commonScs into puschScs(initial ul bwp)
+        tmpStr = 'converting from commonScs(=%dKHz) to puschScs(=%dKHz): [hsfn=%d, sfn=%d, slot=%d, msg2LastSymb=%d] --> ' % (self.nrMibCommonScs, self.nrIniUlBwpScs, hsfn, sfn,  slot, self.msg2LastSymb)
+        scaleTd = self.nrIniUlBwpScs / self.nrMibCommonScs
+        slotInPuschScs = math.ceil(((slot * self.nrSymbPerSlotNormCp + self.msg2LastSymb) * scaleTd - 1) // self.nrSymbPerSlotNormCp)
+        tmpStr = tmpStr + '[hsfn=%d, sfn=%d, slot=%d]' % (hsfn, sfn, slotInPuschScs)
+        self.ngwin.logEdit.append(tmpStr)
+        qApp.processEvents()
+
+        dn = '%s_%s' % (hsfn, sfn)
+
+        scaleTd = self.baseScsTd // self.nrIniUlBwpScs
+        scaleFd = self.nrIniUlBwpScs // self.baseScsFd
+
+        slotMsg3 = slotInPuschScs + self.nrMsg3TdK2 + self.nrMsg3TdDelta
+        self.msg3LastSymb = self.nrMsg3TdStartSymb + self.nrMsg3TdNumSymbs - 1
+        self.ngwin.logEdit.append('<font color=purple>slotMsg3=%d with K2=%d and delta=%d</font>' % (slotMsg3, self.nrMsg3TdK2, self.nrMsg3TdDelta))
+        qApp.processEvents()
+
+        if self.nrMsg3FdFreqHop == 'enabled':
+            #intra-slot frequency hopping
+            numSymbsPerHop = [math.floor(self.nrMsg3TdNumSymbs / 2), self.nrMsg3TdNumSymbs - math.floor(self.nrMsg3TdNumSymbs / 2)]
+            startRbPerHop = [self.nrMsg3FdStartRb, (self.nrMsg3FdStartRb + self.nrMsg3FdSecondHopFreqOff) % self.nrIniUlBwpNumRbs]
+            self.ngwin.logEdit.append('intra-slot freq hop settings: 1st hop=[numSymbs=%d,startRb=%d], 2nd hop=[numSymbs=%d,startRb=%d]' % (numSymbsPerHop[0], startRbPerHop[0], numSymbsPerHop[1], startRbPerHop[1]))
+            qApp.processEvents()
+
+            for hop in range(2):
+                msg3TdStartSymb = self.nrMsg3TdStartSymb + 0 if hop == 0 else numSymbsPerHop[0]
+                firstSymbMsg3InBaseScsTd = (slotMsg3 * self.nrSymbPerSlotNormCp + msg3TdStartSymb) * scaleTd
+                msg3SymbsInBaseScsTd = [firstSymbMsg3InBaseScsTd+k for k in range(numSymbsPerHop[hop]*scaleTd)]
+
+                msg3DmrsSymbs = []
+                for i in self.nrMsg3DmrsTdL[hop]:
+                    #for both PUSCH mapping type A/B, tdL is defined relative to the start of each hop in case frequency hopping is enabled
+                    msg3DmrsSymbs.append(i)
+                self.ngwin.logEdit.append('contents of msg3DmrsSymbs(w.r.t to the start of hop%d): %s' % (hop, msg3DmrsSymbs))
+                qApp.processEvents()
+
+                firstScMsg3InBaseScsFd = self.nrCarrierMinGuardBand * self.nrScPerPrb * (self.nrCarrierScs // self.baseScsFd) + startRbPerHop[hop] * self.nrScPerPrb * scaleFd
+                msg3ScsInBaseScsFd = [firstScMsg3InBaseScsFd+k for k in range(self.nrMsg3FdNumRbs*self.nrScPerPrb*scaleFd)]
+
+                #validate against tdd-ul-dl-config
+                #refer to 3GPP 38.213 vf40 11.1
+                #For a set of symbols of a slot that are indicated to a UE as downlink by TDD-UL-DL-ConfigurationCommon, or TDD-UL-DL-ConfigDedicated, the UE does not transmit PUSCH, PUCCH, PRACH, or SRS in the set of symbols of the slot.
+                #For a set of symbols of a slot that are indicated to a UE as flexible by TDD-UL-DL-ConfigurationCommon, or TDD-UL-DL-ConfigDedicated, the UE does not expect to receive both dedicated configuring transmission from the UE in the set of symbols of the slot and dedicated configuring reception by the UE in the set of symbols of the slot.
+                if self.nrDuplexMode == 'TDD':
+                    invalidSymbs = []
+                    for symb in msg3SymbsInBaseScsTd:
+                        if self.gridNrTdd[dn][firstScMsg3InBaseScsFd, symb] in (NrResType.NR_RES_D.value, NrResType.NR_RES_F.value):
+                            invalidSymbs.append(symb)
+
+                    if len(invalidSymbs) > 0:
+                        self.ngwin.logEdit.append('<font color=red>Error: UE does not transmit PUSCH, PUCCH, PRACH or SRS in symbols which are indicated as downlink or flexible!</font>')
+                        self.ngwin.logEdit.append('contents of invalidSymbs(hop=%d,scaleTd=%d,firstsymb=%d): %s' % (hop, scaleTd, firstSymbMsg3InBaseScsTd, invalidSymbs))
+                        qApp.processEvents()
+                        return (None, None, None)
+
+                for i in range(numSymbsPerHop[hop]):
+                    if self.nrDuplexMode == 'TDD':
+                        self.gridNrTdd[dn][msg3ScsInBaseScsFd, firstSymbMsg3InBaseScsTd+i*scaleTd:firstSymbMsg3InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_MSG3.value
+                        if i in msg3DmrsSymbs:
+                            for j in range(self.nrMsg3FdNumRbs):
+                                for k in range(self.nrScPerPrb):
+                                    if self.nrMsg3DmrsFdK[k] == 1:
+                                        self.gridNrTdd[dn][msg3ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbMsg3InBaseScsTd+i*scaleTd:firstSymbMsg3InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DMRS_MSG3.value
+                                    else:
+                                        if not (self.nrRachMsg3Tp == 'disabled' and self.nrMsg3TdNumSymbs <= 2):
+                                            self.gridNrTdd[dn][msg3ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbMsg3InBaseScsTd+i*scaleTd:firstSymbMsg3InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DTX.value
+                    else:
+                        self.gridNrFddUl[dn][msg3ScsInBaseScsFd, firstSymbMsg3InBaseScsTd+i*scaleTd:firstSymbMsg3InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_MSG3.value
+                        if i in msg3DmrsSymbs:
+                            for j in range(self.nrMsg3FdNumRbs):
+                                for k in range(self.nrScPerPrb):
+                                    if self.nrMsg3DmrsFdK[k] == 1:
+                                        self.gridNrFddUl[dn][msg3ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbMsg3InBaseScsTd+i*scaleTd:firstSymbMsg3InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DMRS_MSG3.value
+                                    else:
+                                        if not (self.nrRachMsg3Tp == 'disabled' and self.nrMsg3TdNumSymbs <= 2):
+                                            self.gridNrFddUl[dn][msg3ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbMsg3InBaseScsTd+i*scaleTd:firstSymbMsg3InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DTX.value
+        else:
+            firstSymbMsg3InBaseScsTd = (slotMsg3 * self.nrSymbPerSlotNormCp + self.nrMsg3TdStartSymb) * scaleTd
+            msg3SymbsInBaseScsTd = [firstSymbMsg3InBaseScsTd+k for k in range(self.nrMsg3TdNumSymbs*scaleTd)]
+
+            msg3DmrsSymbs = []
+            for i in self.nrMsg3DmrsTdL:
+                if self.nrMsg3TdMappingType == 'Type A':
+                    #for PUSCH mapping type A, tdL is defined relative to the start of the slot if frequency hopping is disabled
+                    msg3DmrsSymbs.append(i - self.nrMsg3TdStartSymb)
+                else:
+                    #for PUSCH mapping type B, tdL is defined relative to the start of the scheduled PUSCH resources if frequency hopping is disabled
+                    msg3DmrsSymbs.append(i)
+            self.ngwin.logEdit.append('contents of msg3DmrsSymbs(w.r.t to slivS): %s' % msg3DmrsSymbs)
+            qApp.processEvents()
+
+            firstScMsg3InBaseScsFd = self.nrCarrierMinGuardBand * self.nrScPerPrb * (self.nrCarrierScs // self.baseScsFd) + self.nrMsg3FdStartRb * self.nrScPerPrb * scaleFd
+            msg3ScsInBaseScsFd = [firstScMsg3InBaseScsFd+k for k in range(self.nrMsg3FdNumRbs*self.nrScPerPrb*scaleFd)]
+
+            #validate against tdd-ul-dl-config
+            #refer to 3GPP 38.213 vf40 11.1
+            #For a set of symbols of a slot that are indicated to a UE as downlink by TDD-UL-DL-ConfigurationCommon, or TDD-UL-DL-ConfigDedicated, the UE does not transmit PUSCH, PUCCH, PRACH, or SRS in the set of symbols of the slot.
+            #For a set of symbols of a slot that are indicated to a UE as flexible by TDD-UL-DL-ConfigurationCommon, or TDD-UL-DL-ConfigDedicated, the UE does not expect to receive both dedicated configuring transmission from the UE in the set of symbols of the slot and dedicated configuring reception by the UE in the set of symbols of the slot.
+            if self.nrDuplexMode == 'TDD':
+                    invalidSymbs = []
+                    for symb in msg3SymbsInBaseScsTd:
+                        if self.gridNrTdd[dn][firstScMsg3InBaseScsFd, symb] in (NrResType.NR_RES_D.value, NrResType.NR_RES_F.value):
+                            invalidSymbs.append(symb)
+
+                    if len(invalidSymbs) > 0:
+                        self.ngwin.logEdit.append('<font color=red>Error: UE does not transmit PUSCH, PUCCH, PRACH or SRS in symbols which are indicated as downlink or flexible!</font>')
+                        self.ngwin.logEdit.append('contents of invalidSymbs(hop=%d,scaleTd=%d,firstsymb=%d): %s' % (hop, scaleTd, firstSymbMsg3InBaseScsTd, invalidSymbs))
+                        qApp.processEvents()
+                        return (None, None, None)
+
+            for i in range(self.nrMsg3TdNumSymbs):
+                if self.nrDuplexMode == 'TDD':
+                    self.gridNrTdd[dn][msg3ScsInBaseScsFd, firstSymbMsg3InBaseScsTd+i*scaleTd:firstSymbMsg3InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_MSG3.value
+                    if i in msg3DmrsSymbs:
+                        for j in range(self.nrMsg3FdNumRbs):
+                            for k in range(self.nrScPerPrb):
+                                if self.nrMsg3DmrsFdK[k] == 1:
+                                    self.gridNrTdd[dn][msg3ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbMsg3InBaseScsTd+i*scaleTd:firstSymbMsg3InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DMRS_MSG3.value
+                                else:
+                                    if not (self.nrRachMsg3Tp == 'disabled' and self.nrMsg3TdNumSymbs <= 2):
+                                        self.gridNrTdd[dn][msg3ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbMsg3InBaseScsTd+i*scaleTd:firstSymbMsg3InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DTX.value
+                else:
+                    self.gridNrFddUl[dn][msg3ScsInBaseScsFd, firstSymbMsg3InBaseScsTd+i*scaleTd:firstSymbMsg3InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_MSG3.value
+                    if i in msg3DmrsSymbs:
+                        for j in range(self.nrMsg3FdNumRbs):
+                            for k in range(self.nrScPerPrb):
+                                if self.nrMsg3DmrsFdK[k] == 1:
+                                    self.gridNrFddUl[dn][msg3ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbMsg3InBaseScsTd+i*scaleTd:firstSymbMsg3InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DMRS_MSG3.value
+                                else:
+                                    if not (self.nrRachMsg3Tp == 'disabled' and self.nrMsg3TdNumSymbs <= 2):
+                                        self.gridNrFddUl[dn][msg3ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbMsg3InBaseScsTd+i*scaleTd:firstSymbMsg3InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DTX.value
+
+        return (hsfn, sfn, slotMsg3)
 
     def recvMsg4(self, hsfn, sfn):
         self.ngwin.logEdit.append('---->inside recvMsg4')

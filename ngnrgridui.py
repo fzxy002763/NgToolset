@@ -9099,6 +9099,10 @@ class NgNrGridUi(QDialog):
                     self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Inserted bits(="%s") must be all zeros! Please refer to 3GPP 38.213 vf30 Section 8.2 for details.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), subBits))
                     return
 
+            #update '2nd hop freq offset'
+            if self.nrMsg3PuschFreqAllocFreqHopComb.currentText() == 'enabled':
+                self.updateMsg3Pusch2ndHopFreqOff()
+
             #update tbs
             self.updateMsg3PuschTbs()
         else:
@@ -10629,9 +10633,11 @@ class NgNrGridUi(QDialog):
                 self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv RAR(Msg2)</b></font>')
                 hsfn, sfn, slot = nrGrid.recvMsg2(hsfn, sfn, slot)
 
-            '''
             #sending Msg3(PUSCH)
-            hsfn, sfn = nrGrid.sendMsg3(hsfn, sfn)
+            if hsfn is not None and sfn is not None and slot is not None:
+                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]send Msg3</b></font>')
+                hsfn, sfn, slot = nrGrid.sendMsg3(hsfn, sfn, slot)
+            '''
             #monitoring PDCCH for Msg4
             hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci10', rnti='tc-rnti')
             #receiving Msg4
@@ -10731,6 +10737,7 @@ class NgNrGridUi(QDialog):
         self.args['css0'] = dict()
         self.args['css0']['aggLevel'] = self.nrCss0AggLevelComb.currentText()
         self.args['css0']['numCandidates'] = self.nrCss0NumCandidatesComb.currentText()
+
         self.args['dci10Sib1'] = dict()
         self.args['dci10Sib1']['rnti'] = self.nrDci10Sib1RntiEdit.text()
         self.args['dci10Sib1']['muPdcch'] = self.nrDci10Sib1MuPdcchEdit.text()
@@ -10749,6 +10756,7 @@ class NgNrGridUi(QDialog):
         self.args['dci10Sib1']['fdBundleSize'] = self.nrDci10Sib1FreqAllocType1BundleSizeComb.currentText()
         self.args['dci10Sib1']['mcsCw0'] = self.nrDci10Sib1Cw0McsEdit.text()
         self.args['dci10Sib1']['tbs'] = self.nrDci10Sib1TbsEdit.text()
+
         self.args['dci10Msg2'] = dict()
         self.args['dci10Msg2']['rnti'] = self.nrDci10Msg2RntiEdit.text()
         self.args['dci10Msg2']['muPdcch'] = self.nrDci10Msg2MuPdcchEdit.text()
@@ -10768,6 +10776,24 @@ class NgNrGridUi(QDialog):
         self.args['dci10Msg2']['mcsCw0'] = self.nrDci10Msg2Cw0McsEdit.text()
         self.args['dci10Msg2']['tbScaling'] = self.nrDci10Msg2TbScalingEdit.text()
         self.args['dci10Msg2']['tbs'] = self.nrDci10Msg2TbsEdit.text()
+
+        self.args['msg3Pusch'] = dict()
+        self.args['msg3Pusch']['muPusch'] = self.nrMsg3PuschMuPuschEdit.text()
+        self.args['msg3Pusch']['tdRa'] = self.nrMsg3PuschTimeAllocFieldEdit.text()
+        self.args['msg3Pusch']['tdMappingType'] = self.nrMsg3PuschTimeAllocMappingTypeComb.currentText()
+        self.args['msg3Pusch']['tdK2'] = self.nrMsg3PuschTimeAllocK2Edit.text()
+        self.args['msg3Pusch']['tdDelta'] = self.nrMsg3PuschTimeAllocDeltaEdit.text()
+        self.args['msg3Pusch']['tdSliv'] = self.nrMsg3PuschTimeAllocSlivEdit.text()
+        self.args['msg3Pusch']['tdStartSymb'] = self.nrMsg3PuschTimeAllocSEdit.text()
+        self.args['msg3Pusch']['tdNumSymbs'] = self.nrMsg3PuschTimeAllocLEdit.text()
+        self.args['msg3Pusch']['fdRaType'] = self.nrMsg3PuschFreqAllocTypeComb.currentText()
+        self.args['msg3Pusch']['fdFreqHop'] = self.nrMsg3PuschFreqAllocFreqHopComb.currentText()
+        self.args['msg3Pusch']['fdRa'] = self.nrMsg3PuschFreqAllocFieldEdit.text()
+        self.args['msg3Pusch']['fdStartRb'] = self.nrMsg3PuschFreqAllocType1RbStartEdit.text()
+        self.args['msg3Pusch']['fdNumRbs'] = self.nrMsg3PuschFreqAllocType1LRbsEdit.text()
+        self.args['msg3Pusch']['fdSecondHopFreqOff'] = self.nrMsg3PuschFreqAllocType1SecondHopFreqOffEdit.text()
+        self.args['msg3Pusch']['mcsCw0'] = self.nrMsg3PuschCw0McsEdit.text()
+        self.args['msg3Pusch']['tbs'] = self.nrMsg3PuschTbsEdit.text()
 
         #(4) 'bwp settings' tab
         #Initial DL BWP
@@ -10789,13 +10815,13 @@ class NgNrGridUi(QDialog):
         self.args['dmrsSib1']['numFrontLoadSymbs'] = self.nrDmrsSib1FrontLoadSymbsEdit.text()
 
         dmrsType = self.nrDmrsSib1DmrsTypeComb.currentText()
-        tdmappingType = self.nrDci10Sib1TimeAllocMappingTypeComb.currentText()
+        tdMappingType = self.nrDci10Sib1TimeAllocMappingTypeComb.currentText()
         slivS = int(self.nrDci10Sib1TimeAllocSEdit.text())
         slivL = int(self.nrDci10Sib1TimeAllocLEdit.text())
         numFrontLoadSymbs = int(self.nrDmrsSib1FrontLoadSymbsEdit.text())
         dmrsAddPos = self.nrDmrsSib1AddPosComb.currentText()
         cdmGroupsWoData = int(self.nrDmrsSib1CdmGroupsWoDataEdit.text())
-        tdL, fdK = self.getDmrsPdschTdFdPattern(dmrsType, tdmappingType, slivS, slivL, numFrontLoadSymbs, dmrsAddPos, cdmGroupsWoData)
+        tdL, fdK = self.getDmrsPdschTdFdPattern(dmrsType, tdMappingType, slivS, slivL, numFrontLoadSymbs, dmrsAddPos, cdmGroupsWoData)
         self.args['dmrsSib1']['tdL'] = tdL
         self.args['dmrsSib1']['fdK'] = fdK
 
@@ -10809,13 +10835,13 @@ class NgNrGridUi(QDialog):
         self.args['dmrsMsg2']['numFrontLoadSymbs'] = self.nrDmrsMsg2FrontLoadSymbsEdit.text()
 
         dmrsType = self.nrDmrsMsg2DmrsTypeComb.currentText()
-        tdmappingType = self.nrDci10Msg2TimeAllocMappingTypeComb.currentText()
+        tdMappingType = self.nrDci10Msg2TimeAllocMappingTypeComb.currentText()
         slivS = int(self.nrDci10Msg2TimeAllocSEdit.text())
         slivL = int(self.nrDci10Msg2TimeAllocLEdit.text())
         numFrontLoadSymbs = int(self.nrDmrsMsg2FrontLoadSymbsEdit.text())
         dmrsAddPos = self.nrDmrsMsg2AddPosComb.currentText()
         cdmGroupsWoData = int(self.nrDmrsMsg2CdmGroupsWoDataEdit.text())
-        tdL, fdK = self.getDmrsPdschTdFdPattern(dmrsType, tdmappingType, slivS, slivL, numFrontLoadSymbs, dmrsAddPos, cdmGroupsWoData)
+        tdL, fdK = self.getDmrsPdschTdFdPattern(dmrsType, tdMappingType, slivS, slivL, numFrontLoadSymbs, dmrsAddPos, cdmGroupsWoData)
         self.args['dmrsMsg2']['tdL'] = tdL
         self.args['dmrsMsg2']['fdK'] = fdK
 
@@ -10855,6 +10881,26 @@ class NgNrGridUi(QDialog):
         else:
             self.args['rach']['raLen'] = 139
             self.args['rach']['raNumRbs'], self.args['rach']['raKBar'] = self.nrNumRbRaAndKBar['139_%s_%s' % (self.nrRachGenericScsComb.currentText()[:-3], self.nrIniUlBwpGenericScsComb.currentText()[:-3])]
+
+        self.args['dmrsMsg3'] = dict()
+        self.args['dmrsMsg3']['dmrsType'] = self.nrDmrsMsg3DmrsTypeComb.currentText()
+        self.args['dmrsMsg3']['dmrsAddPos'] = self.nrDmrsMsg3AddPosComb.currentText()
+        self.args['dmrsMsg3']['maxLength'] = self.nrDmrsMsg3MaxLengthComb.currentText()
+        self.args['dmrsMsg3']['dmrsPorts'] = self.nrDmrsMsg3DmrsPortsEdit.text()
+        self.args['dmrsMsg3']['cdmGroupsWoData'] = self.nrDmrsMsg3CdmGroupsWoDataEdit.text()
+        self.args['dmrsMsg3']['numFrontLoadSymbs'] = self.nrDmrsMsg3FrontLoadSymbsEdit.text()
+
+        dmrsType = self.nrDmrsMsg3DmrsTypeComb.currentText()
+        tdMappingType = self.nrMsg3PuschTimeAllocMappingTypeComb.currentText()
+        slivS = int(self.nrMsg3PuschTimeAllocSEdit.text())
+        slivL = int(self.nrMsg3PuschTimeAllocLEdit.text())
+        numFrontLoadSymbs = int(self.nrDmrsMsg3FrontLoadSymbsEdit.text())
+        dmrsAddPos = self.nrDmrsMsg3AddPosComb.currentText()
+        cdmGroupsWoData = int(self.nrDmrsMsg3CdmGroupsWoDataEdit.text())
+        freqHop = self.nrMsg3PuschFreqAllocFreqHopComb.currentText()
+        tdL, fdK = self.getDmrsPuschTdFdPattern(dmrsType, tdMappingType, slivS, slivL, numFrontLoadSymbs, dmrsAddPos, cdmGroupsWoData, freqHop)
+        self.args['dmrsMsg3']['tdL'] = tdL
+        self.args['dmrsMsg3']['fdK'] = fdK
 
         #(5) advanced settings tab
         self.args['advanced'] = dict()
@@ -10928,7 +10974,9 @@ class NgNrGridUi(QDialog):
                             if tokens[0] in ('maxDlFreq', 'maxL', 'coreset0MultiplexingPat', 'coreset0NumRbs', 'coreset0NumSymbs', 'coreset0Offset', 'coreset0StartRb', 'raX', 'raStartingSymb', 'raNumSlotsPerSubfFr1Per60KSlotFr2', 'raNumOccasionsPerSlot', 'raDuration', 'raLen', 'raNumRbs', 'raKBar'):
                                 self.args[key][tokens[0]] = int(tokens[1])
                             elif (tokens[1].startswith('(') and tokens[1].endswith(')')) or (tokens[1].startswith('[') and tokens[1].endswith(']')):
-                                self.args[key][tokens[0]] = [int(k) for k in tokens[1][1:-1].split(',') if k]
+                                #using python built-in function: eval(expression, globals=None, locals=None)
+                                #The arguments are a string and optional globals and locals. If provided, globals must be a dictionary. If provided, locals can be any mapping object.
+                                self.args[key][tokens[0]] = eval(tokens[1])
                             else:
                                 self.args[key][tokens[0]] = tokens[1]
         except Exception as e:
@@ -10952,16 +11000,89 @@ class NgNrGridUi(QDialog):
             tdLd = slivL
         if numFrontLoadSymbs == 1:
             tdLbar = self.nrDmrsPdschPosOneSymb['%s_%s_%s' % (tdLd, tdMappingType, dmrsAddPos)]
-            tdLap = [0] #ap for apostrophe, the (' or ’) character
+            tdLap = [0] #ap for apostrophe, the (') character
         else:
             tdLbar = self.nrDmrsPdschPosTwoSymbs['%s_%s_%s' % (tdLd, tdMappingType, dmrsAddPos)]
-            tdLap = [0, 1] #ap for apostrophe, the (' or ’) character
+            tdLap = [0, 1] #ap for apostrophe, the (') character
         tdLbar = list(tdLbar)
         tdLbar[0] = tdL0
         tdL = []
         for i in tdLbar:
             for j in tdLap:
                 tdL.append(i+j)
+
+        #freq-domain DM-RS pattern in a single PRB
+        if dmrsType == 'Type 1':
+            fdN = [0, 1, 2]
+            fdKap = [0, 1]
+            if cdmGroupsWoData == 1:
+                fdDelta = [0]
+            else:
+                fdDelta = [0, 1]
+        else:
+            fdN = [0, 1]
+            fdKap = [0, 1]
+            if cdmGroupsWoData == 1:
+                fdDelta = [0]
+            elif cdmGroupsWoData == 2:
+                fdDelta = [0, 2]
+            else:
+                fdDelta = [0, 2, 4]
+
+        fdK = [0] * self.numScPerPrb
+        for i in fdN:
+            for j in fdKap:
+                for k in fdDelta:
+                    isc = 4*i+2*j+k if dmrsType == 'Type 1' else 6*i+j+k
+                    fdK[isc] = 1
+
+        return (tdL, fdK)
+
+    def getDmrsPuschTdFdPattern(self, dmrsType, tdMappingType, slivS, slivL, numFrontLoadSymbs, dmrsAddPos, cdmGroupsWoData, freqHop):
+        if freqHop == 'disabled' or freqHop == 'inter-slot':
+            if tdMappingType == 'Type A':
+                tdL0 = 3 if self.nrMibDmRsTypeAPosComb.currentText() == 'pos3' else 2
+                tdLd = slivS + slivL
+            else:
+                tdL0 = 0
+                tdLd = slivL
+            if numFrontLoadSymbs == 1:
+                tdLbar = self.nrDmrsPuschPosOneSymbWoIntraSlotFh['%s_%s_%s' % (tdLd, tdMappingType, dmrsAddPos)]
+                tdLap = [0] #ap for apostrophe, the (') character
+            else:
+                tdLbar = self.nrDmrsPuschPosTwoSymbsWoIntraSlotFh['%s_%s_%s' % (tdLd, tdMappingType, dmrsAddPos)]
+                tdLap = [0, 1] #ap for apostrophe, the (') character
+            tdLbar = list(tdLbar)
+            tdLbar[0] = tdL0
+            tdL = []
+            for i in tdLbar:
+                for j in tdLap:
+                    tdL.append(i+j)
+        else:
+            #intra-slot frequency hopping
+            numSymbsPerHop = [math.floor(slivL / 2), slivL - math.floor(slivL / 2)]
+            tdL = [[], []]
+            for hop in range(2):
+                if tdMappingType == 'Type A':
+                    tdL0 = 3 if self.nrMibDmRsTypeAPosComb.currentText() == 'pos3' else 2
+                    tdLd = numSymbsPerHop[hop]
+                else:
+                    tdL0 = 0
+                    tdLd = numSymbsPerHop[hop]
+
+                #refer to 3GPP 38.211 vf40 6.4.1.1.3
+                #if the higher-layer parameter dmrs-AdditionalPosition is not set to 'pos0' and intra-slot frequency hopping is enabled according to clause 7.3.1.1.2 in [4, TS 38.212] and by higher layer, Tables 6.4.1.1.3-6 shall be used assuming dmrs-AdditionalPosition is equal to 'pos1' for each hop.
+                if dmrsAddPos != 'pos0':
+                    dmrsAddPos = 'pos1'
+                if numFrontLoadSymbs == 1:
+                    tdLbar = self.nrDmrsPuschPosOneSymbWithIntraSlotFh['%s_%s_%s_%s_%s' % (tdLd, tdMappingType, tdL0, dmrsAddPos, '1st' if hop == 0 else '2nd')]
+                    tdLap = [0] #ap for apostrophe, the (') character
+                else:
+                    return (None, None)
+
+                for i in tdLbar:
+                    for j in tdLap:
+                        tdL[hop].append(i+j)
 
         #freq-domain DM-RS pattern in a single PRB
         if dmrsType == 'Type 1':
