@@ -597,7 +597,8 @@ class NgNrGrid(object):
                 hsfn, sfn = key.split('_')
                 for i in range(self.nrSymbPerRfNormCp//self.nrSymbPerSlotNormCp):
                     for j in range(self.nrSymbPerSlotNormCp):
-                        horizontalHeader.append('sfn%s\nslot%d\nsymb%d' % (sfn, i, j))
+                        #horizontalHeader.append('sfn%s\nslot%d\nsymb%d' % (sfn, i, j))
+                        horizontalHeader.append('%s-%d-%d' % (sfn, i, j))
 
         workbook = xlsxwriter.Workbook(os.path.join(self.outDir, '5gnr_grid_%s.xlsx' % (time.strftime('%Y%m%d%H%M%S', time.localtime()))))
         fmtHHeader = workbook.add_format({'font_name':'Arial', 'font_size':8, 'align':'center', 'valign':'vcenter', 'text_wrap':True, 'bg_color':'yellow', 'border':1})
@@ -652,7 +653,10 @@ class NgNrGrid(object):
         if self.nrDuplexMode == 'TDD':
             sheet1 = workbook.add_worksheet('TDD Grid')
             sheet1.set_zoom(80)
-            sheet1.freeze_panes(1, 1)
+            #sheet1.freeze_panes(1, 1)
+            sheet1.freeze_panes(self.nrScGb+1, 1)
+            for row in range(2, self.nrScGb):
+                sheet1.set_row(row, None, None, {'hidden':True})
 
             #write header
             sheet1.write_row(0, 0, horizontalHeader, fmtHHeader)
@@ -670,10 +674,17 @@ class NgNrGrid(object):
         else:
             sheet1 = workbook.add_worksheet('FDD UL Grid')
             sheet1.set_zoom(80)
-            sheet1.freeze_panes(1, 1)
+            #sheet1.freeze_panes(1, 1)
+            sheet1.freeze_panes(self.nrScGb+1, 1)
+            for row in range(2, self.nrScGb):
+                sheet1.set_row(row, None, None, {'hidden':True})
+
             sheet2 = workbook.add_worksheet('FDD DL Grid')
             sheet2.set_zoom(80)
-            sheet2.freeze_panes(1, 1)
+            #sheet2.freeze_panes(1, 1)
+            sheet2.freeze_panes(self.nrScGb+1, 1)
+            for row in range(2, self.nrScGb):
+                sheet2.set_row(row, None, None, {'hidden':True})
 
             #write header
             sheet1.write_row(0, 0, horizontalHeader, fmtHHeader)
