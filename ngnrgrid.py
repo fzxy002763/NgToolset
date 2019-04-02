@@ -957,14 +957,6 @@ class NgNrGrid(object):
                     if self.ngwin.enableDebug:
                         self.ngwin.logEdit.append('<font color=red>detCss0 failed, hsfn=%s,sfn=%s</font>' % (hsfn, sfn))
                         qApp.processEvents()
-
-                    #remove 'not-used' HSFN+SFN from gridNrTdd/gridNrFddUl/gridNrFddDl
-                    if not (hsfn == oldHsfn and sfn == oldSfn):
-                        if self.nrDuplexMode == 'TDD':
-                            self.gridNrTdd.pop('%s_%s' % (hsfn, sfn))
-                        else:
-                            self.gridNrFddUl.pop('%s_%s' % (hsfn, sfn))
-                            self.gridNrFddDl.pop('%s_%s' % (hsfn, sfn))
                 else:
                     for i in range(len(self.coreset0Occasions)):
                         if self.coreset0Occasions[i] is None:
@@ -1001,6 +993,34 @@ class NgNrGrid(object):
             for i in range(len(validCss0Msg2)):
                 self.ngwin.logEdit.append('PDCCH occasion #%d: %s' % (i, validCss0Msg2[i]))
             qApp.processEvents()
+
+            #remove 'not-used' HSFN+SFN from gridNrTdd/gridNrFddUl/gridNrFddDl
+            validHsfnSfn = []
+            validHsfnSfn.append([oldHsfn, oldSfn])
+            for i in range(len(validCss0Msg2)):
+                _hsfn, _sfn, _slot, _symb = validCss0Msg2[i]
+                if [_hsfn, _sfn] not in validHsfnSfn:
+                    validHsfnSfn.append([_hsfn, _sfn])
+
+            if self.nrDuplexMode == 'TDD':
+                keys = list(self.gridNrTdd.keys())
+                for key in keys:
+                    _hsfn, _sfn = [int(k) for k in key.split('_')]
+                    if (_hsfn > oldHsfn or (_hsfn == oldHsfn and _sfn >= oldSfn)) and [_hsfn, _sfn] not in validHsfnSfn:
+                        if self.ngwin.enableDebug:
+                            self.ngwin.logEdit.append('unused [hsfn=%d,sfn=%d] removed' % (_hsfn, _sfn))
+                            qApp.processEvents()
+                        self.gridNrTdd.pop('%s_%s' % (_hsfn, _sfn))
+            else:
+                keys = list(self.gridNrFddDl.keys())
+                for key in keys:
+                    _hsfn, _sfn = [int(k) for k in key.split('_')]
+                    if (_hsfn > oldHsfn or (_hsfn == oldHsfn and _sfn >= oldSfn)) and [_hsfn, _sfn] not in validHsfnSfn:
+                        if self.ngwin.enableDebug:
+                            self.ngwin.logEdit.append('unused [hsfn=%d,sfn=%d] removed' % (_hsfn, _sfn))
+                            qApp.processEvents()
+                        self.gridNrFddUl.pop('%s_%s' % (_hsfn, _sfn))
+                        self.gridNrFddDl.pop('%s_%s' % (_hsfn, _sfn))
 
             #randomly select from validCss0Msg2 pdcch occasion for msg2 scheduling
             pdcchOccasion = np.random.randint(0, len(validCss0Msg2)) if self.nrAdvMsg2PdcchOccasion is None else self.nrAdvMsg2PdcchOccasion
@@ -1073,13 +1093,6 @@ class NgNrGrid(object):
                         self.ngwin.logEdit.append('<font color=red>detCss0 failed, hsfn=%s,sfn=%s</font>' % (hsfn, sfn))
                         qApp.processEvents()
 
-                    #remove 'not-used' HSFN+SFN from gridNrTdd/gridNrFddUl/gridNrFddDl
-                    if not (hsfn == oldHsfn and sfn == oldSfn):
-                        if self.nrDuplexMode == 'TDD':
-                            self.gridNrTdd.pop('%s_%s' % (hsfn, sfn))
-                        else:
-                            self.gridNrFddUl.pop('%s_%s' % (hsfn, sfn))
-                            self.gridNrFddDl.pop('%s_%s' % (hsfn, sfn))
                 else:
                     for i in range(len(self.coreset0Occasions)):
                         if self.coreset0Occasions[i] is None:
@@ -1110,6 +1123,34 @@ class NgNrGrid(object):
             for i in range(len(css0Msg4)):
                 self.ngwin.logEdit.append('PDCCH occasion #%d: %s' % (i, css0Msg4[i]))
             qApp.processEvents()
+
+            #remove 'not-used' HSFN+SFN from gridNrTdd/gridNrFddUl/gridNrFddDl
+            validHsfnSfn = []
+            validHsfnSfn.append([oldHsfn, oldSfn])
+            for i in range(len(css0Msg4)):
+                _hsfn, _sfn, _slot, _symb = css0Msg4[i]
+                if [_hsfn, _sfn] not in validHsfnSfn:
+                    validHsfnSfn.append([_hsfn, _sfn])
+
+            if self.nrDuplexMode == 'TDD':
+                keys = list(self.gridNrTdd.keys())
+                for key in keys:
+                    _hsfn, _sfn = [int(k) for k in key.split('_')]
+                    if (_hsfn > oldHsfn or (_hsfn == oldHsfn and _sfn >= oldSfn)) and [_hsfn, _sfn] not in validHsfnSfn:
+                        if self.ngwin.enableDebug:
+                            self.ngwin.logEdit.append('unused [hsfn=%d,sfn=%d] removed' % (_hsfn, _sfn))
+                            qApp.processEvents()
+                        self.gridNrTdd.pop('%s_%s' % (_hsfn, _sfn))
+            else:
+                keys = list(self.gridNrFddDl.keys())
+                for key in keys:
+                    _hsfn, _sfn = [int(k) for k in key.split('_')]
+                    if (_hsfn > oldHsfn or (_hsfn == oldHsfn and _sfn >= oldSfn)) and [_hsfn, _sfn] not in validHsfnSfn:
+                        if self.ngwin.enableDebug:
+                            self.ngwin.logEdit.append('unused [hsfn=%d,sfn=%d] removed' % (_hsfn, _sfn))
+                            qApp.processEvents()
+                        self.gridNrFddUl.pop('%s_%s' % (_hsfn, _sfn))
+                        self.gridNrFddDl.pop('%s_%s' % (_hsfn, _sfn))
 
             #randomly select from css0Msg4 the pdcch occasion for msg4 scheduling
             pdcchOccasion = np.random.randint(0, len(css0Msg4)) if self.nrAdvMsg4PdcchOccasion is None else self.nrAdvMsg4PdcchOccasion
@@ -1354,9 +1395,15 @@ class NgNrGrid(object):
                 if valid[j] == 'OK':
                     for k in coreset0SymbsInBaseScsTd:
                         if self.nrDuplexMode == 'TDD':
-                            self.gridNrTdd[dn2][self.coreset0FirstSc:self.coreset0FirstSc+self.nrCoreset0NumRbs*self.nrScPerPrb*scaleFd, k] = NrResType.NR_RES_CORESET0.value
+                            for m in range(self.nrCoreset0NumRbs*self.nrScPerPrb*scaleFd):
+                                #avoid overwriting 'CORESET0/PDCCH'
+                                if self.gridNrTdd[dn2][self.coreset0FirstSc+m, k] == NrResType.NR_RES_D.value:
+                                    self.gridNrTdd[dn2][self.coreset0FirstSc+m, k] = NrResType.NR_RES_CORESET0.value
                         else:
-                            self.gridNrFddDl[dn2][self.coreset0FirstSc:self.coreset0FirstSc+self.nrCoreset0NumRbs*self.nrScPerPrb*scaleFd, k] = NrResType.NR_RES_CORESET0.value
+                            for m in range(self.nrCoreset0NumRbs*self.nrScPerPrb*scaleFd):
+                                #avoid overwriting 'CORESET0/PDCCH'
+                                if self.gridNrFddDl[dn2][self.coreset0FirstSc+m, k] == NrResType.NR_RES_D.value:
+                                    self.gridNrFddDl[dn2][self.coreset0FirstSc+m, k] = NrResType.NR_RES_CORESET0.value
 
             self.coreset0Occasions[i][2] = valid
             if (len(valid) == 1 and valid[0] == 'NOK') or (len(valid) == 2 and valid[0] == 'NOK' and valid[1] == 'NOK'):
