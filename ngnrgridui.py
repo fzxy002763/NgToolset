@@ -1644,6 +1644,10 @@ class NgNrGridUi(QDialog):
         self.nrRachCbPreamblesPerSsbComb = QComboBox()
         self.nrRachCbPreamblesPerSsbComb.addItems([str(i) for i in self.nrSsbPerRachOccasion2CbPreamblesPerSsb['oneEighth']])
 
+        self.nrRachContResTimerLabel = QLabel('ra-ContentionResolutionTimer:')
+        self.nrRachContResTimerComb = QComboBox()
+        self.nrRachContResTimerComb.addItems(['sf8', 'sf16', 'sf24', 'sf32', 'sf40', 'sf48', 'sf56', 'sf64'])
+
         self.nrRachMsg3TpLabel = QLabel('msg3-transformPrecoder:')
         self.nrRachMsg3TpComb = QComboBox()
         self.nrRachMsg3TpComb.addItems(['enabled', 'disabled'])
@@ -1660,8 +1664,10 @@ class NgNrGridUi(QDialog):
         prachWidgetGridLayout.addWidget(self.nrRachSsbPerRachOccasionComb, 2, 1)
         prachWidgetGridLayout.addWidget(self.nrRachCbPreamblesPerSsbLabel, 3, 0)
         prachWidgetGridLayout.addWidget(self.nrRachCbPreamblesPerSsbComb, 3, 1)
-        prachWidgetGridLayout.addWidget(self.nrRachMsg3TpLabel, 4, 0)
-        prachWidgetGridLayout.addWidget(self.nrRachMsg3TpComb, 4, 1)
+        prachWidgetGridLayout.addWidget(self.nrRachContResTimerLabel, 4, 0)
+        prachWidgetGridLayout.addWidget(self.nrRachContResTimerComb, 4, 1)
+        prachWidgetGridLayout.addWidget(self.nrRachMsg3TpLabel, 5, 0)
+        prachWidgetGridLayout.addWidget(self.nrRachMsg3TpComb, 5, 1)
         prachWidget.setLayout(prachWidgetGridLayout)
 
         #dmrs for msg3 pusch
@@ -3324,6 +3330,12 @@ class NgNrGridUi(QDialog):
         self.nrAdvMsg2PdcchCandLabel = QLabel('PDCCH candidate for Msg2:')
         self.nrAdvMsg2PdcchCandEdit = QLineEdit('NA')
 
+        self.nrAdvMsg4PdcchOccasionLabel = QLabel('PDCCH occasion for Msg2:')
+        self.nrAdvMsg4PdcchOccasionEdit = QLineEdit('NA')
+
+        self.nrAdvMsg4PdcchCandLabel = QLabel('PDCCH candidate for Msg4:')
+        self.nrAdvMsg4PdcchCandEdit = QLineEdit('NA')
+
         self.nrAdvImportCfgChkBox = QCheckBox('Import existing configurations?')
         self.nrAdvCfgFileEdit = QLineEdit()
         self.nrAdvCfgFileEdit.setEnabled(False)
@@ -3343,8 +3355,12 @@ class NgNrGridUi(QDialog):
         advConfGridLayout.addWidget(self.nrAdvMsg2PdcchOccasionEdit, 5, 1)
         advConfGridLayout.addWidget(self.nrAdvMsg2PdcchCandLabel, 6, 0)
         advConfGridLayout.addWidget(self.nrAdvMsg2PdcchCandEdit, 6, 1)
-        advConfGridLayout.addWidget(self.nrAdvImportCfgChkBox, 7, 0)
-        advConfGridLayout.addWidget(self.nrAdvCfgFileEdit, 7, 1)
+        advConfGridLayout.addWidget(self.nrAdvMsg4PdcchOccasionLabel, 7, 0)
+        advConfGridLayout.addWidget(self.nrAdvMsg4PdcchOccasionEdit, 7, 1)
+        advConfGridLayout.addWidget(self.nrAdvMsg4PdcchCandLabel, 8, 0)
+        advConfGridLayout.addWidget(self.nrAdvMsg4PdcchCandEdit, 8, 1)
+        advConfGridLayout.addWidget(self.nrAdvImportCfgChkBox, 9, 0)
+        advConfGridLayout.addWidget(self.nrAdvCfgFileEdit, 9, 1)
 
         advConfLayout = QVBoxLayout()
         advConfLayout.addLayout(advConfGridLayout)
@@ -10637,14 +10653,23 @@ class NgNrGridUi(QDialog):
             if hsfn is not None and sfn is not None and slot is not None:
                 self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]send Msg3</b></font>')
                 hsfn, sfn, slot = nrGrid.sendMsg3(hsfn, sfn, slot)
-            '''
-            #monitoring PDCCH for Msg4
-            hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci10', rnti='tc-rnti')
-            #receiving Msg4
-            hsfn, sfn = nrGrid.recvMsg4(hsfn, sfn)
-            #sending Msg4 HARQ feedback(PUCCH)
-            hsfn, sfn = nrGrid.sendPucch(hsfn, sfn)
 
+            #monitoring PDCCH for Msg4
+            if hsfn is not None and sfn is not None and slot is not None:
+                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv PDCCH(DCI 1_0, TC-RNTI)</b></font>')
+                hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, slot, dci='dci10', rnti='tc-rnti')
+
+            #receiving Msg4
+            if hsfn is not None and sfn is not None and slot is not None:
+                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv Msg4</b></font>')
+                hsfn, sfn, slot = nrGrid.recvMsg4(hsfn, sfn, slot)
+
+            #sending Msg4 HARQ feedback(PUCCH)
+            if hsfn is not None and sfn is not None and slot is not None:
+                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]send PUCCH(Msg4 HARQ)</b></font>')
+                hsfn, sfn, slot = nrGrid.sendPucch(hsfn, sfn, slot)
+
+            '''
             #monitoring PDCCH for normal PDSCH
             hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci11', rnti='c-rnti')
             #receiving PDSCH
@@ -10795,6 +10820,27 @@ class NgNrGridUi(QDialog):
         self.args['msg3Pusch']['mcsCw0'] = self.nrMsg3PuschCw0McsEdit.text()
         self.args['msg3Pusch']['tbs'] = self.nrMsg3PuschTbsEdit.text()
 
+        self.args['dci10Msg4'] = dict()
+        self.args['dci10Msg4']['rnti'] = self.nrDci10Msg4RntiEdit.text()
+        self.args['dci10Msg4']['muPdcch'] = self.nrDci10Msg4MuPdcchEdit.text()
+        self.args['dci10Msg4']['muPdsch'] = self.nrDci10Msg4MuPdschEdit.text()
+        self.args['dci10Msg4']['tdRa'] = self.nrDci10Msg4TimeAllocFieldEdit.text()
+        self.args['dci10Msg4']['tdMappingType'] = self.nrDci10Msg4TimeAllocMappingTypeComb.currentText()
+        self.args['dci10Msg4']['tdK0'] = self.nrDci10Msg4TimeAllocK0Edit.text()
+        self.args['dci10Msg4']['tdSliv'] = self.nrDci10Msg4TimeAllocSlivEdit.text()
+        self.args['dci10Msg4']['tdStartSymb'] = self.nrDci10Msg4TimeAllocSEdit.text()
+        self.args['dci10Msg4']['tdNumSymbs'] = self.nrDci10Msg4TimeAllocLEdit.text()
+        self.args['dci10Msg4']['fdRaType'] = self.nrDci10Msg4FreqAllocTypeComb.currentText()
+        self.args['dci10Msg4']['fdRa'] = self.nrDci10Msg4FreqAllocFieldEdit.text()
+        self.args['dci10Msg4']['fdStartRb'] = self.nrDci10Msg4FreqAllocType1RbStartEdit.text()
+        self.args['dci10Msg4']['fdNumRbs'] = self.nrDci10Msg4FreqAllocType1LRbsEdit.text()
+        self.args['dci10Msg4']['fdVrbPrbMappingType'] = self.nrDci10Msg4FreqAllocType1VrbPrbMappingTypeComb.currentText()
+        self.args['dci10Msg4']['fdBundleSize'] = self.nrDci10Msg4FreqAllocType1BundleSizeComb.currentText()
+        self.args['dci10Msg4']['mcsCw0'] = self.nrDci10Msg4Cw0McsEdit.text()
+        self.args['dci10Msg4']['tbs'] = self.nrDci10Msg4TbsEdit.text()
+        self.args['dci10Msg4']['deltaPri'] = self.nrDci10Msg4DeltaPriEdit.text()
+        self.args['dci10Msg4']['tdK1'] = self.nrDci10Msg4K1Edit.text()
+
         #(4) 'bwp settings' tab
         #Initial DL BWP
         self.args['iniDlBwp'] = dict()
@@ -10845,7 +10891,27 @@ class NgNrGridUi(QDialog):
         self.args['dmrsMsg2']['tdL'] = tdL
         self.args['dmrsMsg2']['fdK'] = fdK
 
-        #initial ul bwp and PRACH
+        #DMRS for Msg4
+        self.args['dmrsMsg4'] = dict()
+        self.args['dmrsMsg4']['dmrsType'] = self.nrDmrsMsg4DmrsTypeComb.currentText()
+        self.args['dmrsMsg4']['dmrsAddPos'] = self.nrDmrsMsg4AddPosComb.currentText()
+        self.args['dmrsMsg4']['maxLength'] = self.nrDmrsMsg4MaxLengthComb.currentText()
+        self.args['dmrsMsg4']['dmrsPorts'] = self.nrDmrsMsg4DmrsPortsEdit.text()
+        self.args['dmrsMsg4']['cdmGroupsWoData'] = self.nrDmrsMsg4CdmGroupsWoDataEdit.text()
+        self.args['dmrsMsg4']['numFrontLoadSymbs'] = self.nrDmrsMsg4FrontLoadSymbsEdit.text()
+
+        dmrsType = self.nrDmrsMsg4DmrsTypeComb.currentText()
+        tdMappingType = self.nrDci10Msg4TimeAllocMappingTypeComb.currentText()
+        slivS = int(self.nrDci10Msg4TimeAllocSEdit.text())
+        slivL = int(self.nrDci10Msg4TimeAllocLEdit.text())
+        numFrontLoadSymbs = int(self.nrDmrsMsg4FrontLoadSymbsEdit.text())
+        dmrsAddPos = self.nrDmrsMsg4AddPosComb.currentText()
+        cdmGroupsWoData = int(self.nrDmrsMsg4CdmGroupsWoDataEdit.text())
+        tdL, fdK = self.getDmrsPdschTdFdPattern(dmrsType, tdMappingType, slivS, slivL, numFrontLoadSymbs, dmrsAddPos, cdmGroupsWoData)
+        self.args['dmrsMsg4']['tdL'] = tdL
+        self.args['dmrsMsg4']['fdK'] = fdK
+
+        #initial ul bwp
         self.args['iniUlBwp'] = dict()
         self.args['iniUlBwp']['bwpId'] = self.nrIniUlBwpGenericBwpIdEdit.text()
         self.args['iniUlBwp']['scs'] = self.nrIniUlBwpGenericScsComb.currentText()
@@ -10854,6 +10920,7 @@ class NgNrGridUi(QDialog):
         self.args['iniUlBwp']['startRb'] = self.nrIniUlBwpGenericRbStartEdit.text()
         self.args['iniUlBwp']['numRbs'] = self.nrIniUlBwpGenericLRbsEdit.text()
 
+        #rach
         self.args['rach'] = dict()
         self.args['rach']['prachConfId'] = self.nrRachGenericPrachConfIdEdit.text()
         self.args['rach']['raFormat'] = self.raFormat
@@ -10871,6 +10938,7 @@ class NgNrGridUi(QDialog):
         self.args['rach']['totNumPreambs'] = self.nrRachNumRaPreamblesEdit.text()
         self.args['rach']['ssbPerRachOccasion'] = self.nrRachSsbPerRachOccasionComb.currentText()
         self.args['rach']['cbPreambsPerSsb'] = self.nrRachCbPreamblesPerSsbComb.currentText()
+        self.args['rach']['contResTimer'] = self.nrRachContResTimerComb.currentText()
         self.args['rach']['msg3Tp'] = self.nrRachMsg3TpComb.currentText()
         if self.raFormat in ('0', '1', '2'):
             self.args['rach']['raLen'] = 839
@@ -10882,6 +10950,7 @@ class NgNrGridUi(QDialog):
             self.args['rach']['raLen'] = 139
             self.args['rach']['raNumRbs'], self.args['rach']['raKBar'] = self.nrNumRbRaAndKBar['139_%s_%s' % (self.nrRachGenericScsComb.currentText()[:-3], self.nrIniUlBwpGenericScsComb.currentText()[:-3])]
 
+        #msg3
         self.args['dmrsMsg3'] = dict()
         self.args['dmrsMsg3']['dmrsType'] = self.nrDmrsMsg3DmrsTypeComb.currentText()
         self.args['dmrsMsg3']['dmrsAddPos'] = self.nrDmrsMsg3AddPosComb.currentText()
@@ -10902,6 +10971,15 @@ class NgNrGridUi(QDialog):
         self.args['dmrsMsg3']['tdL'] = tdL
         self.args['dmrsMsg3']['fdK'] = fdK
 
+        #pucch for msg4 harq
+        self.args['pucchSib1'] = dict()
+        self.args['pucchSib1']['pucchResInd'] = self.nrPucchSib1PucchResCommonEdit.text()
+        self.args['pucchSib1']['pucchFmt'] = self.nrPucchSib1PucchFmtComb.currentText()
+        self.args['pucchSib1']['pucchStartSymb'] = self.nrPucchSib1StartingSymbEdit.text()
+        self.args['pucchSib1']['pucchNumSymbs'] = self.nrPucchSib1NumSymbsEdit.text()
+        self.args['pucchSib1']['pucchPrbOff'] = self.nrPucchSib1PrbOffsetEdit.text()
+        self.args['pucchSib1']['pucchIniCsSet'] = eval(self.nrPucchSib1IniCsIndexesSetEdit.text())
+
         #(5) advanced settings tab
         self.args['advanced'] = dict()
         self.args['advanced']['bestSsb'] = self.nrAdvBestSsbEdit.text()
@@ -10910,6 +10988,8 @@ class NgNrGridUi(QDialog):
         self.args['advanced']['prachOccasion'] = self.nrAdvPrachOccasionEdit.text()
         self.args['advanced']['msg2PdcchOcc'] = self.nrAdvMsg2PdcchOccasionEdit.text()
         self.args['advanced']['msg2PdcchCand'] = self.nrAdvMsg2PdcchCandEdit.text()
+        self.args['advanced']['msg4PdcchOcc'] = self.nrAdvMsg4PdcchOccasionEdit.text()
+        self.args['advanced']['msg4PdcchCand'] = self.nrAdvMsg4PdcchCandEdit.text()
 
         #print dict info
         for key in self.args.keys():
