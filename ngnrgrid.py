@@ -110,23 +110,6 @@ class NgNrGrid(object):
             if not self.initTddUlDlConfig():
                 return False
 
-        '''
-        dn = '%s_%s' % (self.hsfn, self.nrMibSfn)
-        if self.nrDuplexMode == 'TDD':
-            self.gridNrTdd[dn] = np.full((self.nrScTot, self.nrSymbPerRfNormCp), NrResType.NR_RES_GB.value)
-            if not self.initTddUlDlConfig():
-                return False
-            self.initTddGrid(self.hsfn, self.nrMibSfn)
-        elif self.nrDuplexMode == 'FDD':
-            self.gridNrFddDl[dn] = np.full((self.nrScTot, self.nrSymbPerRfNormCp), NrResType.NR_RES_D.value)
-            self.gridNrFddUl[dn] = np.full((self.nrScTot, self.nrSymbPerRfNormCp), NrResType.NR_RES_U.value)
-            #init 'min guard band'
-            self.gridNrFddDl[dn][:self.nrScGb, :] = NrResType.NR_RES_GB.value
-            self.gridNrFddUl[dn][:self.nrScGb, :] = NrResType.NR_RES_GB.value
-        else:
-            return False
-        '''
-
         self.outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
         if not os.path.exists(self.outDir):
             os.mkdir(self.outDir)
@@ -1709,6 +1692,7 @@ class NgNrGrid(object):
                 return (None, None, None)
 
         for i in range(self.nrMsg2TdNumSymbs):
+            #FIXME continue is wrong!
             if self.nrDuplexMode == 'TDD' and self.gridNrTdd[dn][self.coreset0FirstSc, firstSymbMsg2InBaseScsTd+i*scaleTd] in (NrResType.NR_RES_U.value, NrResType.NR_RES_F.value):
                 continue
 
@@ -1928,6 +1912,7 @@ class NgNrGrid(object):
                 return (None, None, None)
 
         for i in range(self.nrMsg4TdNumSymbs):
+            #FIXME continue is wrong!
             if self.nrDuplexMode == 'TDD' and self.gridNrTdd[dn][self.coreset0FirstSc, firstSymbMsg4InBaseScsTd+i*scaleTd] in (NrResType.NR_RES_U.value, NrResType.NR_RES_F.value):
                 continue
 
@@ -1991,7 +1976,6 @@ class NgNrGrid(object):
                 self.aotPdcchSib1(hsfn, sfn)
             if not self.error:
                 self.aotSib1(hsfn, sfn)
-
 
     def aotSsb(self, hsfn, sfn):
         if self.error:
