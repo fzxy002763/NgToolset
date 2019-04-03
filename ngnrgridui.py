@@ -3318,8 +3318,8 @@ class NgNrGridUi(QDialog):
         self.nrAdvSib1PdcchSlotLabel = QLabel('PDCCH slot for SIB1:')
         self.nrAdvSib1PdcchSlotEdit = QLineEdit('NA')
 
-        self.nrAdvSib1PdcchCandLabel = QLabel('PDCCH candidate for SIB1:')
-        self.nrAdvSib1PdcchCandEdit = QLineEdit('NA')
+        #self.nrAdvSib1PdcchCandLabel = QLabel('PDCCH candidate for SIB1:')
+        #self.nrAdvSib1PdcchCandEdit = QLineEdit('NA')
 
         self.nrAdvPrachOccasionLabel = QLabel('PRACH occasion for Msg1:')
         self.nrAdvPrachOccasionEdit = QLineEdit('NA')
@@ -3327,14 +3327,14 @@ class NgNrGridUi(QDialog):
         self.nrAdvMsg2PdcchOccasionLabel = QLabel('PDCCH occasion for Msg2:')
         self.nrAdvMsg2PdcchOccasionEdit = QLineEdit('NA')
 
-        self.nrAdvMsg2PdcchCandLabel = QLabel('PDCCH candidate for Msg2:')
-        self.nrAdvMsg2PdcchCandEdit = QLineEdit('NA')
+        #self.nrAdvMsg2PdcchCandLabel = QLabel('PDCCH candidate for Msg2:')
+        #self.nrAdvMsg2PdcchCandEdit = QLineEdit('NA')
 
-        self.nrAdvMsg4PdcchOccasionLabel = QLabel('PDCCH occasion for Msg2:')
+        self.nrAdvMsg4PdcchOccasionLabel = QLabel('PDCCH occasion for Msg4:')
         self.nrAdvMsg4PdcchOccasionEdit = QLineEdit('NA')
 
-        self.nrAdvMsg4PdcchCandLabel = QLabel('PDCCH candidate for Msg4:')
-        self.nrAdvMsg4PdcchCandEdit = QLineEdit('NA')
+        #self.nrAdvMsg4PdcchCandLabel = QLabel('PDCCH candidate for Msg4:')
+        #self.nrAdvMsg4PdcchCandEdit = QLineEdit('NA')
 
         self.nrAdvImportCfgChkBox = QCheckBox('Import existing configurations?')
         self.nrAdvCfgFileEdit = QLineEdit()
@@ -3347,20 +3347,14 @@ class NgNrGridUi(QDialog):
         advConfGridLayout.addWidget(self.nrAdvBestSsbEdit, 1, 1)
         advConfGridLayout.addWidget(self.nrAdvSib1PdcchSlotLabel, 2, 0)
         advConfGridLayout.addWidget(self.nrAdvSib1PdcchSlotEdit, 2, 1)
-        advConfGridLayout.addWidget(self.nrAdvSib1PdcchCandLabel, 3, 0)
-        advConfGridLayout.addWidget(self.nrAdvSib1PdcchCandEdit, 3, 1)
-        advConfGridLayout.addWidget(self.nrAdvPrachOccasionLabel, 4, 0)
-        advConfGridLayout.addWidget(self.nrAdvPrachOccasionEdit, 4, 1)
-        advConfGridLayout.addWidget(self.nrAdvMsg2PdcchOccasionLabel, 5, 0)
-        advConfGridLayout.addWidget(self.nrAdvMsg2PdcchOccasionEdit, 5, 1)
-        advConfGridLayout.addWidget(self.nrAdvMsg2PdcchCandLabel, 6, 0)
-        advConfGridLayout.addWidget(self.nrAdvMsg2PdcchCandEdit, 6, 1)
-        advConfGridLayout.addWidget(self.nrAdvMsg4PdcchOccasionLabel, 7, 0)
-        advConfGridLayout.addWidget(self.nrAdvMsg4PdcchOccasionEdit, 7, 1)
-        advConfGridLayout.addWidget(self.nrAdvMsg4PdcchCandLabel, 8, 0)
-        advConfGridLayout.addWidget(self.nrAdvMsg4PdcchCandEdit, 8, 1)
-        advConfGridLayout.addWidget(self.nrAdvImportCfgChkBox, 9, 0)
-        advConfGridLayout.addWidget(self.nrAdvCfgFileEdit, 9, 1)
+        advConfGridLayout.addWidget(self.nrAdvPrachOccasionLabel, 3, 0)
+        advConfGridLayout.addWidget(self.nrAdvPrachOccasionEdit, 3, 1)
+        advConfGridLayout.addWidget(self.nrAdvMsg2PdcchOccasionLabel, 4, 0)
+        advConfGridLayout.addWidget(self.nrAdvMsg2PdcchOccasionEdit, 4, 1)
+        advConfGridLayout.addWidget(self.nrAdvMsg4PdcchOccasionLabel, 5, 0)
+        advConfGridLayout.addWidget(self.nrAdvMsg4PdcchOccasionEdit, 5, 1)
+        advConfGridLayout.addWidget(self.nrAdvImportCfgChkBox, 6, 0)
+        advConfGridLayout.addWidget(self.nrAdvCfgFileEdit, 6, 1)
 
         advConfLayout = QVBoxLayout()
         advConfLayout.addLayout(advConfGridLayout)
@@ -10621,6 +10615,10 @@ class NgNrGridUi(QDialog):
             hsfn = 0
             sfn = int(self.args['mib']['sfn'])
 
+            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Initialing @ [HSFN=%d, SFN=%d]</b></font>' % (hsfn, sfn))
+            nrGrid.alwaysOnTr(hsfn, sfn)
+
+            '''
             #receiving SSB
             self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv SSB</b></font>')
             nrGrid.recvSsb(hsfn, sfn)
@@ -10628,11 +10626,11 @@ class NgNrGridUi(QDialog):
             #monitoring PDCCH for SIB1
             self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv PDCCH(DCI 1_0, SI-RNTI)</b></font>')
             hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, 0, dci='dci10', rnti='si-rnti')
+            '''
 
-            if hsfn is not None and sfn is not None and slot is not None:
-                #receiving SIB1
-                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv SIB1</b></font>')
-                hsfn, sfn, slot = nrGrid.recvSib1(hsfn, sfn, slot)
+            #receiving SIB1
+            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv SSB/SIB1 @ [HSFN=%d, SFN=%d]</b></font>' % (hsfn, sfn))
+            hsfn, sfn, slot = nrGrid.recvSib1(hsfn, sfn)
 
             #sending Msg1(PRACH)
             if hsfn is not None and sfn is not None and slot is not None:
@@ -10669,21 +10667,19 @@ class NgNrGridUi(QDialog):
                 self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]send PUCCH(Msg4 HARQ)</b></font>')
                 hsfn, sfn, slot = nrGrid.sendPucch(hsfn, sfn, slot)
 
-            '''
             #monitoring PDCCH for normal PDSCH
-            hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci11', rnti='c-rnti')
+            #hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci11', rnti='c-rnti')
             #receiving PDSCH
-            hsfn, sfn = nrGrid.recvPdsch(hsfn, sfn)
+            #hsfn, sfn = nrGrid.recvPdsch(hsfn, sfn)
             #sending PDSCH HARQ feedback(PUCCH), together with CSI
-            hsfn, sfn = nrGrid.sendPucch(hsfn, sfn)
+            #hsfn, sfn = nrGrid.sendPucch(hsfn, sfn)
 
             #sending PUCCH for DSR
-            hsfn, sfn = nrGrid.sendPucch(hsfn, sfn)
+            #hsfn, sfn = nrGrid.sendPucch(hsfn, sfn)
             #monitoring PDCCH for normal PUSCH
-            hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci01', rnti='c-rnti')
+            #hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci01', rnti='c-rnti')
             #sending PUSCH
-            hsfn, sfn = nrGrid.sendPusch(hsfn, sfn)
-            '''
+            #hsfn, sfn = nrGrid.sendPusch(hsfn, sfn)
 
             #export grid to excel
             if not nrGrid.error:
@@ -10984,12 +10980,9 @@ class NgNrGridUi(QDialog):
         self.args['advanced'] = dict()
         self.args['advanced']['bestSsb'] = self.nrAdvBestSsbEdit.text()
         self.args['advanced']['sib1PdcchSlot'] = self.nrAdvSib1PdcchSlotEdit.text()
-        self.args['advanced']['sib1PdcchCand'] = self.nrAdvSib1PdcchCandEdit.text()
         self.args['advanced']['prachOccasion'] = self.nrAdvPrachOccasionEdit.text()
         self.args['advanced']['msg2PdcchOcc'] = self.nrAdvMsg2PdcchOccasionEdit.text()
-        self.args['advanced']['msg2PdcchCand'] = self.nrAdvMsg2PdcchCandEdit.text()
         self.args['advanced']['msg4PdcchOcc'] = self.nrAdvMsg4PdcchOccasionEdit.text()
-        self.args['advanced']['msg4PdcchCand'] = self.nrAdvMsg4PdcchCandEdit.text()
 
         #print dict info
         for key in self.args.keys():

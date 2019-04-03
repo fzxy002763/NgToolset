@@ -106,6 +106,11 @@ class NgNrGrid(object):
         self.gridNrTdd = OrderedDict()
         self.gridNrFddDl = OrderedDict()
         self.gridNrFddUl = OrderedDict()
+        if self.nrDuplexMode == 'TDD':
+            if not self.initTddUlDlConfig():
+                return False
+
+        '''
         dn = '%s_%s' % (self.hsfn, self.nrMibSfn)
         if self.nrDuplexMode == 'TDD':
             self.gridNrTdd[dn] = np.full((self.nrScTot, self.nrSymbPerRfNormCp), NrResType.NR_RES_GB.value)
@@ -120,6 +125,7 @@ class NgNrGrid(object):
             self.gridNrFddUl[dn][:self.nrScGb, :] = NrResType.NR_RES_GB.value
         else:
             return False
+        '''
 
         self.outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
         if not os.path.exists(self.outDir):
@@ -189,6 +195,8 @@ class NgNrGrid(object):
 
         self.ssbFirstSymbInBaseScsTd = dict()
         self.ssbSymbsInBaseScsTd = dict()
+        self.reservedPdcchSib1 = dict()
+        self.reservedSib1 = dict()
         self.ssbFirstSc = self.nrSsbNCrbSsb * self.nrScPerPrb + self.nrSsbKssb * (self.nrMibCommonScs // self.baseScsFd if self.nrFreqRange == 'FR2' else 1) + self.nrIniDlBwpStartRb * self.nrScPerPrb * (self.nrIniDlBwpScs // self.baseScsFd)
         self.ssbScsInBaseScsFd = {self.ssbFirstSc+k for k in range(20 * self.nrScPerPrb * (self.nrSsbScs // self.baseScsFd))}
 
@@ -217,6 +225,8 @@ class NgNrGrid(object):
         self.coreset0FirstSc = self.nrSsbNCrbSsb * self.nrScPerPrb - self.nrCoreset0Offset * self.nrScPerPrb * (self.nrMibCommonScs // self.baseScsFd) + self.nrIniDlBwpStartRb * self.nrScPerPrb * (self.nrIniDlBwpScs // self.baseScsFd)
         #CORESET0 CCE-to-REG mapping
         self.coreset0RegBundles, self.coreset0Cces = self.coresetCce2RegMapping(coreset='coreset0', numRbs=self.nrCoreset0NumRbs, numSymbs=self.nrCoreset0NumSymbs, interleaved=True, L=6, R=2, nShift=self.nrPci)
+
+        self.coreset0Occasions = dict()
 
         self.nrSib1Rnti = int(self.args['dci10Sib1']['rnti'], 16)
         self.nrSib1MuPdcch = int(self.args['dci10Sib1']['muPdcch'])
@@ -396,14 +406,9 @@ class NgNrGrid(object):
             self.nrAdvBestSsb = None
 
         try:
-            self.nrAdvSib1PdcchSlot = int(self.args['advanced']['sib1PdcchSlot'])
+            self.nrAdvSib1PdcchSlot = [int(k) for k in self.args['advanced']['sib1PdcchSlot']]
         except Exception as e:
             self.nrAdvSib1PdcchSlot = None
-
-        try:
-            self.nrAdvSib1PdcchCand = int(self.args['advanced']['sib1PdcchCand'])
-        except Exception as e:
-            self.nrAdvSib1PdcchCand = None
 
         try:
             self.nrAdvPrachOccasion = int(self.args['advanced']['prachOccasion'])
@@ -416,19 +421,9 @@ class NgNrGrid(object):
             self.nrAdvMsg2PdcchOccasion = None
 
         try:
-            self.nrAdvMsg2PdcchCand = int(self.args['advanced']['msg2PdcchCand'])
-        except Exception as e:
-            self.nrAdvMsg2PdcchCand = None
-
-        try:
             self.nrAdvMsg4PdcchOccasion = int(self.args['advanced']['msg4PdcchOcc'])
         except Exception as e:
             self.nrAdvMsg4PdcchOccasion = None
-
-        try:
-            self.nrAdvMsg4PdcchCand = int(self.args['advanced']['msg4PdcchCand'])
-        except Exception as e:
-            self.nrAdvMsg4PdcchCand = None
 
         return True
 
@@ -888,7 +883,7 @@ class NgNrGrid(object):
                 bestSsb = self.nrAdvBestSsb
 
             #determine pdcch candidate randomly
-            oc, firstSymb, valid = self.coreset0Occasions[bestSsb]
+            oc, firstSymb, valid = self.coreset0Occasions['%s_%s' % (dn, bestSsb)]
 
             if self.nrAdvSib1PdcchSlot is None:
                 if len(valid) == 2 and valid[0] == 'OK' and valid[1] == 'OK':
@@ -934,7 +929,8 @@ class NgNrGrid(object):
             if firstSlotMonitoring >= self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]:
                 firstSlotMonitoring = firstSlotMonitoring % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]
                 hsfn, sfn = self.incSfn(hsfn, sfn, 1)
-                self.recvSsb(hsfn, sfn)
+                #self.recvSsb(hsfn, sfn)
+                self.alwaysOnTr(hsfn, sfn)
             firstSymbMonitoring = math.ceil(((slot * self.nrSymbPerSlotNormCp + self.msg1LastSymb + 1) * scaleTd - 1) % self.nrSymbPerSlotNormCp)
 
             tmpStr = tmpStr + '[hsfn=%d, sfn=%d, slot=%d, symb=%d]' % (hsfn, sfn, firstSlotMonitoring, firstSymbMonitoring)
@@ -952,47 +948,62 @@ class NgNrGrid(object):
                 if firstSlotMonitoring >= self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]:
                     firstSlotMonitoring = firstSlotMonitoring % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]
                     hsfn, sfn = self.incSfn(hsfn, sfn, 1)
-                    self.recvSsb(hsfn, sfn)
+                    #self.recvSsb(hsfn, sfn)
+                    self.alwaysOnTr(hsfn, sfn)
 
             self.ngwin.logEdit.append('start monitoring CSS0 for DCI 1_0 scheduling RAR: hsfn=%d, sfn=%d, firstSlotMonitoring=%d, firstSymbMonitoring=%d' % (hsfn, sfn, firstSlotMonitoring, firstSymbMonitoring))
             qApp.processEvents()
 
             symbInd = ((1024 * hsfn + sfn) * self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] + firstSlotMonitoring) * self.nrSymbPerSlotNormCp + firstSymbMonitoring
             css0Msg2 = []
-            if self.ngwin.enableDebug:
-                self.ngwin.logEdit.append('<font color=blue>WARNING: second while True for css0Msg2 determination, which may hang up!</font>')
-                qApp.processEvents()
-            while True:
+            maxTry = math.ceil(self.nrSsbPeriod / 10) + 1
+            count=0
+            while count < maxTry:
                 ret = self.detCss0(hsfn, sfn)
                 if not ret:
                     if self.ngwin.enableDebug:
                         self.ngwin.logEdit.append('<font color=red>detCss0 failed, hsfn=%s,sfn=%s</font>' % (hsfn, sfn))
                         qApp.processEvents()
                 else:
-                    for i in range(len(self.coreset0Occasions)):
-                        if self.coreset0Occasions[i] is None:
+                    key1 = '%s_%s' % (hsfn, sfn)
+                    for i in range(len(self.ssbFirstSymbInBaseScsTd[key1])):
+                        if self.ssbFirstSymbInBaseScsTd[key1][i] is None:
+                            #self.coreset0Occasions.append(None)
                             continue
-                        oc, firstSymb, valid = self.coreset0Occasions[i]
+                        key2 = '%s_%s' % (key1, i)
+                        oc, firstSymb, valid = self.coreset0Occasions[key2]
                         for j in range(len(valid)):
                             if valid[j] == 'NOK':
                                 continue
                             ocHsfn, ocSfn, ocSlot = oc[j]
                             symbInd2 = ((1024 * ocHsfn + ocSfn) * self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] + ocSlot) * self.nrSymbPerSlotNormCp + firstSymb
-                            if symbInd2 >= symbInd and [ocHsfn, ocSfn, ocSlot, firstSymb] not in css0Msg2:
-                                css0Msg2.append([ocHsfn, ocSfn, ocSlot, firstSymb])
+                            if symbInd2 >= symbInd:
+                                numCandidates = min(self.nrCss0MaxNumCandidates, self.coreset0NumCces // self.nrCss0AggLevel)
+                                for k in range(numCandidates):
+                                    cand = [ocHsfn, ocSfn, ocSlot, firstSymb, k]
+                                    if cand not in self.reservedPdcchSib1.values() and cand not in css0Msg2:
+                                        css0Msg2.append(cand)
 
                 if len(css0Msg2) > 0:
                     break
 
+                count = count + 1
                 hsfn, sfn = self.incSfn(hsfn, sfn, 1)
-                self.recvSsb(hsfn, sfn)
+                #self.recvSsb(hsfn, sfn)
+                self.alwaysOnTr(hsfn, sfn)
 
-            startHsfn, startSfn, startSlot, startFirstSymb = css0Msg2[0]
+            if len(css0Msg2) == 0:
+                self.ngwin.logEdit.append('<font color=red>Error: css0Msg2 is empty after maxTry=%d frames!</font>' % maxTry)
+                qApp.processEvents()
+                self.error = True
+                return (None, None, None)
+
+            startHsfn, startSfn, startSlot, startFirstSymb,startPdcchCandidate = css0Msg2[0]
             raRespWinStart = ((1024 * startHsfn + startSfn) * self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] + startSlot) * self.nrSymbPerSlotNormCp + startFirstSymb
             raRespWinEnd = ((1024 * startHsfn + startSfn) * self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] + startSlot + self.nrRachRaRespWin) * self.nrSymbPerSlotNormCp + startFirstSymb - self.nrCoreset0NumSymbs
             validCss0Msg2 = [css0Msg2[0]]
             for i in range(1, len(css0Msg2)):
-                ocHsfn, ocSfn, ocSlot, ocFirstSymb = css0Msg2[i]
+                ocHsfn, ocSfn, ocSlot, ocFirstSymb, ocPdcchCandidate = css0Msg2[i]
                 symbInd2 = ((1024 * ocHsfn + ocSfn) * self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] + ocSlot) * self.nrSymbPerSlotNormCp + ocFirstSymb
                 if symbInd2 >= raRespWinStart and symbInd2 < raRespWinEnd:
                     validCss0Msg2.append(css0Msg2[i])
@@ -1009,7 +1020,7 @@ class NgNrGrid(object):
             validHsfnSfn = []
             validHsfnSfn.append([oldHsfn, oldSfn])
             for i in range(len(validCss0Msg2)):
-                _hsfn, _sfn, _slot, _symb = validCss0Msg2[i]
+                _hsfn, _sfn, _slot, _symb, _cand = validCss0Msg2[i]
                 if [_hsfn, _sfn] not in validHsfnSfn:
                     validHsfnSfn.append([_hsfn, _sfn])
 
@@ -1035,12 +1046,12 @@ class NgNrGrid(object):
 
             #randomly select from validCss0Msg2 pdcch occasion for msg2 scheduling
             pdcchOccasion = np.random.randint(0, len(validCss0Msg2)) if self.nrAdvMsg2PdcchOccasion is None else self.nrAdvMsg2PdcchOccasion
-            hsfn, sfn, slot, firstSymb = validCss0Msg2[pdcchOccasion]
+            hsfn, sfn, slot, firstSymb, pdcchCandidate = validCss0Msg2[pdcchOccasion]
 
-            numCandidates = min(self.nrCss0MaxNumCandidates, self.coreset0NumCces // self.nrCss0AggLevel)
-            pdcchCandidate = np.random.randint(0, numCandidates) if self.nrAdvMsg2PdcchCand is None else self.nrAdvMsg2PdcchCand
+            #numCandidates = min(self.nrCss0MaxNumCandidates, self.coreset0NumCces // self.nrCss0AggLevel)
+            #pdcchCandidate = np.random.randint(0, numCandidates) if self.nrAdvMsg2PdcchCand is None else self.nrAdvMsg2PdcchCand
 
-            self.ngwin.logEdit.append('<font color=purple>selecting pdcch candidate: pdcchOccasion=%d(numPdcchOccasions=%d), pdcchCandidate=%d(numPdcchCandidates=%d)</font>' % (pdcchOccasion, len(validCss0Msg2), pdcchCandidate, numCandidates))
+            self.ngwin.logEdit.append('<font color=purple>Select PDCCH scheduling Msg2(RAR): [%s]</font>' % validCss0Msg2[pdcchOccasion])
             qApp.processEvents()
 
             scaleTd = self.baseScsTd // self.nrMibCommonScs
@@ -1068,7 +1079,8 @@ class NgNrGrid(object):
             if firstSlotMonitoring >= self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]:
                 firstSlotMonitoring = firstSlotMonitoring % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]
                 hsfn, sfn = self.incSfn(hsfn, sfn, 1)
-                self.recvSsb(hsfn, sfn)
+                #self.recvSsb(hsfn, sfn)
+                self.alwaysOnTr(hsfn, sfn)
             firstSymbMonitoring = math.ceil(((slot * self.nrSymbPerSlotNormCp + self.msg3LastSymb + 1) * scaleTd - 1) % self.nrSymbPerSlotNormCp)
 
             tmpStr = tmpStr + '[hsfn=%d, sfn=%d, slot=%d, symb=%d]' % (hsfn, sfn, firstSlotMonitoring, firstSymbMonitoring)
@@ -1084,7 +1096,8 @@ class NgNrGrid(object):
                 if firstSlotMonitoring >= self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]:
                     firstSlotMonitoring = firstSlotMonitoring % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]
                     hsfn, sfn = self.incSfn(hsfn, sfn, 1)
-                    self.recvSsb(hsfn, sfn)
+                    #self.recvSsb(hsfn, sfn)
+                    self.alwaysOnTr(hsfn, sfn)
 
             self.ngwin.logEdit.append('start monitoring CSS0 for DCI 1_0 scheduling Msg4: hsfn=%d, sfn=%d, firstSlotMonitoring=%d, firstSymbMonitoring=%d' % (hsfn, sfn, firstSlotMonitoring, firstSymbMonitoring))
             qApp.processEvents()
@@ -1105,24 +1118,32 @@ class NgNrGrid(object):
                         qApp.processEvents()
 
                 else:
-                    for i in range(len(self.coreset0Occasions)):
-                        if self.coreset0Occasions[i] is None:
+                    key1 = '%s_%s' % (hsfn, sfn)
+                    for i in range(len(self.ssbFirstSymbInBaseScsTd[key1])):
+                        if self.ssbFirstSymbInBaseScsTd[key1][i] is None:
+                            #self.coreset0Occasions.append(None)
                             continue
-                        oc, firstSymb, valid = self.coreset0Occasions[i]
+                        key2 = '%s_%s' % (key1, i)
+                        oc, firstSymb, valid = self.coreset0Occasions[key2]
                         for j in range(len(valid)):
                             if valid[j] == 'NOK':
                                 continue
                             ocHsfn, ocSfn, ocSlot = oc[j]
                             symbInd = ((1024 * ocHsfn + ocSfn) * self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] + ocSlot) * self.nrSymbPerSlotNormCp + firstSymb
                             if symbInd >= raContResStart and symbInd < raContResEnd and [ocHsfn, ocSfn, ocSlot, firstSymb] not in css0Msg4:
-                                css0Msg4.append([ocHsfn, ocSfn, ocSlot, firstSymb])
+                                numCandidates = min(self.nrCss0MaxNumCandidates, self.coreset0NumCces // self.nrCss0AggLevel)
+                                for k in range(numCandidates):
+                                    cand = [ocHsfn, ocSfn, ocSlot, firstSymb, k]
+                                    if cand not in self.reservedPdcchSib1.values() and cand not in css0Msg4:
+                                        css0Msg4.append(cand)
 
                             if symbInd > raContResEnd:
                                 raContResTimerExpired = True
                                 break
 
                 hsfn, sfn = self.incSfn(hsfn, sfn, 1)
-                self.recvSsb(hsfn, sfn)
+                #self.recvSsb(hsfn, sfn)
+                self.alwaysOnTr(hsfn, sfn)
 
             if len(css0Msg4) == 0:
                 self.ngwin.logEdit.append('<font color=red>Error: css0Msg4 is empty when ra-ContentionResolutionTimer(=%s subframes) expired!</font>' % self.nrRachContResTimer)
@@ -1139,7 +1160,7 @@ class NgNrGrid(object):
             validHsfnSfn = []
             validHsfnSfn.append([oldHsfn, oldSfn])
             for i in range(len(css0Msg4)):
-                _hsfn, _sfn, _slot, _symb = css0Msg4[i]
+                _hsfn, _sfn, _slot, _symb, _cand = css0Msg4[i]
                 if [_hsfn, _sfn] not in validHsfnSfn:
                     validHsfnSfn.append([_hsfn, _sfn])
 
@@ -1165,12 +1186,12 @@ class NgNrGrid(object):
 
             #randomly select from css0Msg4 the pdcch occasion for msg4 scheduling
             pdcchOccasion = np.random.randint(0, len(css0Msg4)) if self.nrAdvMsg4PdcchOccasion is None else self.nrAdvMsg4PdcchOccasion
-            hsfn, sfn, slot, firstSymb = css0Msg4[pdcchOccasion]
+            hsfn, sfn, slot, firstSymb, pdcchCandidate = css0Msg4[pdcchOccasion]
 
-            numCandidates = min(self.nrCss0MaxNumCandidates, self.coreset0NumCces // self.nrCss0AggLevel)
-            pdcchCandidate = np.random.randint(0, numCandidates) if self.nrAdvMsg4PdcchCand is None else self.nrAdvMsg4PdcchCand
+            #numCandidates = min(self.nrCss0MaxNumCandidates, self.coreset0NumCces // self.nrCss0AggLevel)
+            #pdcchCandidate = np.random.randint(0, numCandidates) if self.nrAdvMsg4PdcchCand is None else self.nrAdvMsg4PdcchCand
 
-            self.ngwin.logEdit.append('<font color=purple>selecting pdcch candidate: pdcchOccasion=%d(numPdcchOccasions=%d), pdcchCandidate=%d(numPdcchCandidates=%d)</font>' % (pdcchOccasion, len(css0Msg4), pdcchCandidate, numCandidates))
+            self.ngwin.logEdit.append('<font color=purple>Select PDCCH scheduling Msg4: [%s]</font>' % css0Msg4[pdcchOccasion])
             qApp.processEvents()
 
             scaleTd = self.baseScsTd // self.nrMibCommonScs
@@ -1197,7 +1218,8 @@ class NgNrGrid(object):
         self.ngwin.logEdit.append('---->inside detCss0(hsfn=%d, sfn=%d)' % (hsfn, sfn))
         qApp.processEvents()
 
-        self.coreset0Occasions = []
+        oldHsfn, oldSfn = hsfn, sfn
+        #self.coreset0Occasions = []
         if self.nrCoreset0MultiplexingPat == 1:
             #refer to 3GPP 38.213 vf30
             #Table 13-11: Parameters for PDCCH monitoring occasions for Type0-PDCCH CSS set - SS/PBCH block and CORESET multiplexing pattern 1 and FR1
@@ -1253,8 +1275,12 @@ class NgNrGrid(object):
 
             for i in range(len(self.ssbFirstSymbInBaseScsTd[dn])):
                 if self.ssbFirstSymbInBaseScsTd[dn][i] is None:
-                    self.coreset0Occasions.append(None)
+                    #self.coreset0Occasions.append(None)
                     continue
+
+                key = '%s_%s' % (dn, i)
+                if key in self.coreset0Occasions:
+                    return True
 
                 issb = i % self.nrSsbMaxL
                 #determine pdcch monitoring occasion (sfnc + nc) for ssb with index issb
@@ -1264,14 +1290,16 @@ class NgNrGrid(object):
                     sfnc = sfn
                 else:
                     hsfn, sfn = self.incSfn(hsfn, sfn, 1)
-                    self.recvSsb(hsfn, sfn)
+                    #self.recvSsb(hsfn, sfn)
+                    self.alwaysOnTr(hsfn, sfn)
                     sfnc = sfn
 
                 n0 = val % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]
                 if n0 == self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]] - 1:
                     oc = [(hsfn, sfnc, n0)]
                     hsfn, sfn = self.incSfn(hsfn, sfn, 1)
-                    self.recvSsb(hsfn, sfn)
+                    #self.recvSsb(hsfn, sfn)
+                    self.alwaysOnTr(hsfn, sfn)
                     sfnc = sfn
                     oc.append((hsfn, sfnc, 0))
                 else:
@@ -1284,7 +1312,8 @@ class NgNrGrid(object):
                 else:
                     firstSymbCoreset0 = firstSymbSet[0]
 
-                self.coreset0Occasions.append([oc, firstSymbCoreset0, ['OK', 'OK']])
+                #self.coreset0Occasions.append([oc, firstSymbCoreset0, ['OK', 'OK']])
+                self.coreset0Occasions[key] = [oc, firstSymbCoreset0, ['OK', 'OK']]
         elif self.nrCoreset0MultiplexingPat == 2:
             dn = '%s_%s' % (hsfn, sfn)
             if not dn in self.ssbFirstSymbInBaseScsTd:
@@ -1292,8 +1321,12 @@ class NgNrGrid(object):
 
             for i in range(len(self.ssbFirstSymbInBaseScsTd[dn])):
                 if self.ssbFirstSymbInBaseScsTd[dn][i] is None:
-                    self.coreset0Occasions.append(None)
+                    #self.coreset0Occasions.append(None)
                     continue
+
+                key = '%s_%s' % (dn, i)
+                if key in self.coreset0Occasions:
+                    return True
 
                 issb = i % self.nrSsbMaxL
                 #determine sfnSsb and nSsb which are based on commonScs
@@ -1325,7 +1358,8 @@ class NgNrGrid(object):
                     return False
 
                 oc = [(hsfn, sfnc, i) for i in nc]
-                self.coreset0Occasions.append([oc, firstSymbCoreset0, ['OK']])
+                #self.coreset0Occasions.append([oc, firstSymbCoreset0, ['OK']])
+                self.coreset0Occasions[key] = [oc, firstSymbCoreset0, ['OK']]
         else:
             dn = '%s_%s' % (hsfn, sfn)
             if not dn in self.ssbFirstSymbInBaseScsTd:
@@ -1333,8 +1367,12 @@ class NgNrGrid(object):
 
             for i in range(len(self.ssbFirstSymbInBaseScsTd[dn])):
                 if self.ssbFirstSymbInBaseScsTd[dn][i] is None:
-                    self.coreset0Occasions.append(None)
+                    #self.coreset0Occasions.append(None)
                     continue
+
+                key = '%s_%s' % (dn, i)
+                if key in self.coreset0Occasions:
+                    return True
 
                 issb = i % self.nrSsbMaxL
                 #determine sfnSsb and nSsb which are based on commonScs
@@ -1354,16 +1392,22 @@ class NgNrGrid(object):
                     return False
 
                 oc = [(hsfn, sfnc, i) for i in nc]
-                self.coreset0Occasions.append([oc, firstSymbCoreset0, ['OK']])
+                #self.coreset0Occasions.append([oc, firstSymbCoreset0, ['OK']])
+                self.coreset0Occasions[key] = [oc, firstSymbCoreset0, ['OK']]
 
         #validate pdcch occasions
         scaleTd = self.baseScsTd // self.nrMibCommonScs
         scaleFd = self.nrMibCommonScs // self.baseScsFd
-        for i in range(len(self.coreset0Occasions)):
-            if self.coreset0Occasions[i] is None:
+        #for i in range(len(self.coreset0Occasions)):
+        #    if self.coreset0Occasions[i] is None:
+        #        continue
+        for i in range(len(self.ssbFirstSymbInBaseScsTd[dn])):
+            if self.ssbFirstSymbInBaseScsTd[dn][i] is None:
+                #self.coreset0Occasions.append(None)
                 continue
 
-            oc, firstSymb, valid = self.coreset0Occasions[i]
+            key = '%s_%s' % (dn, i)
+            oc, firstSymb, valid = self.coreset0Occasions[key]
             for j in range(len(oc)):
                 hsfn, sfnc, nc = oc[j]
 
@@ -1416,14 +1460,14 @@ class NgNrGrid(object):
                                 if self.gridNrFddDl[dn2][self.coreset0FirstSc+m, k] == NrResType.NR_RES_D.value:
                                     self.gridNrFddDl[dn2][self.coreset0FirstSc+m, k] = NrResType.NR_RES_CORESET0.value
 
-            self.coreset0Occasions[i][2] = valid
+            self.coreset0Occasions[key][2] = valid
             if (len(valid) == 1 and valid[0] == 'NOK') or (len(valid) == 2 and valid[0] == 'NOK' and valid[1] == 'NOK'):
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid PDCCH occasion: i=%d(issb=%d,hrf=%d), occasion=%s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), i, i % self.nrSsbMaxL, self.nrMibHrf if self.nrSsbPeriod >= 10 else i // self.nrSsbMaxL, self.coreset0Occasions[i]))
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid PDCCH occasion: i=%d(issb=%d,hrf=%d), occasion=%s.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), i, i % self.nrSsbMaxL, self.nrMibHrf if self.nrSsbPeriod >= 10 else i // self.nrSsbMaxL, self.coreset0Occasions[key]))
                 qApp.processEvents()
                 self.error = True
                 return False
 
-            self.ngwin.logEdit.append('[Type-0 CSS]PDCCH monitoring occasion for SSB index=%d(hrf=%d): %s' % (i % self.nrSsbMaxL, self.nrMibHrf if self.nrSsbPeriod >= 10 else i // self.nrSsbMaxL, self.coreset0Occasions[i]))
+            self.ngwin.logEdit.append('[Type-0 CSS]PDCCH monitoring occasion for SSB [%s](hrf=%d, issb=%d): %s' % (key, self.nrMibHrf if self.nrSsbPeriod >= 10 else i // self.nrSsbMaxL, i % self.nrSsbMaxL, self.coreset0Occasions[key]))
             qApp.processEvents()
 
         return True
@@ -1505,6 +1549,7 @@ class NgNrGrid(object):
 
         return (regBundles, cces)
 
+    '''
     def recvSib1(self, hsfn, sfn, slot):
         if self.error:
             return (None, None, None)
@@ -1545,9 +1590,7 @@ class NgNrGrid(object):
         if dn in self.ssbFirstSymbInBaseScsTd:
             #refer to 3GPP 38.314 vf40
             #5.1.4	PDSCH resource mapping
-            '''
-            When receiving the PDSCH scheduled with SI-RNTI and the system information indicator in DCI is set to 0, the UE shall assume that no SS/PBCH block is transmitted in REs used by the UE for a reception of the PDSCH.
-            '''
+            #When receiving the PDSCH scheduled with SI-RNTI and the system information indicator in DCI is set to 0, the UE shall assume that no SS/PBCH block is transmitted in REs used by the UE for a reception of the PDSCH.
             tdOverlapped = self.ssbSymbsInBaseScsTd[dn].intersection(set(sib1SymbsInBaseScsTd))
             fdOverlapped = self.ssbScsInBaseScsFd.intersection(set(sib1ScsInBaseScsFd))
             if len(tdOverlapped) > 0 and len(fdOverlapped) > 0:
@@ -1583,6 +1626,35 @@ class NgNrGrid(object):
                                     self.gridNrFddDl[dn][sib1ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbSib1InBaseScsTd+i*scaleTd:firstSymbSib1InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DTX.value
 
         return (hsfn, sfn, slotSib1)
+    '''
+    def recvSib1(self, hsfn, sfn):
+        if self.error:
+            return (None, None, None)
+
+        dn = '%s_%s' % (hsfn, sfn)
+        if self.nrAdvBestSsb is None:
+            if self.ngwin.enableDebug:
+                self.ngwin.logEdit.append('<font color=blue>WARNING: first while True for SSB selection, which may hang up!</font>')
+                qApp.processEvents()
+            while True:
+                bestSsb = np.random.randint(0, len(self.ssbFirstSymbInBaseScsTd[dn]))
+                if self.ssbFirstSymbInBaseScsTd[dn][bestSsb] is not None:
+                    break
+        else:
+            bestSsb = self.nrAdvBestSsb
+
+        #save bestSsb index for later ssb-prach mapping
+        issb = bestSsb % self.nrSsbMaxL
+        hrf = self.nrMibHrf if self.nrSsbPeriod >= 10 else bestSsb // self.nrSsbMaxL
+        self.bestSsbInd = issb
+        self.ngwin.logEdit.append('<font color=purple>bestSsb=%d(hrf=%d,issb=%d)</font>' % (bestSsb, hrf, issb))
+        qApp.processEvents()
+
+        key = '%s_%s_%s' % (hsfn, sfn, bestSsb)
+        if key in self.reservedSib1:
+            return self.reservedSib1[key]
+        else:
+            return (None, None, None)
 
     def dci10CssVrb2PrbMapping(self, coreset0Size=48, iniDlBwpStart=0, coreset0Start=0, L=2):
         #FIXME The UE is not expected to be configured with Li=2 simultaneously with a PRG size of 4 as defined in [6, TS 38.214].
@@ -1808,7 +1880,8 @@ class NgNrGrid(object):
 
         dn = '%s_%s' % (msg1Hsfn, msg1Sfn)
         if (self.nrDuplexMode == 'TDD' and not dn in self.gridNrTdd) or (self.nrDuplexMode == 'FDD' and not dn in self.gridNrFddUl):
-            self.recvSsb(msg1Hsfn, msg1Sfn)
+            #self.recvSsb(msg1Hsfn, msg1Sfn)
+            self.alwaysOnTr(msg1Hsfn, msg1Sfn)
 
         scaleTd = self.baseScsTd // self.prachScs
         #last symbol of PRACH occasion, starting from msg1Slot
@@ -1948,7 +2021,7 @@ class NgNrGrid(object):
             qApp.processEvents()
 
             for hop in range(2):
-                msg3TdStartSymb = self.nrMsg3TdStartSymb + 0 if hop == 0 else numSymbsPerHop[0]
+                msg3TdStartSymb = self.nrMsg3TdStartSymb + (0 if hop == 0 else numSymbsPerHop[0])
                 firstSymbMsg3InBaseScsTd = (slotMsg3 * self.nrSymbPerSlotNormCp + msg3TdStartSymb) * scaleTd
                 msg3SymbsInBaseScsTd = [firstSymbMsg3InBaseScsTd+k for k in range(numSymbsPerHop[hop]*scaleTd)]
 
@@ -1974,7 +2047,7 @@ class NgNrGrid(object):
 
                     if len(invalidSymbs) > 0:
                         self.ngwin.logEdit.append('<font color=red>Error: UE does not transmit PUSCH, PUCCH, PRACH or SRS in symbols which are indicated as downlink or flexible!</font>')
-                        self.ngwin.logEdit.append('contents of invalidSymbs(hop=%d,scaleTd=%d,firstsymb=%d): %s' % (hop, scaleTd, firstSymbMsg3InBaseScsTd, invalidSymbs))
+                        self.ngwin.logEdit.append('contents of invalidSymbs(hop=%d,scaleTd=%d,firstSymb=%d): %s' % (hop, scaleTd, firstSymbMsg3InBaseScsTd, invalidSymbs))
                         qApp.processEvents()
                         self.error = True
                         return (None, None, None)
@@ -2030,7 +2103,7 @@ class NgNrGrid(object):
 
                     if len(invalidSymbs) > 0:
                         self.ngwin.logEdit.append('<font color=red>Error: UE does not transmit PUSCH, PUCCH, PRACH or SRS in symbols which are indicated as downlink or flexible!</font>')
-                        self.ngwin.logEdit.append('contents of invalidSymbs(hop=%d,scaleTd=%d,firstsymb=%d): %s' % (hop, scaleTd, firstSymbMsg3InBaseScsTd, invalidSymbs))
+                        self.ngwin.logEdit.append('contents of invalidSymbs(hop=%d,scaleTd=%d,firstSymb=%d): %s' % (hop, scaleTd, firstSymbMsg3InBaseScsTd, invalidSymbs))
                         qApp.processEvents()
                         self.error = True
                         return (None, None, None)
@@ -2149,3 +2222,333 @@ class NgNrGrid(object):
     def recvPdsch(self, hsfn, sfn):
         self.ngwin.logEdit.append('---->inside recvPdsch')
         return (hsfn, sfn)
+
+    def alwaysOnTr(self, hsfn, sfn):
+        if self.error:
+            return
+
+        self.ngwin.logEdit.append('---->inside alwaysOnTr(hsfn=%s,sfn=%s)' % (hsfn, sfn))
+
+        dn = '%s_%s' % (hsfn, sfn)
+        #init gridNrTdd or gridNrFddDl/gridNrFddUl if necessary
+        if self.nrDuplexMode == 'TDD'and not dn in self.gridNrTdd:
+            self.gridNrTdd[dn] = np.full((self.nrScTot, self.nrSymbPerRfNormCp), NrResType.NR_RES_GB.value)
+            self.initTddGrid(hsfn, sfn)
+        elif self.nrDuplexMode == 'FDD' and not dn in self.gridNrFddDl:
+            self.gridNrFddDl[dn] = np.full((self.nrScTot, self.nrSymbPerRfNormCp), NrResType.NR_RES_D.value)
+            self.gridNrFddUl[dn] = np.full((self.nrScTot, self.nrSymbPerRfNormCp), NrResType.NR_RES_U.value)
+            #init 'min guard band'
+            self.gridNrFddDl[dn][:self.nrScGb, :] = NrResType.NR_RES_GB.value
+            self.gridNrFddUl[dn][:self.nrScGb, :] = NrResType.NR_RES_GB.value
+        else:
+            pass
+
+        if self.aotSsb(hsfn, sfn):
+            if not self.error:
+                self.aotPdcchSib1(hsfn, sfn)
+            if not self.error:
+                self.aotSib1(hsfn, sfn)
+
+
+    def aotSsb(self, hsfn, sfn):
+        if self.error:
+            return False
+
+        if self.nrSsbPeriod >= 10 and self.deltaSfn(self.hsfn, self.nrMibSfn, hsfn, sfn) % (self.nrSsbPeriod // 10) != 0:
+            self.ngwin.logEdit.append('<font color=purple>no SSB transmission in current frame(hsfn=%d,sfn=%d)</font>' % (hsfn, sfn))
+            qApp.processEvents()
+            return False
+
+        dn = '%s_%s' % (hsfn, sfn)
+        if dn in self.ssbFirstSymbInBaseScsTd:
+            return False
+        else:
+            self.ssbFirstSymbInBaseScsTd[dn] = []
+            self.ssbSymbsInBaseScsTd[dn] = set()
+
+        self.ngwin.logEdit.append('---->inside aotSsb(hsfn=%d,sfn=%d, scaleTd=%d, scaleFd=%d)' % (hsfn, sfn, self.baseScsTd // self.nrSsbScs, self.nrSsbScs // self.baseScsFd))
+        qApp.processEvents()
+
+        ssbHrfSet = [0, 1] if self.nrSsbPeriod < 10 else [self.nrMibHrf]
+        scaleTd = self.baseScsTd // self.nrSsbScs
+        scaleFd = self.nrSsbScs // self.baseScsFd
+        v = self.nrPci % 4
+
+        for hrf in ssbHrfSet:
+            for issb in range(self.nrSsbMaxL):
+                if self.ssbSet[issb] == '0':
+                    self.ssbFirstSymbInBaseScsTd[dn].append(None)
+                    continue
+
+                #SSB time domain
+                ssbFirstSymb = hrf * (self.nrSymbPerRfNormCp // 2) + self.ssbFirstSymbSet[issb] * scaleTd
+                self.ngwin.logEdit.append('<font color=purple>[AOT @ hsfn=%d, sfn=%d]issb=%d, ssbFirstSc=%d, v=%d, ssbFirstSymb=%d</font>' % (hsfn, sfn, issb, self.ssbFirstSc, v, ssbFirstSymb))
+                qApp.processEvents()
+
+                #refer to 3GPP 38.211 vf30
+                #Table 7.4.3.1-1: Resources within an SS/PBCH block for PSS, SSS, PBCH, and DM-RS for PBCH.
+                if self.nrDuplexMode == 'TDD':
+                    #check ul/dl config
+                    #refer to 3GPP 38.213 vf30
+                    #11.1 Slot configurations
+                    '''
+                    For a set of symbols of a slot that are indicated to a UE by ssb-PositionsInBurst in SystemInformationBlockType1 or ssb-PositionsInBurst in ServingCellConfigCommon, when provided to the UE, for reception of SS/PBCH blocks, the UE does not transmit PUSCH, PUCCH, PRACH in the slot if a transmission would overlap with any symbol from the set of symbols and the UE does not transmit SRS in the set of symbols of the slot. The UE does not expect the set of symbols of the slot to be indicated as uplink by TDD-UL-DL-ConfigurationCommon, or TDD-UL-DL-ConfigDedicated, when provided to the UE.
+                    '''
+                    for i in range(4):
+                        for j in range(scaleTd):
+                            if self.gridNrTdd[dn][self.ssbFirstSc, ssbFirstSymb+i*scaleTd+j] in (NrResType.NR_RES_U.value, NrResType.NR_RES_F.value):
+                                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: The UE does not expect the set of symbols of the slot which are used for SSB transmission(ssb index=%d, first symbol=%d) to be indicated as uplink by TDD-UL-DL-ConfigurationCommon.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), issb, ssbFirstSymb))
+                                qApp.processEvents()
+                                self.error = True
+                                return False
+
+                    for i in range(scaleTd):
+                        #symbol 0 of SSB, PSS
+                        self.gridNrTdd[dn][self.ssbFirstSc:self.ssbFirstSc+56*scaleFd, ssbFirstSymb+i] = NrResType.NR_RES_DTX.value
+                        self.gridNrTdd[dn][self.ssbFirstSc+56*scaleFd:self.ssbFirstSc+183*scaleFd, ssbFirstSymb+i] = NrResType.NR_RES_PSS.value
+                        self.gridNrTdd[dn][self.ssbFirstSc+183*scaleFd:self.ssbFirstSc+240*scaleFd, ssbFirstSymb+i] = NrResType.NR_RES_DTX.value
+                        #symbol 1/3 of SSB, PBCH
+                        self.gridNrTdd[dn][self.ssbFirstSc:self.ssbFirstSc+240*scaleFd, ssbFirstSymb+scaleTd+i] = NrResType.NR_RES_PBCH.value
+                        for j in range(self.ssbFirstSc+v*scaleFd, self.ssbFirstSc+(v+237)*scaleFd, 4*scaleFd):
+                            for k in range(scaleFd):
+                                self.gridNrTdd[dn][j+k, ssbFirstSymb+scaleTd+i] = NrResType.NR_RES_DMRS_PBCH.value
+                        self.gridNrTdd[dn][self.ssbFirstSc:self.ssbFirstSc+240*scaleFd, ssbFirstSymb+3*scaleTd+i] = NrResType.NR_RES_PBCH.value
+                        for j in range(self.ssbFirstSc+v*scaleFd, self.ssbFirstSc+(v+237)*scaleFd, 4*scaleFd):
+                            for k in range(scaleFd):
+                                self.gridNrTdd[dn][j+k, ssbFirstSymb+3*scaleTd+i] = NrResType.NR_RES_DMRS_PBCH.value
+                        #symbol 2 of SSB, PBCH and SSS
+                        self.gridNrTdd[dn][self.ssbFirstSc:self.ssbFirstSc+48*scaleFd, ssbFirstSymb+2*scaleTd+i] = NrResType.NR_RES_PBCH.value
+                        for j in range(self.ssbFirstSc+v*scaleFd, self.ssbFirstSc+(v+45)*scaleFd, 4*scaleFd):
+                            for k in range(scaleFd):
+                                self.gridNrTdd[dn][j+k, ssbFirstSymb+2*scaleTd+i] = NrResType.NR_RES_DMRS_PBCH.value
+                        self.gridNrTdd[dn][self.ssbFirstSc+48*scaleFd:self.ssbFirstSc+56*scaleFd, ssbFirstSymb+2*scaleTd+i] = NrResType.NR_RES_DTX.value
+                        self.gridNrTdd[dn][self.ssbFirstSc+56*scaleFd:self.ssbFirstSc+183*scaleFd, ssbFirstSymb+2*scaleTd+i] = NrResType.NR_RES_SSS.value
+                        self.gridNrTdd[dn][self.ssbFirstSc+183*scaleFd:self.ssbFirstSc+192*scaleFd, ssbFirstSymb+2*scaleTd+i] = NrResType.NR_RES_DTX.value
+                        self.gridNrTdd[dn][self.ssbFirstSc+192*scaleFd:self.ssbFirstSc+240*scaleFd, ssbFirstSymb+2*scaleTd+i] = NrResType.NR_RES_PBCH.value
+                        for j in range(self.ssbFirstSc+(v+192)*scaleFd, self.ssbFirstSc+(v+237)*scaleFd, 4*scaleFd):
+                            for k in range(scaleFd):
+                                self.gridNrTdd[dn][j+k, ssbFirstSymb+2*scaleTd+i] = NrResType.NR_RES_DMRS_PBCH.value
+                else:
+                    for i in range(scaleTd):
+                        #symbol 0 of SSB, PSS
+                        self.gridNrFddDl[dn][self.ssbFirstSc:self.ssbFirstSc+56*scaleFd, ssbFirstSymb+i] = NrResType.NR_RES_DTX.value
+                        self.gridNrFddDl[dn][self.ssbFirstSc+56*scaleFd:self.ssbFirstSc+183*scaleFd, ssbFirstSymb+i] = NrResType.NR_RES_PSS.value
+                        self.gridNrFddDl[dn][self.ssbFirstSc+183*scaleFd:self.ssbFirstSc+240*scaleFd, ssbFirstSymb+i] = NrResType.NR_RES_DTX.value
+                        #symbol 1/3 of SSB, PBCH
+                        self.gridNrFddDl[dn][self.ssbFirstSc:self.ssbFirstSc+240*scaleFd, ssbFirstSymb+scaleTd+i] = NrResType.NR_RES_PBCH.value
+                        for j in range(self.ssbFirstSc+v*scaleFd, self.ssbFirstSc+(v+237)*scaleFd, 4*scaleFd):
+                            for k in range(scaleFd):
+                                self.gridNrFddDl[dn][j+k, ssbFirstSymb+scaleTd+i] = NrResType.NR_RES_DMRS_PBCH.value
+                        self.gridNrFddDl[dn][self.ssbFirstSc:self.ssbFirstSc+240*scaleFd, ssbFirstSymb+3*scaleTd+i] = NrResType.NR_RES_PBCH.value
+                        for j in range(self.ssbFirstSc+v*scaleFd, self.ssbFirstSc+(v+237)*scaleFd, 4*scaleFd):
+                            for k in range(scaleFd):
+                                self.gridNrFddDl[dn][j+k, ssbFirstSymb+3*scaleTd+i] = NrResType.NR_RES_DMRS_PBCH.value
+                        #symbol 2 of SSB, PBCH and SSS
+                        self.gridNrFddDl[dn][self.ssbFirstSc:self.ssbFirstSc+48*scaleFd, ssbFirstSymb+2*scaleTd+i] = NrResType.NR_RES_PBCH.value
+                        for j in range(self.ssbFirstSc+v*scaleFd, self.ssbFirstSc+(v+45)*scaleFd, 4*scaleFd):
+                            for k in range(scaleFd):
+                                self.gridNrFddDl[dn][j+k, ssbFirstSymb+2*scaleTd+i] = NrResType.NR_RES_DMRS_PBCH.value
+                        self.gridNrFddDl[dn][self.ssbFirstSc+48*scaleFd:self.ssbFirstSc+56*scaleFd, ssbFirstSymb+2*scaleTd+i] = NrResType.NR_RES_DTX.value
+                        self.gridNrFddDl[dn][self.ssbFirstSc+56*scaleFd:self.ssbFirstSc+183*scaleFd, ssbFirstSymb+2*scaleTd+i] = NrResType.NR_RES_SSS.value
+                        self.gridNrFddDl[dn][self.ssbFirstSc+183*scaleFd:self.ssbFirstSc+192*scaleFd, ssbFirstSymb+2*scaleTd+i] = NrResType.NR_RES_DTX.value
+                        self.gridNrFddDl[dn][self.ssbFirstSc+192*scaleFd:self.ssbFirstSc+240*scaleFd, ssbFirstSymb+2*scaleTd+i] = NrResType.NR_RES_PBCH.value
+                        for j in range(self.ssbFirstSc+(v+192)*scaleFd, self.ssbFirstSc+(v+237)*scaleFd, 4*scaleFd):
+                            for k in range(scaleFd):
+                                self.gridNrFddDl[dn][j+k, ssbFirstSymb+2*scaleTd+i] = NrResType.NR_RES_DMRS_PBCH.value
+
+                self.ssbFirstSymbInBaseScsTd[dn].append(ssbFirstSymb)
+                self.ssbSymbsInBaseScsTd[dn].update([ssbFirstSymb+k for k in range(4*scaleTd)])
+
+        return True
+
+    def aotPdcchSib1(self, hsfn, sfn, dci='dci10', rnti='si-rnti'):
+        if self.error:
+            return False
+
+        if not (dci == 'dci10' and rnti == 'si-rnti'):
+            self.error = True
+            return False
+
+        self.ngwin.logEdit.append('---->inside aotPdcchSib1(hsfn=%d, sfn=%d, dci="%s",rnti="%s", scaleTdSsb=%d, scaleTdRmsiScs=%d)' % (hsfn, sfn, dci, rnti, self.baseScsTd // self.nrSsbScs, self.baseScsTd // self.nrMibCommonScs))
+        qApp.processEvents()
+
+        ret = self.detCss0(hsfn, sfn)
+        if not ret:
+            self.error = True
+            return False
+
+        dn = '%s_%s' % (hsfn, sfn)
+        scaleTd = self.baseScsTd // self.nrMibCommonScs
+        scaleFd = self.nrMibCommonScs // self.baseScsFd
+
+        for _issb in range(len(self.ssbFirstSymbInBaseScsTd[dn])):
+            if self.ssbFirstSymbInBaseScsTd[dn][_issb] is None:
+                continue
+
+            issb = _issb % self.nrSsbMaxL
+            hrf = self.nrMibHrf if self.nrSsbPeriod >= 10 else _issb // self.nrSsbMaxL
+            oc, firstSymb, valid = self.coreset0Occasions['%s_%s' %(dn, _issb)]
+
+            allPdcchCands = []
+            numCandidates = min(self.nrCss0MaxNumCandidates, self.coreset0NumCces // self.nrCss0AggLevel)
+            for i in range(len(valid)):
+                if valid[i] == 'NOK' or (self.nrAdvSib1PdcchSlot is not None and self.nrAdvSib1PdcchSlot[issb] != i):
+                    continue
+
+                hsfnc, sfnc, nc = oc[i]
+                for j in range(numCandidates):
+                    allPdcchCands.append([hsfnc, sfnc, nc, firstSymb, j])
+
+            aotStatus = False
+            #for pdcchSlot in range(len(valid)):
+            for cand in allPdcchCands:
+                if aotStatus:
+                    break
+
+                if cand in self.reservedPdcchSib1.values():
+                    continue
+
+                self.ngwin.logEdit.append('<font color=purple>[AOT @ hsfn=%d, sfn=%d]PDCCH scheduling SIB1 for issb=%d(hrf=%d): [%s]</font>' % (hsfn, sfn, issb, hrf, cand))
+                qApp.processEvents()
+
+                hsfnc, sfnc, nc, firstSymb, pdcchCandidate = cand
+                self.alwaysOnTr(hsfnc, sfnc)
+
+                firstSymbInBaseScsTd = (nc * self.nrSymbPerSlotNormCp + firstSymb) * scaleTd
+                cceSet = [pdcchCandidate * self.nrCss0AggLevel + k for k in range(self.nrCss0AggLevel)]
+                dn2 = '%s_%s' % (hsfnc, sfnc)
+                for i in range(self.coreset0Cces.shape[0]):
+                    for j in range(self.coreset0Cces.shape[1]):
+                        if self.coreset0Cces[i, j] in cceSet:
+                            if self.nrDuplexMode == 'TDD':
+                                self.gridNrTdd[dn2][self.coreset0FirstSc+i*self.nrScPerPrb*scaleFd:self.coreset0FirstSc+(i+1)*self.nrScPerPrb*scaleFd, firstSymbInBaseScsTd+j*scaleTd:firstSymbInBaseScsTd+(j+1)*scaleTd] = NrResType.NR_RES_PDCCH.value
+                                self.gridNrTdd[dn2][self.coreset0FirstSc+(i*self.nrScPerPrb+1)*scaleFd:self.coreset0FirstSc+(i+1)*self.nrScPerPrb*scaleFd:4, firstSymbInBaseScsTd+j*scaleTd:firstSymbInBaseScsTd+(j+1)*scaleTd] = NrResType.NR_RES_DMRS_PDCCH.value
+                            else:
+                                self.gridNrFddDl[dn2][self.coreset0FirstSc+i*self.nrScPerPrb*scaleFd:self.coreset0FirstSc+(i+1)*self.nrScPerPrb*scaleFd, firstSymbInBaseScsTd+j*scaleTd:firstSymbInBaseScsTd+(j+1)*scaleTd] = NrResType.NR_RES_PDCCH.value
+                                self.gridNrFddDl[dn2][self.coreset0FirstSc+(i*self.nrScPerPrb+1)*scaleFd:self.coreset0FirstSc+(i+1)*self.nrScPerPrb*scaleFd:4, firstSymbInBaseScsTd+j*scaleTd:firstSymbInBaseScsTd+(j+1)*scaleTd] = NrResType.NR_RES_DMRS_PDCCH.value
+
+                key = '%s_%s_%s' % (hsfn, sfn, _issb)
+                self.reservedPdcchSib1[key] = cand
+                aotStatus = True
+
+            if not aotStatus:
+                self.ngwin.logEdit.append('<font color=purple>[AOT @ hsfn=%d, sfn=%d]no valid pdcch slot/candidate for issb=%d(hrf=%d)</font>' % (hsfn, sfn, issb, self.nrMibHrf if self.nrSsbPeriod >= 10 else issb // self.nrSsbMaxL))
+                qApp.processEvents()
+                self.error = True
+
+        return not self.error
+
+    def aotSib1(self, hsfn, sfn):
+        if self.error:
+            return False
+
+        self.ngwin.logEdit.append('---->inside aotSib1(hsfn=%d,sfn=%d)' % (hsfn, sfn))
+        qApp.processEvents()
+
+        dn = '%s_%s' % (hsfn, sfn)
+        scaleTd = self.baseScsTd // self.nrMibCommonScs
+        scaleFd = self.nrMibCommonScs // self.baseScsFd
+
+        self.ngwin.logEdit.append('contents of reservedPdcchSib1(key=[hsfn,sfn,issb],val=[hsfn,sfn,slot,firstSymb,pdcchCandidate])')
+        for key,val in self.reservedPdcchSib1.items():
+            self.ngwin.logEdit.append('key=%s,val=%s' % (key, val))
+            qApp.processEvents()
+
+        for _issb in range(len(self.ssbFirstSymbInBaseScsTd[dn])):
+            if self.ssbFirstSymbInBaseScsTd[dn][_issb] is None:
+                continue
+
+            issb = _issb % self.nrSsbMaxL
+            hrf = self.nrMibHrf if self.nrSsbPeriod >= 10 else _issb // self.nrSsbMaxL
+            self.ngwin.logEdit.append('<font color=purple>[AOT @ hsfn=%d, sfn=%d]SIB1 corresponding to SSB#%s(hrf=%s)</font>' % (hsfn, sfn, issb, hrf))
+            qApp.processEvents()
+
+            key = '%s_%s_%s' % (hsfn, sfn, _issb)
+            hsfnc, sfnc, nc, firstSymb, pdcchCandidate = self.reservedPdcchSib1[key]
+
+            slotSib1 = math.floor(nc * 2 ** (self.nrSib1MuPdsch - self.nrSib1MuPdcch)) + self.nrSib1TdK0
+            if slotSib1 >= self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]:
+                slotSib1 = slotSib1 % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]
+                hsfnc, sfnc = self.incSfn(hsfnc, sfnc, 1)
+                self.alwaysOnTr(hsfnc, sfnc)
+
+            firstSymbSib1InBaseScsTd = (slotSib1 * self.nrSymbPerSlotNormCp + self.nrSib1TdStartSymb) * scaleTd
+            sib1SymbsInBaseScsTd = [firstSymbSib1InBaseScsTd+k for k in range(self.nrSib1TdNumSymbs*scaleTd)]
+
+            sib1DmrsSymbs = []
+            for i in self.nrSib1DmrsTdL:
+                if self.nrSib1TdMappingType == 'Type A':
+                    #for PDSCH mapping type A, tdL is defined relative to the start of the slot
+                    sib1DmrsSymbs.append(i - self.nrSib1TdStartSymb)
+                else:
+                    #for PDSCH mapping type B, tdL is defined relative to the start of the scheduled PDSCH resources
+                    sib1DmrsSymbs.append(i)
+            self.ngwin.logEdit.append('contents of sib1DmrsSymbs(w.r.t to slivS): %s' % sib1DmrsSymbs)
+            qApp.processEvents()
+
+            if self.nrSib1FdVrbPrbMappingType == 'nonInterleaved':
+                firstScSib1InBaseScsFd = self.coreset0FirstSc + self.nrSib1FdStartRb * self.nrScPerPrb * scaleFd
+                sib1ScsInBaseScsFd = [firstScSib1InBaseScsFd+k for k in range(self.nrSib1FdNumRbs*self.nrScPerPrb*scaleFd)]
+            else:
+                sib1ScsInBaseScsFd = []
+                for k in range(self.nrSib1FdNumRbs):
+                    vrb = self.nrSib1FdStartRb + k
+                    prb = self.dci10CssPrbs[vrb]
+                    sib1ScsInBaseScsFd.extend([self.coreset0FirstSc+prb*self.nrScPerPrb*scaleFd+k for k in range(self.nrScPerPrb*scaleFd)])
+
+            #validate SIB1 time-frequency allocation
+            dn2 = '%s_%s' % (hsfnc, sfnc)
+            if dn2 in self.ssbFirstSymbInBaseScsTd:
+                #refer to 3GPP 38.314 vf40
+                #5.1.4	PDSCH resource mapping
+                '''
+                When receiving the PDSCH scheduled with SI-RNTI and the system information indicator in DCI is set to 0, the UE shall assume that no SS/PBCH block is transmitted in REs used by the UE for a reception of the PDSCH.
+                '''
+                tdOverlapped = self.ssbSymbsInBaseScsTd[dn2].intersection(set(sib1SymbsInBaseScsTd))
+                fdOverlapped = self.ssbScsInBaseScsFd.intersection(set(sib1ScsInBaseScsFd))
+                if len(tdOverlapped) > 0 and len(fdOverlapped) > 0:
+                    self.ngwin.logEdit.append('<font color=red><b>[%s]Error[hrf=%d,issb=%d,slotSib1=%d]</font>:When receiving the PDSCH scheduled with SI-RNTI and the system information indicator in DCI is set to 0, the UE shall assume that no SS/PBCH block is transmitted in REs used by the UE for a reception of the PDSCH.\ntdOverlapped=%s\nfdOverlapped=%s' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), hrf, issb, slotSib1, tdOverlapped, fdOverlapped))
+                    qApp.processEvents()
+                    self.error = True
+                    return False
+
+            #refer to 3GPP 38.213 vf40 11.1
+            #For a set of symbols of a slot that are indicated to a UE as uplink by TDD-UL-DL-ConfigurationCommon, or TDD-UL-DL-ConfigDedicated, the UE does not receive PDCCH, PDSCH, or CSI-RS in the set of symbols of the slot.
+            if self.nrDuplexMode == 'TDD':
+                invalidSymbs = []
+                for symb in sib1SymbsInBaseScsTd:
+                    if self.gridNrTdd[dn][sib1ScsInBaseScsFd[0], symb] in (NrResType.NR_RES_U.value, NrResType.NR_RES_F.value):
+                        invalidSymbs.append(symb)
+
+                if len(invalidSymbs) > 0:
+                    self.ngwin.logEdit.append('<font color=red>Error: UE does not receive PDSCH, PDCCH, or CSI-RS in symbols which are indicated as uplink or flexible!</font>')
+                    self.ngwin.logEdit.append('contents of invalidSymbs(scaleTd=%d,firstSymb=%d): %s' % (scaleTd, firstSymbSib1InBaseScsTd, invalidSymbs))
+                    qApp.processEvents()
+                    self.error = True
+                    return False
+
+            self.reservedSib1[key] = [hsfnc, sfnc, slotSib1]
+
+            for i in range(self.nrSib1TdNumSymbs):
+                if self.nrDuplexMode == 'TDD':
+                    self.gridNrTdd[dn2][sib1ScsInBaseScsFd, firstSymbSib1InBaseScsTd+i*scaleTd:firstSymbSib1InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_SIB1.value
+                    if i in sib1DmrsSymbs:
+                        for j in range(self.nrSib1FdNumRbs):
+                            for k in range(self.nrScPerPrb):
+                                if self.nrSib1DmrsFdK[k] == 1:
+                                    self.gridNrTdd[dn2][sib1ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbSib1InBaseScsTd+i*scaleTd:firstSymbSib1InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DMRS_SIB1.value
+                                else:
+                                    if not (self.nrSib1TdMappingType == 'Type B' and self.nrSib1TdNumSymbs == 2):
+                                        self.gridNrTdd[dn2][sib1ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbSib1InBaseScsTd+i*scaleTd:firstSymbSib1InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DTX.value
+                else:
+                    self.gridNrFddDl[dn2][sib1ScsInBaseScsFd, firstSymbSib1InBaseScsTd+i*scaleTd:firstSymbSib1InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_SIB1.value
+                    if i in sib1DmrsSymbs:
+                        for j in range(self.nrSib1FdNumRbs):
+                            for k in range(self.nrScPerPrb):
+                                if self.nrSib1DmrsFdK[k] == 1:
+                                    self.gridNrFddDl[dn2][sib1ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbSib1InBaseScsTd+i*scaleTd:firstSymbSib1InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DMRS_SIB1.value
+                                else:
+                                    if not (self.nrSib1TdMappingType == 'Type B' and self.nrSib1TdNumSymbs == 2):
+                                        self.gridNrFddDl[dn2][sib1ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbSib1InBaseScsTd+i*scaleTd:firstSymbSib1InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DTX.value
+
+        return True
