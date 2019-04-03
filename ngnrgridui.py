@@ -10615,56 +10615,46 @@ class NgNrGridUi(QDialog):
             hsfn = 0
             sfn = int(self.args['mib']['sfn'])
 
-            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Initialing @ [HSFN=%d, SFN=%d]</b></font>' % (hsfn, sfn))
+            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Init always-on-transmission(SSB/PDCCH/SIB1) @ [HSFN=%d, SFN=%d]</b></font>' % (hsfn, sfn))
             nrGrid.alwaysOnTr(hsfn, sfn)
 
-            '''
-            #receiving SSB
-            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv SSB</b></font>')
-            nrGrid.recvSsb(hsfn, sfn)
-
-            #monitoring PDCCH for SIB1
-            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv PDCCH(DCI 1_0, SI-RNTI)</b></font>')
-            hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, 0, dci='dci10', rnti='si-rnti')
-            '''
-
             #receiving SIB1
-            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv SSB/SIB1 @ [HSFN=%d, SFN=%d]</b></font>' % (hsfn, sfn))
+            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]UE recv SSB/SIB1 @ [HSFN=%d, SFN=%d]</b></font>' % (hsfn, sfn))
             hsfn, sfn, slot = nrGrid.recvSib1(hsfn, sfn)
 
             #sending Msg1(PRACH)
             if hsfn is not None and sfn is not None and slot is not None:
-                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]send PRACH(Msg1)</b></font>')
+                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]UE send PRACH(Msg1) @ [HSFN=%d, SFN=%d, Slot=%d]</b></font>' % (hsfn, sfn, slot))
                 hsfn, sfn, slot = nrGrid.sendMsg1(hsfn, sfn, slot)
 
             #monitoring PDCCH for Msg2
             if hsfn is not None and sfn is not None and slot is not None:
-                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv PDCCH(DCI 1_0, RA-RNTI)</b></font>')
+                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]UE recv PDCCH(DCI 1_0, RA-RNTI) @ [HSFN=%d, SFN=%d, Slot=%d]</b></font>' % (hsfn, sfn, slot))
                 hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, slot, dci='dci10', rnti='ra-rnti')
 
             #receiving Msg2(RAR)
             if hsfn is not None and sfn is not None and slot is not None:
-                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv RAR(Msg2)</b></font>')
+                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]UE recv RAR(Msg2) @ [HSFN=%d, SFN=%d, Slot=%d]</b></font>' % (hsfn, sfn, slot))
                 hsfn, sfn, slot = nrGrid.recvMsg2(hsfn, sfn, slot)
 
             #sending Msg3(PUSCH)
             if hsfn is not None and sfn is not None and slot is not None:
-                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]send Msg3</b></font>')
+                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]UE send Msg3 @ [HSFN=%d, SFN=%d, Slot=%d]</b></font>' % (hsfn, sfn, slot))
                 hsfn, sfn, slot = nrGrid.sendMsg3(hsfn, sfn, slot)
 
             #monitoring PDCCH for Msg4
             if hsfn is not None and sfn is not None and slot is not None:
-                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv PDCCH(DCI 1_0, TC-RNTI)</b></font>')
+                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]UE recv PDCCH(DCI 1_0, TC-RNTI) @ [HSFN=%d, SFN=%d, Slot=%d]</b></font>' % (hsfn, sfn, slot))
                 hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, slot, dci='dci10', rnti='tc-rnti')
 
             #receiving Msg4
             if hsfn is not None and sfn is not None and slot is not None:
-                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]recv Msg4</b></font>')
+                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]UE recv Msg4 @ [HSFN=%d, SFN=%d, Slot=%d]</b></font>' % (hsfn, sfn, slot))
                 hsfn, sfn, slot = nrGrid.recvMsg4(hsfn, sfn, slot)
 
             #sending Msg4 HARQ feedback(PUCCH)
             if hsfn is not None and sfn is not None and slot is not None:
-                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]send PUCCH(Msg4 HARQ)</b></font>')
+                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]UE send PUCCH(Msg4 HARQ) @ [HSFN=%d, SFN=%d, Slot=%d]</b></font>' % (hsfn, sfn, slot))
                 hsfn, sfn, slot = nrGrid.sendPucch(hsfn, sfn, slot)
 
             #monitoring PDCCH for normal PDSCH
