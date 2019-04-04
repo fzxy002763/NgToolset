@@ -1357,6 +1357,11 @@ class NgNrGrid(object):
         if self.error:
             return (None, None, None)
 
+        self.ngwin.logEdit.append('contents of reservedSib1(key=[hsfn,sfn,issb],val=[hsfn,sfn,slotSib1]):')
+        for key,val in self.reservedSib1.items():
+            self.ngwin.logEdit.append('key=%s,val=%s' % (key, val))
+            qApp.processEvents()
+
         dn = '%s_%s' % (hsfn, sfn)
         if self.nrAdvBestSsb is None:
             if self.ngwin.enableDebug:
@@ -1691,11 +1696,22 @@ class NgNrGrid(object):
                 self.error = True
                 return (None, None, None)
 
-        for i in range(self.nrMsg2TdNumSymbs):
-            #FIXME continue is wrong!
-            if self.nrDuplexMode == 'TDD' and self.gridNrTdd[dn][self.coreset0FirstSc, firstSymbMsg2InBaseScsTd+i*scaleTd] in (NrResType.NR_RES_U.value, NrResType.NR_RES_F.value):
-                continue
+        #refer to 3GPP 38.213 vf40 11.1
+        #For a set of symbols of a slot that are indicated to a UE as uplink by TDD-UL-DL-ConfigurationCommon, or TDD-UL-DL-ConfigDedicated, the UE does not receive PDCCH, PDSCH, or CSI-RS in the set of symbols of the slot.
+        if self.nrDuplexMode == 'TDD':
+            invalidSymbs = []
+            for symb in msg2SymbsInBaseScsTd:
+                if self.gridNrTdd[dn][msg2ScsInBaseScsFd[0], symb] in (NrResType.NR_RES_U.value, NrResType.NR_RES_F.value):
+                    invalidSymbs.append(symb)
 
+            if len(invalidSymbs) > 0:
+                self.ngwin.logEdit.append('<font color=red>Error: UE does not receive PDSCH, PDCCH, or CSI-RS in symbols which are indicated as uplink or flexible!</font>')
+                self.ngwin.logEdit.append('contents of invalidSymbs(scaleTd=%d,firstSymb=%d): %s' % (scaleTd, firstSymbMsg2InBaseScsTd, invalidSymbs))
+                qApp.processEvents()
+                self.error = True
+                return False
+
+        for i in range(self.nrMsg2TdNumSymbs):
             if self.nrDuplexMode == 'TDD':
                 self.gridNrTdd[dn][msg2ScsInBaseScsFd, firstSymbMsg2InBaseScsTd+i*scaleTd:firstSymbMsg2InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_MSG2.value
                 if i in msg2DmrsSymbs:
@@ -1911,11 +1927,22 @@ class NgNrGrid(object):
                 self.error = True
                 return (None, None, None)
 
-        for i in range(self.nrMsg4TdNumSymbs):
-            #FIXME continue is wrong!
-            if self.nrDuplexMode == 'TDD' and self.gridNrTdd[dn][self.coreset0FirstSc, firstSymbMsg4InBaseScsTd+i*scaleTd] in (NrResType.NR_RES_U.value, NrResType.NR_RES_F.value):
-                continue
+        #refer to 3GPP 38.213 vf40 11.1
+        #For a set of symbols of a slot that are indicated to a UE as uplink by TDD-UL-DL-ConfigurationCommon, or TDD-UL-DL-ConfigDedicated, the UE does not receive PDCCH, PDSCH, or CSI-RS in the set of symbols of the slot.
+        if self.nrDuplexMode == 'TDD':
+            invalidSymbs = []
+            for symb in msg4SymbsInBaseScsTd:
+                if self.gridNrTdd[dn][msg4ScsInBaseScsFd[0], symb] in (NrResType.NR_RES_U.value, NrResType.NR_RES_F.value):
+                    invalidSymbs.append(symb)
 
+            if len(invalidSymbs) > 0:
+                self.ngwin.logEdit.append('<font color=red>Error: UE does not receive PDSCH, PDCCH, or CSI-RS in symbols which are indicated as uplink or flexible!</font>')
+                self.ngwin.logEdit.append('contents of invalidSymbs(scaleTd=%d,firstSymb=%d): %s' % (scaleTd, firstSymbMsg4InBaseScsTd, invalidSymbs))
+                qApp.processEvents()
+                self.error = True
+                return False
+
+        for i in range(self.nrMsg4TdNumSymbs):
             if self.nrDuplexMode == 'TDD':
                 self.gridNrTdd[dn][msg4ScsInBaseScsFd, firstSymbMsg4InBaseScsTd+i*scaleTd:firstSymbMsg4InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_MSG4.value
                 if i in msg4DmrsSymbs:
@@ -2176,7 +2203,7 @@ class NgNrGrid(object):
         scaleTd = self.baseScsTd // self.nrMibCommonScs
         scaleFd = self.nrMibCommonScs // self.baseScsFd
 
-        self.ngwin.logEdit.append('contents of reservedPdcchSib1(key=[hsfn,sfn,issb],val=[hsfn,sfn,slot,firstSymb,pdcchCandidate])')
+        self.ngwin.logEdit.append('contents of reservedPdcchSib1(key=[hsfn,sfn,issb],val=[hsfn,sfn,slot,firstSymb,pdcchCandidate]):')
         for key,val in self.reservedPdcchSib1.items():
             self.ngwin.logEdit.append('key=%s,val=%s' % (key, val))
             qApp.processEvents()
