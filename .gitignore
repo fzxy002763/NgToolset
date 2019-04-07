@@ -11,6 +11,7 @@ output
 build
 dist
 data
+config/ssh.txt
 *.pyprof
 *.supp
 *.spec
