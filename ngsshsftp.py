@@ -64,7 +64,11 @@ class NgSshSftp(object):
                     tokens = line.split('=')
                     tokens = list(map(lambda x:x.strip(), tokens))
                     if len(tokens) == 2:
-                        if tokens[0].lower() == 'scf_path':
+                        if tokens[0].lower() == 'user_name':
+                            self.userName = tokens[1]
+                        elif tokens[0].lower() == 'user_pass':
+                            self.userPass = tokens[1]
+                        elif tokens[0].lower() == 'scf_path':
                             self.scfPath = tokens[1]
                         elif tokens[0].lower() == 'vendor_path':
                             self.vendorPath = tokens[1]
@@ -97,13 +101,11 @@ class NgSshSftp(object):
 
             try:
                 t = paramiko.Transport((btsIp, 22))
-                t.connect(username='toor4nsn', password='oZPS0POrRieRtu')
+                t.connect(username=self.userName, password=self.userPass)
 
                 #SSHClient
                 ssh = paramiko.SSHClient()
                 ssh._transport = t
-                #ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                #ssh.connect(hostname='10.140.7.4', port=22, username='toor4nsn', password='oZPS0POrRieRtu')
 
                 if self.ngwin.enableDebug:
                     self.ngwin.logEdit.append('>pwd:')

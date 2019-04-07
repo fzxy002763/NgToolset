@@ -1,3 +1,7 @@
+#SSH user/passcode configuration
+user_name=toor4nsn
+user_pass=oZPS0POrRieRtu
+
 #SFTP path configurations
 #5G configuration
 scf_path=/ffs/run/config/node_0xe000/siteoam/config/SBTS_SCF.xml
