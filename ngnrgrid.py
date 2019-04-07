@@ -1003,6 +1003,9 @@ class NgNrGrid(object):
             dn2 = '%s_%s' % (hsfn, sfn)
             firstSymbInBaseScsTd = (slot * self.nrSymbPerSlotNormCp + firstSymb) * scaleTd
             cceSet = [pdcchCandidate * self.nrCss0AggLevel + k for k in range(self.nrCss0AggLevel)]
+            self.msg4Cce0 = cceSet[0]
+            self.ngwin.logEdit.append('cceSet=%s, msg4Cce0=%d' % (cceSet, self.msg4Cce0))
+            qApp.processEvents()
             for i in range(self.coreset0Cces.shape[0]):
                 for j in range(self.coreset0Cces.shape[1]):
                     if self.coreset0Cces[i, j] in cceSet:
@@ -1966,8 +1969,64 @@ class NgNrGrid(object):
 
         return (hsfn, sfn, slotMsg4)
 
-    def sendPucch(self, hsfn, sfn, slot):
-        self.ngwin.logEdit.append('---->inside sendPucch')
+    def sendPucch(self, hsfn, sfn, slot, harq=True, sr=False, csi=False, pucchResSet='common'):
+        self.ngwin.logEdit.append('---->inside sendPucch(hsfn=%s,sfn=%s,slot=%s,harq=%s,sr=%s,csi=%s,pucchResSet="%s")' % (hsfn, sfn, slot, harq, sr, csi, pucchResSet))
+
+        if pucchResSet == 'common':
+            if not (harq and not sr and not csi):
+                self.error = True
+                return (None, None, None)
+
+            #refer to 3GPP 38.213 vf40 9.2.1
+            #determine PUCCH index r_PUCCH
+            rPucch = math.floor(2 * self.msg4Cce0 / self.coreset0NumCces) + 2 * self.nrMsg4DeltaPri
+
+            #refer to 3GPP 38.213 vf30
+            #Table 9.2.1-1: PUCCH resource sets before dedicated PUCCH resource configuration
+            commonPucchResSets = {
+                0 : (0,12,2,0,(0, 3)),
+                1 : (0,12,2,0,(0, 4, 8)),
+                2 : (0,12,2,3,(0, 4, 8)),
+                3 : (1,10,4,0,(0, 6)),
+                4 : (1,10,4,0,(0, 3, 6, 9)),
+                5 : (1,10,4,2,(0, 3, 6, 9)),
+                6 : (1,10,4,4,(0, 3, 6, 9)),
+                7 : (1,4,10,0,(0, 6)),
+                8 : (1,4,10,0,(0, 3, 6, 9)),
+                9 : (1,4,10,2,(0, 3, 6, 9)),
+                10 : (1,4,10,4,(0, 3, 6, 9)),
+                11 : (1,0,14,0,(0, 6)),
+                12 : (1,0,14,0,(0, 3, 6, 9)),
+                13 : (1,0,14,2,(0, 3, 6, 9)),
+                14 : (1,0,14,4,(0, 3, 6, 9)),
+                #Note: for pucch resource index 15, 'PRB offset' is floor(N_BWP_size/4)
+                15 : (1,0,14,None,(0, 3, 6, 9)),
+                }
+
+            pucchFmt, firstSymb, numSymbs, prbOffset, initialCsSet = commonPucchResSets[rPucch]
+            if rPucch == 15:
+                prbOffset = math.floor(self.nrIniUlBwpNumRbs / 4)
+            numCs = len(initialCsSet)
+
+            #the PRB index of the PUCCH transmission per hop
+            prbPerHop = []
+            if math.floor(rPucch / 8) == 0:
+                prbPerHop.append(prbOffset + math.floor(rPucch / numCs))
+                prbPerHop.append(self.nrIniUlBwpNumRbs - 1 - prbOffset - math.floor(rPucch / numCs))
+            else:
+                prbPerHop.append(self.nrIniUlBwpNumRbs - 1 - prbOffset - math.floor((rPucch - 8) / numCs))
+                prbPerHop.append(prbOffset + math.floor((rPucch - 8) / numCs))
+
+            #refer to 3GPP 38.213 vf40 9.2.3
+            #For DCI format 1_0, the PDSCH-to-HARQ-timing-indicator field values map to {1, 2, 3, 4, 5, 6, 7, 8}.
+            #With reference to slots for PUCCH transmissions, if the UE detects a DCI format 1_0 or a DCI format 1_1 scheduling a PDSCH reception ending in slot n or if the UE detects a DCI format 1_0 indicating a SPS PDSCH release through a PDCCH reception ending in slot n, the UE provides corresponding HARQ-ACK information in a PUCCH transmission within slot n+k, where k is a number of slots and is indicated by the PDSCH-to-HARQ-timing-indicator field in the DCI format, if present, or provided by dl-DataToUL-ACK.
+            k1 = [1,2,3,4,5,6,7,8][self.nrMsg4TdK1]
+
+
+        else:
+            pass
+
+
         return (hsfn, sfn, slot)
 
     def sendPusch(self, hsfn, sfn):

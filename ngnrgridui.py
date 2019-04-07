@@ -9712,7 +9712,6 @@ class NgNrGridUi(QDialog):
                 bwpSize = int(self.nrDedUlBwpGenericLRbsEdit.text())
                 nUlHop = 1 if bwpSize < 50 else 2
                 if int(self.nrDci01PuschFreqAllocFieldEdit.text()[:nUlHop], 2) != 0:
-                    #FIXME It's better not put constraints of 'The N_UL_HOP MSBs must be all zeros', which limits the RB_start + L_RBs combinations
                     self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: The %d MSB of "Freq domain resource assignment" field(="%s") must be all zero when frequency hopping is enabled!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), nUlHop, self.nrDci01PuschFreqAllocFieldEdit.text()))
                     return
         except Exception as e:
