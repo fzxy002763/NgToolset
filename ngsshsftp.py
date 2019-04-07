@@ -48,10 +48,10 @@ class NgSshSftp(object):
             #self.ngwin.logEdit.append(str(e))
             self.ngwin.logEdit.append(traceback.format_exc())
 
-        #parse path configuration
+        #parse ssh user configuration
         try:
-            with open(os.path.join(self.confDir, 'sftp_path_config.txt'), 'r') as f:
-                self.ngwin.logEdit.append('Parsing SFTP path configuation: %s' % f.name)
+            with open(os.path.join(self.confDir, 'ssh.txt'), 'r') as f:
+                self.ngwin.logEdit.append('Parsing SSH configuation: %s' % f.name)
                 qApp.processEvents()
 
                 while True:
@@ -68,7 +68,29 @@ class NgSshSftp(object):
                             self.userName = tokens[1]
                         elif tokens[0].lower() == 'user_pass':
                             self.userPass = tokens[1]
-                        elif tokens[0].lower() == 'scf_path':
+                        else:
+                            pass
+        except Exception as e:
+            #self.ngwin.logEdit.append(str(e))
+            self.ngwin.logEdit.append(traceback.format_exc())
+
+        #parse path configuration
+        try:
+            with open(os.path.join(self.confDir, 'sftp_path_config.txt'), 'r') as f:
+                self.ngwin.logEdit.append('Parsing SFTP path configuation: %s' % f.name)
+                qApp.processEvents()
+
+                while True:
+                    line = f.readline()
+                    if not line:
+                        break
+                    if line.startswith('#') or line.strip() == '':
+                        continue
+
+                    tokens = line.split('=')
+                    tokens = list(map(lambda x:x.strip(), tokens))
+                    if len(tokens) == 2:
+                        if tokens[0].lower() == 'scf_path':
                             self.scfPath = tokens[1]
                         elif tokens[0].lower() == 'vendor_path':
                             self.vendorPath = tokens[1]
