@@ -1720,6 +1720,7 @@ class NgNrGridUi(QDialog):
         dmrsMsg3Widget.setLayout(dmrsMsg3Layout)
 
         #pucch for msg4 harq feedback
+        #rPucch is determined as specified in 3GPP 38.213 vf40 9.2.1, so that there is no need to configure pucchSib1
         self.nrPucchSib1PucchResCommonLabel = QLabel('pucch-ResourceCommon[0-15]:')
         self.nrPucchSib1PucchResCommonEdit = QLineEdit('0')
         self.nrPucchSib1PucchResCommonEdit.setValidator(QIntValidator(0, 15))
@@ -1768,7 +1769,7 @@ class NgNrGridUi(QDialog):
         iniUlBwpMsg1DmrsPucchTabWidget = QTabWidget()
         iniUlBwpMsg1DmrsPucchTabWidget.addTab(prachWidget, 'RACH-ConfigCommon(Msg1)')
         iniUlBwpMsg1DmrsPucchTabWidget.addTab(dmrsMsg3Widget, 'DM-RS(Msg3)')
-        iniUlBwpMsg1DmrsPucchTabWidget.addTab(pucchSib1Widget, 'PUCCH-ConfigCommon(Msg4 HARQ)')
+        #iniUlBwpMsg1DmrsPucchTabWidget.addTab(pucchSib1Widget, 'PUCCH-ConfigCommon(Msg4 HARQ)')
 
         iniUlBwpWidget = QWidget()
         iniUlBwpLayout = QVBoxLayout()
@@ -10880,10 +10881,12 @@ class NgNrGridUi(QDialog):
             #sending Msg4 HARQ feedback(PUCCH)
             if hsfn is not None and sfn is not None and slot is not None:
                 self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]UE send PUCCH(Msg4 HARQ) @ [HSFN=%d, SFN=%d, Slot=%d]</b></font>' % (hsfn, sfn, slot))
-                hsfn, sfn, slot = nrGrid.sendPucch(hsfn, sfn, slot)
+                hsfn, sfn, slot = nrGrid.sendPucch(hsfn, sfn, slot, harq=True, sr=False, csi=False, pucchResSet='common')
 
             #monitoring PDCCH for normal PDSCH
-            #hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci11', rnti='c-rnti')
+            #if hsfn is not None and sfn is not None and slot is not None:
+            #    hsfn, sfn, slot = nrGrid.monitorPdcch(hsfn, sfn, dci='dci11', rnti='c-rnti')
+
             #receiving PDSCH
             #hsfn, sfn = nrGrid.recvPdsch(hsfn, sfn)
             #sending PDSCH HARQ feedback(PUCCH), together with CSI
@@ -11181,15 +11184,6 @@ class NgNrGridUi(QDialog):
         tdL, fdK = self.getDmrsPuschTdFdPattern(dmrsType, tdMappingType, slivS, slivL, numFrontLoadSymbs, dmrsAddPos, cdmGroupsWoData, freqHop)
         self.args['dmrsMsg3']['tdL'] = tdL
         self.args['dmrsMsg3']['fdK'] = fdK
-
-        #pucch for msg4 harq
-        self.args['pucchSib1'] = dict()
-        self.args['pucchSib1']['pucchResInd'] = self.nrPucchSib1PucchResCommonEdit.text()
-        self.args['pucchSib1']['pucchFmt'] = self.nrPucchSib1PucchFmtComb.currentText()
-        self.args['pucchSib1']['pucchStartSymb'] = self.nrPucchSib1StartingSymbEdit.text()
-        self.args['pucchSib1']['pucchNumSymbs'] = self.nrPucchSib1NumSymbsEdit.text()
-        self.args['pucchSib1']['pucchPrbOff'] = self.nrPucchSib1PrbOffsetEdit.text()
-        self.args['pucchSib1']['pucchIniCsSet'] = eval(self.nrPucchSib1IniCsIndexesSetEdit.text())
 
         #(5) advanced settings tab
         self.args['advanced'] = dict()

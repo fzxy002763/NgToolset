@@ -375,13 +375,6 @@ class NgNrGrid(object):
         self.nrMsg4DmrsTdL = self.args['dmrsMsg4']['tdL']
         self.nrMsg4DmrsFdK = self.args['dmrsMsg4']['fdK']
 
-        self.nrPucchSib1ResInd = int(self.args['pucchSib1']['pucchResInd'])
-        self.nrPucchSib1Fmt = self.args['pucchSib1']['pucchFmt']
-        self.nrPucchSib1StartSymb = int(self.args['pucchSib1']['pucchStartSymb'])
-        self.nrPucchSib1NumSymbs = int(self.args['pucchSib1']['pucchNumSymbs'])
-        self.nrPucchSib1PrbOff = int(self.args['pucchSib1']['pucchPrbOff'])
-        self.nrPucchSib1IniCsSet = self.args['pucchSib1']['pucchIniCsSet']
-
         #advanced settings
         try:
             self.nrAdvBestSsb = int(self.args['advanced']['bestSsb'])
@@ -1778,7 +1771,7 @@ class NgNrGrid(object):
                 self.ngwin.logEdit.append('contents of msg3DmrsSymbs(w.r.t to the start of hop%d): %s' % (hop, msg3DmrsSymbs))
                 qApp.processEvents()
 
-                firstScMsg3InBaseScsFd = self.nrCarrierMinGuardBand * self.nrScPerPrb * (self.nrCarrierScs // self.baseScsFd) + startRbPerHop[hop] * self.nrScPerPrb * scaleFd
+                firstScMsg3InBaseScsFd = self.nrCarrierMinGuardBand * self.nrScPerPrb * (self.nrCarrierScs // self.baseScsFd) + self.nrIniUlBwpStartRb * self.nrScPerPrb * scaleFd + startRbPerHop[hop] * self.nrScPerPrb * scaleFd
                 msg3ScsInBaseScsFd = [firstScMsg3InBaseScsFd+k for k in range(self.nrMsg3FdNumRbs*self.nrScPerPrb*scaleFd)]
 
                 #validate against tdd-ul-dl-config
@@ -1977,6 +1970,14 @@ class NgNrGrid(object):
                 self.error = True
                 return (None, None, None)
 
+            #convert 'slot'+'msg4LastSymb' which based on commonScs into puschScs(initial ul bwp)
+            tmpStr = 'converting from commonScs(=%dKHz) to puschScs(=%dKHz): [hsfn=%d, sfn=%d, slot=%d, msg4LastSymb=%d] --> ' % (self.nrMibCommonScs, self.nrIniUlBwpScs, hsfn, sfn,  slot, self.msg4LastSymb)
+            scaleTd = self.nrIniUlBwpScs / self.nrMibCommonScs
+            slotInPuschScs = math.ceil(((slot * self.nrSymbPerSlotNormCp + self.msg4LastSymb + 1) * scaleTd - 1) // self.nrSymbPerSlotNormCp)
+            tmpStr = tmpStr + '[hsfn=%d, sfn=%d, slot=%d]' % (hsfn, sfn, slotInPuschScs)
+            self.ngwin.logEdit.append(tmpStr)
+            qApp.processEvents()
+
             #refer to 3GPP 38.213 vf40 9.2.1
             #determine PUCCH index r_PUCCH
             rPucch = math.floor(2 * self.msg4Cce0 / self.coreset0NumCces) + 2 * self.nrMsg4DeltaPri
@@ -2022,10 +2023,62 @@ class NgNrGrid(object):
             #With reference to slots for PUCCH transmissions, if the UE detects a DCI format 1_0 or a DCI format 1_1 scheduling a PDSCH reception ending in slot n or if the UE detects a DCI format 1_0 indicating a SPS PDSCH release through a PDCCH reception ending in slot n, the UE provides corresponding HARQ-ACK information in a PUCCH transmission within slot n+k, where k is a number of slots and is indicated by the PDSCH-to-HARQ-timing-indicator field in the DCI format, if present, or provided by dl-DataToUL-ACK.
             k1 = [1,2,3,4,5,6,7,8][self.nrMsg4TdK1]
 
+            slotMsg4Harq = slotInPuschScs + k1
+            if slotMsg4Harq >= self.nrSlotPerRf[self.nrScs2Mu[self.nrIniUlBwpScs]]:
+                slotMsg4Harq = slotMsg4Harq % self.nrSlotPerRf[self.nrScs2Mu[self.nrIniUlBwpScs]]
+                hsfn, sfn = self.incSfn(hsfn, sfn, 1)
+                self.alwaysOnTr(hsfn, sfn)
 
+            dn = '%s_%s' % (hsfn, sfn)
+            self.ngwin.logEdit.append('deltaPri=%d, rPucch=%d(format=%d,firstSymb=%d,numSymbs=%d,prbOffset=%d,initialCsSet=%s), prbPerHop=%s, K1=%s, slotMsg4Harq=[%s,%s,%s]' % (self.nrMsg4DeltaPri, rPucch, pucchFmt, firstSymb, numSymbs, prbOffset, initialCsSet, prbPerHop, k1, hsfn, sfn, slotMsg4Harq))
+            qApp.processEvents()
+
+            scaleTd = self.baseScsTd // self.nrIniUlBwpScs
+            scaleFd = self.nrIniUlBwpScs // self.baseScsFd
+            firstSymbPucchInBaseScsTd = (slotMsg4Harq * self.nrSymbPerSlotNormCp + firstSymb) * scaleTd
+            pucchSymbsInBaseScsTd = [firstSymbPucchInBaseScsTd+k for k in range(numSymbs*scaleTd)]
+            pucchDmrsSymbs = []
+            if pucchFmt == 1:
+                for i in range(numSymbs):
+                    if i % 2 == 0:
+                        pucchDmrsSymbs.append(i)
+                self.ngwin.logEdit.append('contents of pucchDmrsSymbs(w.r.t to firstSymb(=%d) of PUCCH): %s' % (firstSymb, pucchDmrsSymbs))
+                qApp.processEvents()
+
+            for hop in range(2):
+                firstScPucchInBaseScsFd = self.nrCarrierMinGuardBand * self.nrScPerPrb * (self.nrCarrierScs // self.baseScsFd) + self.nrIniUlBwpStartRb * self.nrScPerPrb * scaleFd + prbPerHop[hop] * self.nrScPerPrb * scaleFd
+                pucchScsInBaseScsFd = [firstScPucchInBaseScsFd+k for k in range(1*self.nrScPerPrb*scaleFd)]
+
+                #validate against tdd-ul-dl-config
+                #refer to 3GPP 38.213 vf40 11.1
+                #For a set of symbols of a slot that are indicated to a UE as downlink by TDD-UL-DL-ConfigurationCommon, or TDD-UL-DL-ConfigDedicated, the UE does not transmit PUSCH, PUCCH, PRACH, or SRS in the set of symbols of the slot.
+                #For a set of symbols of a slot that are indicated to a UE as flexible by TDD-UL-DL-ConfigurationCommon, or TDD-UL-DL-ConfigDedicated, the UE does not expect to receive both dedicated configuring transmission from the UE in the set of symbols of the slot and dedicated configuring reception by the UE in the set of symbols of the slot.
+                if self.nrDuplexMode == 'TDD':
+                    invalidSymbs = []
+                    for symb in pucchSymbsInBaseScsTd:
+                        if self.gridNrTdd[dn][firstScPucchInBaseScsFd, symb] in (NrResType.NR_RES_D.value, NrResType.NR_RES_F.value):
+                            invalidSymbs.append(symb)
+
+                    if len(invalidSymbs) > 0:
+                        self.ngwin.logEdit.append('<font color=red>Error: UE does not transmit PUSCH, PUCCH, PRACH or SRS in symbols which are indicated as downlink or flexible!</font>')
+                        self.ngwin.logEdit.append('contents of invalidSymbs(hop=%d,scaleTd=%d,firstSymb=%d): %s' % (hop, scaleTd, firstSymbPucchInBaseScsTd, invalidSymbs))
+                        qApp.processEvents()
+                        self.error = True
+                        return (None, None, None)
+
+                for i in range(numSymbs):
+                    if self.nrDuplexMode == 'TDD':
+                        if pucchFmt == 1 and i in pucchDmrsSymbs:
+                            self.gridNrTdd[dn][pucchScsInBaseScsFd, firstSymbPucchInBaseScsTd+i*scaleTd:firstSymbPucchInBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DMRS_PUCCH.value
+                        else:
+                            self.gridNrTdd[dn][pucchScsInBaseScsFd, firstSymbPucchInBaseScsTd+i*scaleTd:firstSymbPucchInBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_PUCCH.value
+                    else:
+                        if pucchFmt == 1 and i in pucchDmrsSymbs:
+                            self.gridNrFddUl[dn][pucchScsInBaseScsFd, firstSymbPucchInBaseScsTd+i*scaleTd:firstSymbPucchInBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DMRS_PUCCH.value
+                        else:
+                            self.gridNrFddUl[dn][pucchScsInBaseScsFd, firstSymbPucchInBaseScsTd+i*scaleTd:firstSymbPucchInBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_PUCCH.value
         else:
             pass
-
 
         return (hsfn, sfn, slot)
 
