@@ -2077,6 +2077,8 @@ class NgNrGrid(object):
                             self.gridNrFddUl[dn][pucchScsInBaseScsFd, firstSymbPucchInBaseScsTd+i*scaleTd:firstSymbPucchInBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DMRS_PUCCH.value
                         else:
                             self.gridNrFddUl[dn][pucchScsInBaseScsFd, firstSymbPucchInBaseScsTd+i*scaleTd:firstSymbPucchInBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_PUCCH.value
+
+            return (hsfn, sfn, slotMsg4Harq)
         else:
             pass
 
