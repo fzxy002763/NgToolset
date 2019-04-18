@@ -1967,6 +1967,7 @@ class NgNrGridUi(QDialog):
 
         self.nzpCsiRsFreqAllocLabel = QLabel('frequencyDomainAllocation[4/12/3/6bits]:')
         self.nzpCsiRsFreqAllocEdit = QLineEdit('000001')
+        self.nzpCsiRsFreqAllocEdit.setValidator(QRegExpValidator(QRegExp('[0-1]{6}')))
         self.nzpCsiRsFreqAllocInfoLabel = QLabel('<font color=blue>Hint: 4/12/3bits for row1/row2/row4 respectively and 6bits otherwise!</font>')
 
         self.nzpCsiRsNumPortsLabel = QLabel('nrofPorts:')
@@ -1984,17 +1985,23 @@ class NgNrGridUi(QDialog):
         self.nzpCsiRsDensityComb.addItems(['evenPRBs', 'oddPRBs', 'one', 'three'])
         self.nzpCsiRsDensityComb.setCurrentIndex(2)
 
+        self.nzpCsiRsRow, self.nzpCsiRsKBarLBar, self.nzpCsiRsKi, self.nzpCsiRsLi, self.nzpCsiRsCdmGrpIndj, self.nzpCsiRsKap, self.nzpCsiRsLap = self.nrCsiRsLoc['2_1_fd-CDM2']
+
         self.nzpCsiRsFirstSymbLabel = QLabel('firstOFDMSymbolInTimeDomain[0-13]:')
         self.nzpCsiRsFirstSymbEdit = QLineEdit('1')
+        self.nzpCsiRsFirstSymbEdit.setValidator(QIntValidator(0, 13))
 
         self.nzpCsiRsFirstSymb2Label = QLabel('firstOFDMSymbolInTimeDomain2[2-12]:')
         self.nzpCsiRsFirstSymb2Edit = QLineEdit()
+        self.nzpCsiRsFirstSymb2Edit.setValidator(QIntValidator(2, 12))
 
         self.nzpCsiRsStartRbLabel = QLabel('startingRB(CSI-FrequencyOccupation)[0-274]:')
         self.nzpCsiRsStartRbEdit = QLineEdit('0')
+        self.nzpCsiRsStartRbEdit.setValidator(QIntValidator(0, 274))
 
         self.nzpCsiRsNumRbsLabel = QLabel('nrofRBs(CSI-FrequencyOccupation)[24-276]:')
         self.nzpCsiRsNumRbsEdit = QLineEdit('276')
+        self.nzpCsiRsNumRbsEdit.setValidator(QIntValidator(24, 276))
 
         self.nzpCsiRsPeriodLabel = QLabel('CSI-ResourcePeriodicity:')
         self.nzpCsiRsPeriodComb = QComboBox()
@@ -2003,18 +2010,19 @@ class NgNrGridUi(QDialog):
 
         self.nzpCsiRsOffsetLabel = QLabel('CSI-ResourceOffset[0-319]:')
         self.nzpCsiRsOffsetEdit = QLineEdit('0')
+        self.nzpCsiRsOffsetEdit.setValidator(QIntValidator(0, 319))
 
         nzpCsiRsResMappingGrpBox = QGroupBox('CSI-RS-ResourceMapping')
         nzpCsiRsResMappingGrpBoxGridLayout = QGridLayout()
-        nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsFreqAllocLabel, 0, 0)
-        nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsFreqAllocEdit, 0, 1)
-        nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsFreqAllocInfoLabel, 1, 0, 1, 2)
-        nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsNumPortsLabel, 2, 0)
-        nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsNumPortsComb, 2, 1)
-        nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsCdmTypeLabel, 3, 0)
-        nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsCdmTypeComb, 3, 1)
-        nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsDensityLabel, 4, 0)
-        nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsDensityComb, 4, 1)
+        nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsNumPortsLabel, 0, 0)
+        nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsNumPortsComb, 0, 1)
+        nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsCdmTypeLabel, 1, 0)
+        nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsCdmTypeComb, 1, 1)
+        nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsDensityLabel, 2, 0)
+        nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsDensityComb, 2, 1)
+        nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsFreqAllocLabel, 3, 0)
+        nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsFreqAllocEdit, 3, 1)
+        nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsFreqAllocInfoLabel, 4, 0, 1, 2)
         nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsFirstSymbLabel, 5, 0)
         nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsFirstSymbEdit, 5, 1)
         nzpCsiRsResMappingGrpBoxGridLayout.addWidget(self.nzpCsiRsFirstSymb2Label, 6, 0)
@@ -2065,6 +2073,7 @@ class NgNrGridUi(QDialog):
 
         self.trsFreqAllocLabel = QLabel('frequencyDomainAllocation[4/12/3/6bits]:')
         self.trsFreqAllocEdit = QLineEdit('0001')
+        self.trsFreqAllocEdit.setValidator(QRegExpValidator(QRegExp('[0-1]{4}')))
         self.trsFreqAllocInfoLabel = QLabel('<font color=blue>Hint: 4/12/3bits for row1/row2/row4 respectively and 6bits otherwise!</font>')
 
         self.trsNumPortsLabel = QLabel('nrofPorts:')
@@ -2092,9 +2101,11 @@ class NgNrGridUi(QDialog):
 
         self.trsStartRbLabel = QLabel('startingRB(CSI-FrequencyOccupation)[0-274]:')
         self.trsStartRbEdit = QLineEdit('0')
+        self.trsStartRbEdit.setValidator(QIntValidator(0, 274))
 
         self.trsNumRbsLabel = QLabel('nrofRBs(CSI-FrequencyOccupation)[24-276]:')
         self.trsNumRbsEdit = QLineEdit('276')
+        self.trsNumRbsEdit.setValidator(QIntValidator(24, 276))
 
         self.trsPeriodLabel = QLabel('CSI-ResourcePeriodicity:')
         self.trsPeriodComb = QComboBox()
@@ -2103,18 +2114,19 @@ class NgNrGridUi(QDialog):
 
         self.trsOffsetLabel = QLabel('CSI-ResourceOffset[0-159]:')
         self.trsOffsetEdit = QLineEdit('0')
+        self.trsOffsetEdit.setValidator(QIntValidator(0, 159))
 
         trsResMappingGrpBox = QGroupBox('CSI-RS-ResourceMapping')
         trsResMappingGrpBoxGridLayout = QGridLayout()
-        trsResMappingGrpBoxGridLayout.addWidget(self.trsFreqAllocLabel, 0, 0)
-        trsResMappingGrpBoxGridLayout.addWidget(self.trsFreqAllocEdit, 0, 1)
-        trsResMappingGrpBoxGridLayout.addWidget(self.trsFreqAllocInfoLabel, 1, 0, 1, 2)
-        trsResMappingGrpBoxGridLayout.addWidget(self.trsNumPortsLabel, 2, 0)
-        trsResMappingGrpBoxGridLayout.addWidget(self.trsNumPortsComb, 2, 1)
-        trsResMappingGrpBoxGridLayout.addWidget(self.trsCdmTypeLabel, 3, 0)
-        trsResMappingGrpBoxGridLayout.addWidget(self.trsCdmTypeComb, 3, 1)
-        trsResMappingGrpBoxGridLayout.addWidget(self.trsDensityLabel, 4, 0)
-        trsResMappingGrpBoxGridLayout.addWidget(self.trsDensityComb, 4, 1)
+        trsResMappingGrpBoxGridLayout.addWidget(self.trsNumPortsLabel, 0, 0)
+        trsResMappingGrpBoxGridLayout.addWidget(self.trsNumPortsComb, 0, 1)
+        trsResMappingGrpBoxGridLayout.addWidget(self.trsCdmTypeLabel, 1, 0)
+        trsResMappingGrpBoxGridLayout.addWidget(self.trsCdmTypeComb, 1, 1)
+        trsResMappingGrpBoxGridLayout.addWidget(self.trsDensityLabel, 2, 0)
+        trsResMappingGrpBoxGridLayout.addWidget(self.trsDensityComb, 2, 1)
+        trsResMappingGrpBoxGridLayout.addWidget(self.trsFreqAllocLabel, 3, 0)
+        trsResMappingGrpBoxGridLayout.addWidget(self.trsFreqAllocEdit, 3, 1)
+        trsResMappingGrpBoxGridLayout.addWidget(self.trsFreqAllocInfoLabel, 4, 0, 1, 2)
         trsResMappingGrpBoxGridLayout.addWidget(self.trsFirstSymbLabel, 5, 0)
         trsResMappingGrpBoxGridLayout.addWidget(self.trsFirstSymbComb, 5, 1)
         trsResMappingGrpBoxGridLayout.addWidget(self.trsStartRbLabel, 6, 0)
@@ -2166,12 +2178,15 @@ class NgNrGridUi(QDialog):
 
         self.csiImSymbLocationLabel = QLabel('symbolLocation[0-13]:')
         self.csiImSymbLocationEdit = QLineEdit('1')
+        self.csiImSymbLocationEdit.setValidator(QIntValidator(0, 13))
 
         self.csiImStartRbLabel = QLabel('startingRB(CSI-FrequencyOccupation)[0-274]:')
         self.csiImStartRbEdit = QLineEdit('0')
+        self.csiImStartRbEdit.setValidator(QIntValidator(0, 274))
 
         self.csiImNumRbsLabel = QLabel('nrofRBs(CSI-FrequencyOccupation)[24-276]:')
         self.csiImNumRbsEdit = QLineEdit('276')
+        self.csiImNumRbsEdit.setValidator(QIntValidator(24, 276))
 
         self.csiImPeriodLabel = QLabel('CSI-ResourcePeriodicity:')
         self.csiImPeriodComb = QComboBox()
@@ -2180,6 +2195,7 @@ class NgNrGridUi(QDialog):
 
         self.csiImOffsetLabel = QLabel('CSI-ResourceOffset[0-319]:')
         self.csiImOffsetEdit = QLineEdit('0')
+        self.csiImOffsetEdit.setValidator(QIntValidator(0, 319))
 
         csiImGridLayout = QGridLayout()
         csiImGridLayout.addWidget(self.csiImResSetIdLabel, 0, 0)
@@ -2349,12 +2365,13 @@ class NgNrGridUi(QDialog):
 
         self.csiRepCfgOffsetLabel = QLabel('CSI-ReportOffset[0-319]:')
         self.csiRepCfgOffsetEdit = QLineEdit('7')
+        self.csiRepCfgOffsetEdit.setValidator(QIntValidator(0, 319))
 
         self.csiRepCfgUlBwpIdLabel = QLabel('uplinkBandwidthPartId[0-4]:')
         self.csiRepCfgUlBwpIdEdit = QLineEdit('1')
         self.csiRepCfgUlBwpIdEdit.setEnabled(False)
 
-        self.csiRepCfgPucchResLabel = QLabel('pucch-Resource(PUCCH-ResourceId):')
+        self.csiRepCfgPucchResLabel = QLabel('pucch-Resource(PUCCH-ResourceId)[2/3/4]:')
         self.csiRepCfgPucchResEdit = QLineEdit('2')
 
         self.csiRepCfgQuantityLabel = QLabel('reportQuantity:')
@@ -3900,6 +3917,17 @@ class NgNrGridUi(QDialog):
         self.nrDmrsDedPdschMaxLengthComb.currentIndexChanged.connect(self.onDmrsDedPdschDmrsTypeOrMaxLengthCombCurIndChanged)
         self.nrDmrsDedPdschDmrsTypeComb.currentIndexChanged.connect(self.onDmrsDedPdschDmrsTypeOrMaxLengthCombCurIndChanged)
         self.nrDmrsDedPdschAddPosComb.currentIndexChanged.connect(self.onDmrsDedPdschAddPosCombCurIndChanged)
+        self.nzpCsiRsCdmTypeComb.currentIndexChanged.connect(self.onNzpCsiRsNumPortsCdmTypeDensityCombCurIndChanged)
+        self.nzpCsiRsNumPortsComb.currentIndexChanged.connect(self.onNzpCsiRsNumPortsCdmTypeDensityCombCurIndChanged)
+        self.nzpCsiRsDensityComb.currentIndexChanged.connect(self.onNzpCsiRsNumPortsCdmTypeDensityCombCurIndChanged)
+        self.nzpCsiRsPeriodComb.currentIndexChanged.connect(self.onNzpCsiRsPeriodCombCurIndChanged)
+        self.trsResIdComb.currentIndexChanged.connect(self.onTrsResIdCombCurIndChanged)
+        self.trsFirstSymbComb.currentIndexChanged.connect(self.onTrsFirstSymbCombCurIndChanged)
+        self.trsPeriodComb.currentIndexChanged.connect(self.onTrsPeriodCombCurIndChanged)
+        self.csiImRePatternComb.currentIndexChanged.connect(self.onCsiImRePatternCombCurIndChanged)
+        self.csiImPeriodComb.currentIndexChanged.connect(self.onCsiImPeriodCombCurIndChanged)
+        self.csiRepCfgPeriodComb.currentIndexChanged.connect(self.onCsiRepCfgPeriodCombCurIndChanged)
+
         #---->dedicated ul bwp
         self.nrDedUlBwpGenericCpComb.currentIndexChanged.connect(self.onDci01MappingTypeOrDedUlBwpCpCombCurIndChanged)
         self.nrDedPuschCfgRbgConfigComb.currentIndexChanged.connect(self.onDedPuschCfgRbgConfigCombCurIndChanged)
@@ -6804,6 +6832,40 @@ class NgNrGridUi(QDialog):
             15 : (1,0,14,None,(0, 3, 6, 9)),
             }
 
+        #refer to 3GPP 38.211 vf40
+        #Table 7.4.1.5.3-1: CSI-RS locations within a slot.
+        #key=[ports,pdensity,cdm-type],val=[row,k-/l-(delta),ki,li,j,k',l']
+        self.nrCsiRsLoc = {
+            '1_3_noCDM' : (1,((0,0),(4,0),(8,0)),(0,0,0),(0,0,0),(0,0,0),(0,),(0,)),
+            '1_1_noCDM' : (2,((0,0),),(0,),(0,),(0,),(0,),(0,)),
+            '1_0.5_noCDM' : (2,((0,0),),(0,),(0,),(0,),(0,),(0,)),
+            '2_1_fd-CDM2' : (3,((0,0),),(0,),(0,),(0,),(0, 1),(0,)),
+            '2_0.5_fd-CDM2' : (3,((0,0),),(0,),(0,),(0,),(0, 1),(0,)),
+            '4_1_fd-CDM2' : (4,((0,0),(2,0)),(0,0),(0,0),(0,1),(0, 1),(0,)),
+            '4_1_fd-CDM2' : (5,((0,0),(0,1)),(0,0),(0,0),(0,1),(0, 1),(0,)),
+            '8_1_fd-CDM2' : (6,((0,0),(0,0),(0,0),(0,0)),(0,1,2,3),(0,0,0,0),(0,1,2,3),(0, 1),(0,)),
+            '8_1_fd-CDM2' : (7,((0,0),(0,0),(0,1),(0,1)),(0,1,0,1),(0,0,0,0),(0,1,2,3),(0, 1),(0,)),
+            '8_1_cdm4-FD2-TD2' : (8,((0,0),(0,0)),(0,1),(0,0),(0,1),(0, 1),(0, 1)),
+            '12_1_fd-CDM2' : (9,((0,0),(0,0),(0,0),(0,0),(0,0),(0,0)),(0,1,2,3,4,5),(0,0,0,0,0,0),(0,1,2,3,4,5),(0, 1),(0,)),
+            '12_1_cdm4-FD2-TD2' : (10,((0,0),(0,0),(0,0)),(0,1,2),(0,0,0),(0,1,2),(0, 1),(0, 1)),
+            '16_1_fd-CDM2' : (11,((0,0),(0,0),(0,0),(0,0),(0,1),(0,1),(0,1),(0,1)),(0,1,2,3,0,1,2,3),(0,0,0,0,0,0,0,0),(0,1,2,3,4,5,6,7),(0, 1),(0,)),
+            '16_0.5_fd-CDM2' : (11,((0,0),(0,0),(0,0),(0,0),(0,1),(0,1),(0,1),(0,1)),(0,1,2,3,0,1,2,3),(0,0,0,0,0,0,0,0),(0,1,2,3,4,5,6,7),(0, 1),(0,)),
+            '16_1_cdm4-FD2-TD2' : (12,((0,0),(0,0),(0,0),(0,0)),(0,1,2,3),(0,0,0,0),(0,1,2,3),(0, 1),(0, 1)),
+            '16_0.5_cdm4-FD2-TD2' : (12,((0,0),(0,0),(0,0),(0,0)),(0,1,2,3),(0,0,0,0),(0,1,2,3),(0, 1),(0, 1)),
+            '24_1_fd-CDM2' : (13,((0,0),(0,0),(0,0),(0,1),(0,1),(0,1),(0,0),(0,0),(0,0),(0,1),(0,1),(0,1)),(0,1,2,0,1,2,0,1,2,0,1,2),(0,0,0,0,0,0,1,1,1,1,1,1),(0,1,2,3,4,5,6,7,8,9,10,11),(0, 1),(0,)),
+            '24_0.5_fd-CDM2' : (13,((0,0),(0,0),(0,0),(0,1),(0,1),(0,1),(0,0),(0,0),(0,0),(0,1),(0,1),(0,1)),(0,1,2,0,1,2,0,1,2,0,1,2),(0,0,0,0,0,0,1,1,1,1,1,1),(0,1,2,3,4,5,6,7,8,9,10,11),(0, 1),(0,)),
+            '24_1_cdm4-FD2-TD2' : (14,((0,0),(0,0),(0,0),(0,0),(0,0),(0,0)),(0,1,2,0,1,2),(0,0,0,1,1,1),(0,1,2,3,4,5),(0, 1),(0, 1)),
+            '24_0.5_cdm4-FD2-TD2' : (14,((0,0),(0,0),(0,0),(0,0),(0,0),(0,0)),(0,1,2,0,1,2),(0,0,0,1,1,1),(0,1,2,3,4,5),(0, 1),(0, 1)),
+            '24_1_cdm8-FD2-TD4' : (15,((0,0),(0,0),(0,0)),(0,1,2),(0,0,0),(0,1,2),(0, 1),(0, 1, 2, 3)),
+            '24_0.5_cdm8-FD2-TD4' : (15,((0,0),(0,0),(0,0)),(0,1,2),(0,0,0),(0,1,2),(0, 1),(0, 1, 2, 3)),
+            '32_1_fd-CDM2' : (16,((0,0),(0,0),(0,0),(0,0),(0,1),(0,1),(0,1),(0,1),(0,0),(0,0),(0,0),(0,0),(0,1),(0,1),(0,1),(0,1)),(0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3),(0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1),(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15),(0, 1),(0,)),
+            '32_0.5_fd-CDM2' : (16,((0,0),(0,0),(0,0),(0,0),(0,1),(0,1),(0,1),(0,1),(0,0),(0,0),(0,0),(0,0),(0,1),(0,1),(0,1),(0,1)),(0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3),(0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1),(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15),(0, 1),(0,)),
+            '32_1_cdm4-FD2-TD2' : (17,((0,0),(0,0),(0,0),(0,0),(0,0),(0,0),(0,0),(0,0)),(0,1,2,3,0,1,2,3),(0,0,0,0,1,1,1,1),(0,1,2,3,4,5,6,7),(0, 1),(0, 1)),
+            '32_0.5_cdm4-FD2-TD2' : (17,((0,0),(0,0),(0,0),(0,0),(0,0),(0,0),(0,0),(0,0)),(0,1,2,3,0,1,2,3),(0,0,0,0,1,1,1,1),(0,1,2,3,4,5,6,7),(0, 1),(0, 1)),
+            '32_1_cdm8-FD2-TD4' : (18,((0,0),(0,0),(0,0),(0,0)),(0,1,2,3),(0,0,0,0),(0,1,2,3),(0,1),(0,1, 2, 3)),
+            '32_0.5_cdm8-FD2-TD4' : (18,((0,0),(0,0),(0,0),(0,0)),(0,1,2,3),(0,0,0,0),(0,1,2,3),(0,1),(0,1, 2, 3)),
+            }
+
         #offset of CORESET0 w.r.t. SSB
         self.coreset0Offset = 0
         #minimum channel bandwidth
@@ -8922,6 +8984,133 @@ class NgNrGridUi(QDialog):
         else:
             self.nrDmrsDedPdschAddPosComb.clear()
             self.nrDmrsDedPdschAddPosComb.addItems(['pos0', 'pos1'])
+
+    def onNzpCsiRsNumPortsCdmTypeDensityCombCurIndChanged(self, index):
+        if index < 0:
+            return
+
+        self.ngwin.logEdit.append('-->inside onNzpCsiRsNumPortsCdmTypeDensityCombCurIndChanged, index=%d' % index)
+        density = ['0.5', '0.5', '1', '3'][self.nzpCsiRsDensityComb.currentIndex()]
+        key = '%s_%s_%s' % (self.nzpCsiRsNumPortsComb.currentText()[1:], density, self.nzpCsiRsCdmTypeComb.currentText())
+        if key not in self.nrCsiRsLoc:
+            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrCsiRsLoc!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+            return
+
+        self.nzpCsiRsRow, self.nzpCsiRsKBarLBar, self.nzpCsiRsKi, self.nzpCsiRsLi, self.nzpCsiRsCdmGrpIndj, self.nzpCsiRsKap, self.nzpCsiRsLap = self.nrCsiRsLoc[key]
+
+        if self.nzpCsiRsRow == 1:
+            if not self.nzpCsiRsFreqAllocEdit.text() or len(self.nzpCsiRsFreqAllocEdit.text()) != 4:
+                self.nzpCsiRsFreqAllocEdit.setValidator(QRegExpValidator(QRegExp('[0-1]{4}')))
+                self.nzpCsiRsFreqAllocEdit.setText('0001')
+        elif self.nzpCsiRsRow == 2:
+            if not self.nzpCsiRsFreqAllocEdit.text() or len(self.nzpCsiRsFreqAllocEdit.text()) != 12:
+                self.nzpCsiRsFreqAllocEdit.setValidator(QRegExpValidator(QRegExp('[0-1]{12}')))
+                self.nzpCsiRsFreqAllocEdit.setText('000000000001')
+        elif self.nzpCsiRsRow == 4:
+            if not self.nzpCsiRsFreqAllocEdit.text() or len(self.nzpCsiRsFreqAllocEdit.text()) != 3:
+                self.nzpCsiRsFreqAllocEdit.setValidator(QRegExpValidator(QRegExp('[0-1]{3}')))
+                self.nzpCsiRsFreqAllocEdit.setText('001')
+        else:
+            if not self.nzpCsiRsFreqAllocEdit.text() or len(self.nzpCsiRsFreqAllocEdit.text()) != 6:
+                self.nzpCsiRsFreqAllocEdit.setValidator(QRegExpValidator(QRegExp('[0-1]{6}')))
+                self.nzpCsiRsFreqAllocEdit.setText('000001')
+
+        numKi = len(set(self.nzpCsiRsKi))
+        numLi = len(set(self.nzpCsiRsLi))
+
+        numKiConf = 0
+        if self.nzpCsiRsFreqAllocEdit.text():
+            numKiConf = self.nzpCsiRsFreqAllocEdit.text().count('1')
+
+        if numKiConf < numKi:
+            self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid configuration: numKi=%d but numKiConf(frequencyDomainAllocation)=%d!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), numKi, numKiConf))
+
+        numLiConf = 0
+        if self.nzpCsiRsFirstSymbEdit.text():
+            numLiConf = numLiConf + 1
+        if self.nzpCsiRsFirstSymb2Edit.text():
+            numLiConf = numLiConf + 1
+        if numLi == 1 and not self.nzpCsiRsFirstSymbEdit.text():
+            self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid configuration: numLi=%d but firstOFDMSymbolInTimeDomain2(l0) is not configured!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), numKi, numKiConf))
+        elif numLi == 2 and numLiConf < numLi:
+            self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid configuration: numLi=%d but numLiConf=%d!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), numLi, numLiConf))
+        else:
+            pass
+
+    def onNzpCsiRsPeriodCombCurIndChanged(self, index):
+        if index < 0:
+            return
+
+        self.ngwin.logEdit.append('-->inside onNzpCsiRsPeriodCombCurIndChanged, index=%d' % index)
+        self.nzpCsiRsOffsetLabel.setText('CSI-ResourceOffset[0-%d]' % (int(self.nzpCsiRsPeriodComb.currentText()[5:])-1))
+        self.nzpCsiRsOffsetEdit.setValidator(QIntValidator(0, int(self.nzpCsiRsPeriodComb.currentText()[5:])-1))
+        self.nzpCsiRsOffsetEdit.setText('0')
+
+    def onTrsResIdCombCurIndChanged(self, index):
+        if index < 0:
+            return
+
+        self.ngwin.logEdit.append('-->inside onTrsResIdCombCurIndChanged, index=%d' % index)
+        if self.trsResIdComb.currentIndex() == 0:
+            self.trsOffsetEdit.setText('0')
+        else:
+            self.trsOffsetEdit.setText('0,1')
+
+    def onTrsFirstSymbCombCurIndChanged(self, index):
+        if index < 0:
+            return
+
+        self.ngwin.logEdit.append('-->inside onTrsFirstSymbCombCurIndChanged, index=%d' % index)
+        ind = int(self.trsFirstSymbComb.currentText().split(',')[0])
+        if self.freqRange == 'FR1' and ind not in (4,5,6):
+            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Only time-domain locations (4,8)/(5,9)/(6,10) are supported for CSI-IM with FR1!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
+            self.trsFirstSymbComb.setCurrentText('4,8')
+            return
+
+    def onTrsPeriodCombCurIndChanged(self, index):
+        if index < 0:
+            return
+
+        self.ngwin.logEdit.append('-->inside onTrsPeriodCombCurIndChanged, index=%d' % index)
+        self.trsOffsetLabel.setText('CSI-ResourceOffset[0-%d]' % (int(self.trsPeriodComb.currentText()[5:])-1))
+        self.trsOffsetEdit.setValidator(QIntValidator(0, int(self.trsPeriodComb.currentText()[5:])-1))
+        self.trsOffsetEdit.setText('0')
+
+    def onCsiImRePatternCombCurIndChanged(self, index):
+        if index < 0:
+            return
+
+        self.ngwin.logEdit.append('-->inside onCsiImRePatternCombCurIndChanged, index=%d' % index)
+        if self.csiImRePatternComb.currentText() == 'pattern0':
+            self.csiImScLocationComb.clear()
+            self.csiImScLocationComb.addItems(['s0', 's2', 's4', 's6', 's8', 's10'])
+            self.csiImScLocationComb.setCurrentIndex(1)
+            self.csiImSymbLocationLabel.setText('symbolLocation[0-12]:')
+            self.csiImSymbLocationEdit.setText('1')
+        else:
+            self.csiImScLocationComb.clear()
+            self.csiImScLocationComb.addItems(['s0', 's4', 's8'])
+            self.csiImScLocationComb.setCurrentIndex(1)
+            self.csiImSymbLocationLabel.setText('symbolLocation[0-13]:')
+            self.csiImSymbLocationEdit.setText('1')
+
+    def onCsiImPeriodCombCurIndChanged(self, index):
+        if index < 0:
+            return
+
+        self.ngwin.logEdit.append('-->inside onCsiImPeriodCombCurIndChanged, index=%d' % index)
+        self.csiImOffsetLabel.setText('CSI-ResourceOffset[0-%d]' % (int(self.csiImPeriodComb.currentText()[5:])-1))
+        self.csiImOffsetEdit.setValidator(QIntValidator(0, int(self.csiImPeriodComb.currentText()[5:])-1))
+        self.csiImOffsetEdit.setText('0')
+
+    def onCsiRepCfgPeriodCombCurIndChanged(self, index):
+        if index < 0:
+            return
+
+        self.ngwin.logEdit.append('-->inside onCsiRepCfgPeriodCombCurIndChanged, index=%d' % index)
+        self.csiRepCfgOffsetLabel.setText('CSI-ReportOffset[0-%d]' % (int(self.csiRepCfgPeriodComb.currentText()[5:])-1))
+        self.csiRepCfgOffsetEdit.setValidator(QIntValidator(0, int(self.csiRepCfgPeriodComb.currentText()[5:])-1))
+        self.csiRepCfgOffsetEdit.setText('0')
 
     def onDmrsDedPdschDmrsTypeOrMaxLengthCombCurIndChanged(self, index):
         if index < 0:
