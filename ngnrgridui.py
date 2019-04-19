@@ -2094,6 +2094,8 @@ class NgNrGridUi(QDialog):
         self.trsDensityComb.setCurrentIndex(3)
         self.trsDensityComb.setEnabled(False)
 
+        self.trsRow, self.trsKBarLBar, self.trsKi, self.trsLi, self.trsCdmGrpIndj, self.trsKap, self.trsLap = self.nrCsiRsLoc['1_3_noCDM']
+
         self.trsFirstSymbLabel = QLabel('firstOFDMSymbolInTimeDomain[4-6(FR1)/0-9(FR2)]:')
         self.trsFirstSymbComb = QComboBox()
         self.trsFirstSymbComb.addItems(['0,4', '1,5', '2,6', '3,7', '4,8', '5,9', '6,10', '7,11', '8,12', '9,13'])
@@ -2727,9 +2729,9 @@ class NgNrGridUi(QDialog):
         self.nrSrsRes0NonCbPtrsPortIndComb.setCurrentIndex(0)
 
         self.nrSrsRes0NumCombLabel = QLabel('transmissionComb:')
-        self.nrSrsRes0NumCombComb= QComboBox()
-        self.nrSrsRes0NumCombComb.addItems(['n2', 'n4'])
-        self.nrSrsRes0NumCombComb.setCurrentIndex(0)
+        self.nrSrsRes0NumCombsComb= QComboBox()
+        self.nrSrsRes0NumCombsComb.addItems(['n2', 'n4'])
+        self.nrSrsRes0NumCombsComb.setCurrentIndex(0)
 
         self.nrSrsRes0CombOffsetLabel = QLabel('combOffset[0-1]:')
         self.nrSrsRes0CombOffsetEdit = QLineEdit('0')
@@ -2769,6 +2771,8 @@ class NgNrGridUi(QDialog):
         self.nrSrsRes0FreqHopBHopEdit = QLineEdit('0')
         self.nrSrsRes0FreqHopBHopEdit.setValidator(QIntValidator(0, 3))
 
+        self.srsRes0mSRSb, self.srsRes0Nb = self.nrSrsBwCfg['0_0']
+
         self.nrSrsRes0ResTypeLabel = QLabel('resourceType:')
         self.nrSrsRes0ResTypeComb = QComboBox()
         self.nrSrsRes0ResTypeComb.addItems(['aperiodic', 'semi-persistent', 'periodic'])
@@ -2794,7 +2798,7 @@ class NgNrGridUi(QDialog):
         srsRes0GridLayout.addWidget(self.nrSrsRes0NonCbPtrsPortIndLabel, 2, 0)
         srsRes0GridLayout.addWidget(self.nrSrsRes0NonCbPtrsPortIndComb, 2, 1)
         srsRes0GridLayout.addWidget(self.nrSrsRes0NumCombLabel, 3, 0)
-        srsRes0GridLayout.addWidget(self.nrSrsRes0NumCombComb, 3, 1)
+        srsRes0GridLayout.addWidget(self.nrSrsRes0NumCombsComb, 3, 1)
         srsRes0GridLayout.addWidget(self.nrSrsRes0CombOffsetLabel, 4, 0)
         srsRes0GridLayout.addWidget(self.nrSrsRes0CombOffsetEdit, 4, 1)
         srsRes0GridLayout.addWidget(self.nrSrsRes0StartPosLabel, 5, 0)
@@ -2847,9 +2851,9 @@ class NgNrGridUi(QDialog):
         self.nrSrsRes1NonCbPtrsPortIndComb.setCurrentIndex(0)
 
         self.nrSrsRes1NumCombLabel = QLabel('transmissionComb:')
-        self.nrSrsRes1NumCombComb= QComboBox()
-        self.nrSrsRes1NumCombComb.addItems(['n2', 'n4'])
-        self.nrSrsRes1NumCombComb.setCurrentIndex(0)
+        self.nrSrsRes1NumCombsComb= QComboBox()
+        self.nrSrsRes1NumCombsComb.addItems(['n2', 'n4'])
+        self.nrSrsRes1NumCombsComb.setCurrentIndex(0)
 
         self.nrSrsRes1CombOffsetLabel = QLabel('combOffset[0-1]:')
         self.nrSrsRes1CombOffsetEdit = QLineEdit('0')
@@ -2889,6 +2893,8 @@ class NgNrGridUi(QDialog):
         self.nrSrsRes1FreqHopBHopEdit = QLineEdit('0')
         self.nrSrsRes1FreqHopBHopEdit.setValidator(QIntValidator(0, 3))
 
+        self.srsRes1mSRSb, self.srsRes1Nb = self.nrSrsBwCfg['0_0']
+
         self.nrSrsRes1ResTypeLabel = QLabel('resourceType:')
         self.nrSrsRes1ResTypeComb = QComboBox()
         self.nrSrsRes1ResTypeComb.addItems(['aperiodic', 'semi-persistent', 'periodic'])
@@ -2914,7 +2920,7 @@ class NgNrGridUi(QDialog):
         srsRes1GridLayout.addWidget(self.nrSrsRes1NonCbPtrsPortIndLabel, 2, 0)
         srsRes1GridLayout.addWidget(self.nrSrsRes1NonCbPtrsPortIndComb, 2, 1)
         srsRes1GridLayout.addWidget(self.nrSrsRes1NumCombLabel, 3, 0)
-        srsRes1GridLayout.addWidget(self.nrSrsRes1NumCombComb, 3, 1)
+        srsRes1GridLayout.addWidget(self.nrSrsRes1NumCombsComb, 3, 1)
         srsRes1GridLayout.addWidget(self.nrSrsRes1CombOffsetLabel, 4, 0)
         srsRes1GridLayout.addWidget(self.nrSrsRes1CombOffsetEdit, 4, 1)
         srsRes1GridLayout.addWidget(self.nrSrsRes1StartPosLabel, 5, 0)
@@ -2967,9 +2973,9 @@ class NgNrGridUi(QDialog):
         self.nrSrsRes2NonCbPtrsPortIndComb.setCurrentIndex(0)
 
         self.nrSrsRes2NumCombLabel = QLabel('transmissionComb:')
-        self.nrSrsRes2NumCombComb= QComboBox()
-        self.nrSrsRes2NumCombComb.addItems(['n2', 'n4'])
-        self.nrSrsRes2NumCombComb.setCurrentIndex(0)
+        self.nrSrsRes2NumCombsComb= QComboBox()
+        self.nrSrsRes2NumCombsComb.addItems(['n2', 'n4'])
+        self.nrSrsRes2NumCombsComb.setCurrentIndex(0)
 
         self.nrSrsRes2CombOffsetLabel = QLabel('combOffset[0-1]:')
         self.nrSrsRes2CombOffsetEdit = QLineEdit('0')
@@ -3009,6 +3015,8 @@ class NgNrGridUi(QDialog):
         self.nrSrsRes2FreqHopBHopEdit = QLineEdit('0')
         self.nrSrsRes2FreqHopBHopEdit.setValidator(QIntValidator(0, 3))
 
+        self.srsRes2mSRSb, self.srsRes2Nb = self.nrSrsBwCfg['0_0']
+
         self.nrSrsRes2ResTypeLabel = QLabel('resourceType:')
         self.nrSrsRes2ResTypeComb = QComboBox()
         self.nrSrsRes2ResTypeComb.addItems(['aperiodic', 'semi-persistent', 'periodic'])
@@ -3034,7 +3042,7 @@ class NgNrGridUi(QDialog):
         srsRes2GridLayout.addWidget(self.nrSrsRes2NonCbPtrsPortIndLabel, 2, 0)
         srsRes2GridLayout.addWidget(self.nrSrsRes2NonCbPtrsPortIndComb, 2, 1)
         srsRes2GridLayout.addWidget(self.nrSrsRes2NumCombLabel, 3, 0)
-        srsRes2GridLayout.addWidget(self.nrSrsRes2NumCombComb, 3, 1)
+        srsRes2GridLayout.addWidget(self.nrSrsRes2NumCombsComb, 3, 1)
         srsRes2GridLayout.addWidget(self.nrSrsRes2CombOffsetLabel, 4, 0)
         srsRes2GridLayout.addWidget(self.nrSrsRes2CombOffsetEdit, 4, 1)
         srsRes2GridLayout.addWidget(self.nrSrsRes2StartPosLabel, 5, 0)
@@ -3087,9 +3095,9 @@ class NgNrGridUi(QDialog):
         self.nrSrsRes3NonCbPtrsPortIndComb.setCurrentIndex(0)
 
         self.nrSrsRes3NumCombLabel = QLabel('transmissionComb:')
-        self.nrSrsRes3NumCombComb= QComboBox()
-        self.nrSrsRes3NumCombComb.addItems(['n2', 'n4'])
-        self.nrSrsRes3NumCombComb.setCurrentIndex(0)
+        self.nrSrsRes3NumCombsComb= QComboBox()
+        self.nrSrsRes3NumCombsComb.addItems(['n2', 'n4'])
+        self.nrSrsRes3NumCombsComb.setCurrentIndex(0)
 
         self.nrSrsRes3CombOffsetLabel = QLabel('combOffset[0-1]:')
         self.nrSrsRes3CombOffsetEdit = QLineEdit('0')
@@ -3129,6 +3137,8 @@ class NgNrGridUi(QDialog):
         self.nrSrsRes3FreqHopBHopEdit = QLineEdit('0')
         self.nrSrsRes3FreqHopBHopEdit.setValidator(QIntValidator(0, 3))
 
+        self.srsRes3mSRSb, self.srsRes3Nb = self.nrSrsBwCfg['0_0']
+
         self.nrSrsRes3ResTypeLabel = QLabel('resourceType:')
         self.nrSrsRes3ResTypeComb = QComboBox()
         self.nrSrsRes3ResTypeComb.addItems(['aperiodic', 'semi-persistent', 'periodic'])
@@ -3154,7 +3164,7 @@ class NgNrGridUi(QDialog):
         srsRes3GridLayout.addWidget(self.nrSrsRes3NonCbPtrsPortIndLabel, 2, 0)
         srsRes3GridLayout.addWidget(self.nrSrsRes3NonCbPtrsPortIndComb, 2, 1)
         srsRes3GridLayout.addWidget(self.nrSrsRes3NumCombLabel, 3, 0)
-        srsRes3GridLayout.addWidget(self.nrSrsRes3NumCombComb, 3, 1)
+        srsRes3GridLayout.addWidget(self.nrSrsRes3NumCombsComb, 3, 1)
         srsRes3GridLayout.addWidget(self.nrSrsRes3CombOffsetLabel, 4, 0)
         srsRes3GridLayout.addWidget(self.nrSrsRes3CombOffsetEdit, 4, 1)
         srsRes3GridLayout.addWidget(self.nrSrsRes3StartPosLabel, 5, 0)
@@ -3953,10 +3963,10 @@ class NgNrGridUi(QDialog):
         self.nrSrsRes1NonCbPtrsPortIndComb.currentIndexChanged.connect(self.onSrsResNonCbPtrsPortIndCombCurIndChanged)
         self.nrSrsRes2NonCbPtrsPortIndComb.currentIndexChanged.connect(self.onSrsResNonCbPtrsPortIndCombCurIndChanged)
         self.nrSrsRes3NonCbPtrsPortIndComb.currentIndexChanged.connect(self.onSrsResNonCbPtrsPortIndCombCurIndChanged)
-        self.nrSrsRes0NumCombComb.currentIndexChanged.connect(self.onSrsRes0NumCombCombCurIndChanged)
-        self.nrSrsRes1NumCombComb.currentIndexChanged.connect(self.onSrsRes1NumCombCombCurIndChanged)
-        self.nrSrsRes2NumCombComb.currentIndexChanged.connect(self.onSrsRes2NumCombCombCurIndChanged)
-        self.nrSrsRes3NumCombComb.currentIndexChanged.connect(self.onSrsRes3NumCombCombCurIndChanged)
+        self.nrSrsRes0NumCombsComb.currentIndexChanged.connect(self.onSrsRes0NumCombsCombCurIndChanged)
+        self.nrSrsRes1NumCombsComb.currentIndexChanged.connect(self.onSrsRes1NumCombsCombCurIndChanged)
+        self.nrSrsRes2NumCombsComb.currentIndexChanged.connect(self.onSrsRes2NumCombsCombCurIndChanged)
+        self.nrSrsRes3NumCombsComb.currentIndexChanged.connect(self.onSrsRes3NumCombsCombCurIndChanged)
         self.nrSrsRes0PeriodComb.currentIndexChanged.connect(self.onSrsRes0PeriodCombCurIndChanged)
         self.nrSrsRes1PeriodComb.currentIndexChanged.connect(self.onSrsRes1PeriodCombCurIndChanged)
         self.nrSrsRes2PeriodComb.currentIndexChanged.connect(self.onSrsRes2PeriodCombCurIndChanged)
@@ -6866,6 +6876,76 @@ class NgNrGridUi(QDialog):
             '32_0.5_cdm8-FD2-TD4' : (18,((0,0),(0,0),(0,0),(0,0)),(0,1,2,3),(0,0,0,0),(0,1,2,3),(0,1),(0,1, 2, 3)),
             }
 
+        #refer to 3GPP 38.211 vf40
+        #Table 6.4.1.4.3-1: SRS bandwidth configuration.
+        #key=[C_SRS, B_SRS], val=[m_SRS_b, N_b] with b = B_SRS
+        self.nrSrsBwCfg = {
+            '0_0' : (4,1), '0_1' : (4,1), '0_2' : (4,1), '0_3' : (4,1),
+            '1_0' : (8,1), '1_1' : (4,2), '1_2' : (4,1), '1_3' : (4,1),
+            '2_0' : (12,1), '2_1' : (4,3), '2_2' : (4,1), '2_3' : (4,1),
+            '3_0' : (16,1), '3_1' : (4,4), '3_2' : (4,1), '3_3' : (4,1),
+            '4_0' : (16,1), '4_1' : (8,2), '4_2' : (4,2), '4_3' : (4,1),
+            '5_0' : (20,1), '5_1' : (4,5), '5_2' : (4,1), '5_3' : (4,1),
+            '6_0' : (24,1), '6_1' : (4,6), '6_2' : (4,1), '6_3' : (4,1),
+            '7_0' : (24,1), '7_1' : (12,2), '7_2' : (4,3), '7_3' : (4,1),
+            '8_0' : (28,1), '8_1' : (4,7), '8_2' : (4,1), '8_3' : (4,1),
+            '9_0' : (32,1), '9_1' : (16,2), '9_2' : (8,2), '9_3' : (4,2),
+            '10_0' : (36,1), '10_1' : (12,3), '10_2' : (4,3), '10_3' : (4,1),
+            '11_0' : (40,1), '11_1' : (20,2), '11_2' : (4,5), '11_3' : (4,1),
+            '12_0' : (48,1), '12_1' : (16,3), '12_2' : (8,2), '12_3' : (4,2),
+            '13_0' : (48,1), '13_1' : (24,2), '13_2' : (12,2), '13_3' : (4,3),
+            '14_0' : (52,1), '14_1' : (4,13), '14_2' : (4,1), '14_3' : (4,1),
+            '15_0' : (56,1), '15_1' : (28,2), '15_2' : (4,7), '15_3' : (4,1),
+            '16_0' : (60,1), '16_1' : (20,3), '16_2' : (4,5), '16_3' : (4,1),
+            '17_0' : (64,1), '17_1' : (32,2), '17_2' : (16,2), '17_3' : (4,4),
+            '18_0' : (72,1), '18_1' : (24,3), '18_2' : (12,2), '18_3' : (4,3),
+            '19_0' : (72,1), '19_1' : (36,2), '19_2' : (12,3), '19_3' : (4,3),
+            '20_0' : (76,1), '20_1' : (4,19), '20_2' : (4,1), '20_3' : (4,1),
+            '21_0' : (80,1), '21_1' : (40,2), '21_2' : (20,2), '21_3' : (4,5),
+            '22_0' : (88,1), '22_1' : (44,2), '22_2' : (4,11), '22_3' : (4,1),
+            '23_0' : (96,1), '23_1' : (32,3), '23_2' : (16,2), '23_3' : (4,4),
+            '24_0' : (96,1), '24_1' : (48,2), '24_2' : (24,2), '24_3' : (4,6),
+            '25_0' : (104,1), '25_1' : (52,2), '25_2' : (4,13), '25_3' : (4,1),
+            '26_0' : (112,1), '26_1' : (56,2), '26_2' : (28,2), '26_3' : (4,7),
+            '27_0' : (120,1), '27_1' : (60,2), '27_2' : (20,3), '27_3' : (4,5),
+            '28_0' : (120,1), '28_1' : (40,3), '28_2' : (8,5), '28_3' : (4,2),
+            '29_0' : (120,1), '29_1' : (24,5), '29_2' : (12,2), '29_3' : (4,3),
+            '30_0' : (128,1), '30_1' : (64,2), '30_2' : (32,2), '30_3' : (4,8),
+            '31_0' : (128,1), '31_1' : (64,2), '31_2' : (16,4), '31_3' : (4,4),
+            '32_0' : (128,1), '32_1' : (16,8), '32_2' : (8,2), '32_3' : (4,2),
+            '33_0' : (132,1), '33_1' : (44,3), '33_2' : (4,11), '33_3' : (4,1),
+            '34_0' : (136,1), '34_1' : (68,2), '34_2' : (4,17), '34_3' : (4,1),
+            '35_0' : (144,1), '35_1' : (72,2), '35_2' : (36,2), '35_3' : (4,9),
+            '36_0' : (144,1), '36_1' : (48,3), '36_2' : (24,2), '36_3' : (12,2),
+            '37_0' : (144,1), '37_1' : (48,3), '37_2' : (16,3), '37_3' : (4,4),
+            '38_0' : (144,1), '38_1' : (16,9), '38_2' : (8,2), '38_3' : (4,2),
+            '39_0' : (152,1), '39_1' : (76,2), '39_2' : (4,19), '39_3' : (4,1),
+            '40_0' : (160,1), '40_1' : (80,2), '40_2' : (40,2), '40_3' : (4,10),
+            '41_0' : (160,1), '41_1' : (80,2), '41_2' : (20,4), '41_3' : (4,5),
+            '42_0' : (160,1), '42_1' : (32,5), '42_2' : (16,2), '42_3' : (4,4),
+            '43_0' : (168,1), '43_1' : (84,2), '43_2' : (28,3), '43_3' : (4,7),
+            '44_0' : (176,1), '44_1' : (88,2), '44_2' : (44,2), '44_3' : (4,11),
+            '45_0' : (184,1), '45_1' : (92,2), '45_2' : (4,23), '45_3' : (4,1),
+            '46_0' : (192,1), '46_1' : (96,2), '46_2' : (48,2), '46_3' : (4,12),
+            '47_0' : (192,1), '47_1' : (96,2), '47_2' : (24,4), '47_3' : (4,6),
+            '48_0' : (192,1), '48_1' : (64,3), '48_2' : (16,4), '48_3' : (4,4),
+            '49_0' : (192,1), '49_1' : (24,8), '49_2' : (8,3), '49_3' : (4,2),
+            '50_0' : (208,1), '50_1' : (104,2), '50_2' : (52,2), '50_3' : (4,13),
+            '51_0' : (216,1), '51_1' : (108,2), '51_2' : (36,3), '51_3' : (4,9),
+            '52_0' : (224,1), '52_1' : (112,2), '52_2' : (56,2), '52_3' : (4,14),
+            '53_0' : (240,1), '53_1' : (120,2), '53_2' : (60,2), '53_3' : (4,15),
+            '54_0' : (240,1), '54_1' : (80,3), '54_2' : (20,4), '54_3' : (4,5),
+            '55_0' : (240,1), '55_1' : (48,5), '55_2' : (16,3), '55_3' : (8,2),
+            '56_0' : (240,1), '56_1' : (24,10), '56_2' : (12,2), '56_3' : (4,3),
+            '57_0' : (256,1), '57_1' : (128,2), '57_2' : (64,2), '57_3' : (4,16),
+            '58_0' : (256,1), '58_1' : (128,2), '58_2' : (32,4), '58_3' : (4,8),
+            '59_0' : (256,1), '59_1' : (16,16), '59_2' : (8,2), '59_3' : (4,2),
+            '60_0' : (264,1), '60_1' : (132,2), '60_2' : (44,3), '60_3' : (4,11),
+            '61_0' : (272,1), '61_1' : (136,2), '61_2' : (68,2), '61_3' : (4,17),
+            '62_0' : (272,1), '62_1' : (68,4), '62_2' : (4,17), '62_3' : (4,1),
+            '63_0' : (272,1), '63_1' : (16,17), '63_2' : (8,2), '63_3' : (4,2),
+            }
+
         #offset of CORESET0 w.r.t. SSB
         self.coreset0Offset = 0
         #minimum channel bandwidth
@@ -7461,7 +7541,7 @@ class NgNrGridUi(QDialog):
         self.coreset0MultiplexingPat, self.coreset0NumRbs, self.coreset0NumSymbs, self.coreset0OffsetList = val
         #if int(self.nrCarrierNumRbEdit.text()) < self.coreset0NumRbs:
         if numRbCommonScs < self.coreset0NumRbs:
-            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid CORESET0 setting: CORESET0 numRBs=%d, while numRBs(common scs)=%s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.coreset0NumRbs, numRbCommonScs))
+            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid CORESET0 setting: CORESET0 numRbs=%d, while numRbs(common scs)=%s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.coreset0NumRbs, numRbCommonScs))
             return False
 
         #(3) if k_ssb is configured, further validate CORESET0
@@ -7491,7 +7571,7 @@ class NgNrGridUi(QDialog):
                 self.coreset0StartRb = -self.coreset0Offset
 
             if numRbCommonScs < minBw:
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid CORESET0 setting: CORESET0 numRBs=%d, offset=%d, minBw = %d, while numRBs(common scs)=%s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.coreset0NumRbs, self.coreset0Offset, minBw, numRbCommonScs))
+                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid CORESET0 setting: CORESET0 numRbs=%d, offset=%d, minBw = %d, while numRbs(common scs)=%s!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.coreset0NumRbs, self.coreset0Offset, minBw, numRbCommonScs))
                 return False
 
         #(4) validate self.coreset0NumSymbs against 'dmrs-pointA-Position'
@@ -7500,9 +7580,9 @@ class NgNrGridUi(QDialog):
             return False
 
         #print CORESET0 info
-        #self.ngwin.logEdit.append('<font color=blue><b>[%s]Info</font>: CORESET0 setting: multiplexingPattern = %d, numRBs=%d, numSymbs=%d, offset=%d.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.coreset0MultiplexingPat, self.coreset0NumRbs, self.coreset0NumSymbs, self.coreset0Offset))
+        #self.ngwin.logEdit.append('<font color=blue><b>[%s]Info</font>: CORESET0 setting: multiplexingPattern = %d, numRbs=%d, numSymbs=%d, offset=%d.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.coreset0MultiplexingPat, self.coreset0NumRbs, self.coreset0NumSymbs, self.coreset0Offset))
 
-        self.nrMibCoreset0InfoLabel.setText('<font color=blue>CORESET0: multiplexingPattern=%d, numRBs=%d, numSymbs=%d, offset=%d.</font>' % (self.coreset0MultiplexingPat, self.coreset0NumRbs, self.coreset0NumSymbs, self.coreset0Offset))
+        self.nrMibCoreset0InfoLabel.setText('<font color=blue>CORESET0: multiplexingPattern=%d, numRbs=%d, numSymbs=%d, offset=%d.</font>' % (self.coreset0MultiplexingPat, self.coreset0NumRbs, self.coreset0NumSymbs, self.coreset0Offset))
 
         #update 'L_RBs' and 'RB_start' labels for initial dl bwp tab
         #L_RBs can't be 1, in which case the 'frequency domain assignment' field in DCIs is 0bits.
@@ -7907,8 +7987,8 @@ class NgNrGridUi(QDialog):
             if riv is not None and riv in range(37950):
                 self.nrIniUlBwpGenericLocAndBwEdit.setText(str(riv))
                 #set 'prb offset' of pucch-sib1 for msg4 harq feedback
-                if self.nrPucchSib1PucchResCommonEdit.text() and int(self.nrPucchSib1PucchResCommonEdit.text()) == 15:
-                    self.nrPucchSib1PrbOffsetEdit.setText(str(math.floor(L_RBs / 4)))
+                #if self.nrPucchSib1PucchResCommonEdit.text() and int(self.nrPucchSib1PucchResCommonEdit.text()) == 15:
+                #    self.nrPucchSib1PrbOffsetEdit.setText(str(math.floor(L_RBs / 4)))
             else:
                 self.ngwin.logEdit.append('<font color=purple><b>[%s]Warning</font>: Invalid RIV = %s(with L_RBs = %s, RB_start = %s)!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), 'None' if riv is None else str(riv), L_RBs, RB_start))
                 self.nrIniUlBwpGenericLocAndBwEdit.clear()
@@ -11041,39 +11121,39 @@ class NgNrGridUi(QDialog):
         if self.nrDedPuschCfgTxCfgComb.currentText() == 'nonCodebook':
             self.updatePtrsPusch()
 
-    def onSrsRes0NumCombCombCurIndChanged(self, index):
+    def onSrsRes0NumCombsCombCurIndChanged(self, index):
         if index < 0:
             return
 
-        self.ngwin.logEdit.append('-->inside onSrsRes0NumCombCombCurIndChanged, index=%d' % index)
-        numComb = int(self.nrSrsRes0NumCombComb.currentText()[-1])
+        self.ngwin.logEdit.append('-->inside onSrsRes0NumCombsCombCurIndChanged, index=%d' % index)
+        numComb = int(self.nrSrsRes0NumCombsComb.currentText()[-1])
         self.nrSrsRes0CombOffsetLabel.setText('combOffset[0-%d]:' % (numComb - 1))
         self.nrSrsRes0CombOffsetEdit.setText('0')
 
-    def onSrsRes1NumCombCombCurIndChanged(self, index):
+    def onSrsRes1NumCombsCombCurIndChanged(self, index):
         if index < 0:
             return
 
-        self.ngwin.logEdit.append('-->inside onSrsRes1NumCombCombCurIndChanged, index=%d' % index)
-        numComb = int(self.nrSrsRes1NumCombComb.currentText()[-1])
+        self.ngwin.logEdit.append('-->inside onSrsRes1NumCombsCombCurIndChanged, index=%d' % index)
+        numComb = int(self.nrSrsRes1NumCombsComb.currentText()[-1])
         self.nrSrsRes1CombOffsetLabel.setText('combOffset[0-%d]:' % (numComb - 1))
         self.nrSrsRes1CombOffsetEdit.setText('0')
 
-    def onSrsRes2NumCombCombCurIndChanged(self, index):
+    def onSrsRes2NumCombsCombCurIndChanged(self, index):
         if index < 0:
             return
 
-        self.ngwin.logEdit.append('-->inside onSrsRes2NumCombCombCurIndChanged, index=%d' % index)
-        numComb = int(self.nrSrsRes2NumCombComb.currentText()[-1])
+        self.ngwin.logEdit.append('-->inside onSrsRes2NumCombsCombCurIndChanged, index=%d' % index)
+        numComb = int(self.nrSrsRes2NumCombsComb.currentText()[-1])
         self.nrSrsRes2CombOffsetLabel.setText('combOffset[0-%d]:' % (numComb - 1))
         self.nrSrsRes2CombOffsetEdit.setText('0')
 
-    def onSrsRes3NumCombCombCurIndChanged(self, index):
+    def onSrsRes3NumCombsCombCurIndChanged(self, index):
         if index < 0:
             return
 
-        self.ngwin.logEdit.append('-->inside onSrsRes3NumCombCombCurIndChanged, index=%d' % index)
-        numComb = int(self.nrSrsRes3NumCombComb.currentText()[-1])
+        self.ngwin.logEdit.append('-->inside onSrsRes3NumCombsCombCurIndChanged, index=%d' % index)
+        numComb = int(self.nrSrsRes3NumCombsComb.currentText()[-1])
         self.nrSrsRes3CombOffsetLabel.setText('combOffset[0-%d]:' % (numComb - 1))
         self.nrSrsRes3CombOffsetEdit.setText('0')
 
@@ -11582,6 +11662,206 @@ class NgNrGridUi(QDialog):
         tdL, fdK = self.getDmrsPuschTdFdPattern(dmrsType, tdMappingType, slivS, slivL, numFrontLoadSymbs, dmrsAddPos, cdmGroupsWoData, freqHop)
         self.args['dmrsMsg3']['tdL'] = tdL
         self.args['dmrsMsg3']['fdK'] = fdK
+
+        #dedicated dl bwp
+        self.args['dedDlBwp'] = dict()
+        self.args['dedDlBwp']['bwpId'] = self.nrDedDlBwpGenericBwpIdEdit.text()
+        self.args['dedDlBwp']['scs'] = self.nrDedDlBwpGenericScsComb.currentText()
+        self.args['dedDlBwp']['cp'] = self.nrDedDlBwpGenericCpComb.currentText()
+        self.args['dedDlBwp']['locAndBw'] = self.nrDedDlBwpGenericLocAndBwEdit.text()
+        self.args['dedDlBwp']['startRb'] = self.nrDedDlBwpGenericRbStartEdit.text()
+        self.args['dedDlBwp']['numRbs'] = self.nrDedDlBwpGenericLRbsEdit.text()
+
+        #nzp-csi-rs resource
+        self.args['nzpCsiRs'] = dict()
+        self.args['nzpCsiRs']['resSetId'] = self.nzpCsiRsResSetIdEdit.text()
+        self.args['nzpCsiRs']['trsInfo'] = self.nzpCsiRsTrsInfoComb.currentText()
+        self.args['nzpCsiRs']['resId'] = self.nzpCsiRsResIdEdit.text()
+        self.args['nzpCsiRs']['numPorts'] = self.nzpCsiRsNumPortsComb.currentText()
+        self.args['nzpCsiRs']['cdmType'] = self.nzpCsiRsCdmTypeComb.currentText()
+        self.args['nzpCsiRs']['density'] = self.nzpCsiRsDensityComb.currentText()
+        self.args['nzpCsiRs']['freqAlloc'] = self.nzpCsiRsFreqAllocEdit.text()
+        self.args['nzpCsiRs']['firstSymb'] = self.nzpCsiRsFirstSymbEdit.text()
+        self.args['nzpCsiRs']['firstSymb2'] = self.nzpCsiRsFirstSymb2Edit.text()
+        self.args['nzpCsiRs']['startRb'] = self.nzpCsiRsStartRbEdit.text()
+        self.args['nzpCsiRs']['numRbs'] = self.nzpCsiRsNumRbsEdit.text()
+        self.args['nzpCsiRs']['period'] = self.nzpCsiRsPeriodComb.currentText()
+        self.args['nzpCsiRs']['offset'] = self.nzpCsiRsOffsetEdit.text()
+        self.args['nzpCsiRs']['row'] = self.nzpCsiRsRow
+        self.args['nzpCsiRs']['kBarLBar'] = self.nzpCsiRsKBarLBar
+        self.args['nzpCsiRs']['ki'] = self.nzpCsiRsKi
+        self.args['nzpCsiRs']['li'] = self.nzpCsiRsLi
+        self.args['nzpCsiRs']['cdmGrpIndj'] = self.nzpCsiRsCdmGrpIndj
+        self.args['nzpCsiRs']['kap'] = self.nzpCsiRsKap
+        self.args['nzpCsiRs']['lap'] = self.nzpCsiRsLap
+
+        #trs resource
+        self.args['trs'] = dict()
+        self.args['trs']['resSetId'] = self.trsResSetIdEdit.text()
+        self.args['trs']['trsInfo'] = self.trsTrsInfoComb.currentText()
+        self.args['trs']['resId'] = self.trsResIdComb.currentText()
+        self.args['trs']['numPorts'] = self.trsNumPortsComb.currentText()
+        self.args['trs']['cdmType'] = self.trsCdmTypeComb.currentText()
+        self.args['trs']['density'] = self.trsDensityComb.currentText()
+        self.args['trs']['freqAlloc'] = self.trsFreqAllocEdit.text()
+        self.args['trs']['firstSymb'] = self.trsFirstSymbComb.currentText()
+        self.args['trs']['startRb'] = self.trsStartRbEdit.text()
+        self.args['trs']['numRbs'] = self.trsNumRbsEdit.text()
+        self.args['trs']['period'] = self.trsPeriodComb.currentText()
+        self.args['trs']['offset'] = self.trsOffsetEdit.text()
+        self.args['trs']['row'] = self.trsRow
+        self.args['trs']['kBarLBar'] = self.trsKBarLBar
+        self.args['trs']['ki'] = self.trsKi
+        self.args['trs']['li'] = self.trsLi
+        self.args['trs']['cdmGrpIndj'] = self.trsCdmGrpIndj
+        self.args['trs']['kap'] = self.trsKap
+        self.args['trs']['lap'] = self.trsLap
+
+        #csi-im resource
+        self.args['csiIm'] = dict()
+        self.args['csiIm']['resSetId'] = self.csiImResSetIdEdit.text()
+        self.args['csiIm']['resId'] = self.csiImResIdEdit.text()
+        self.args['csiIm']['rePattern'] = self.csiImRePatternComb.currentText()
+        self.args['csiIm']['scLoc'] = self.csiImScLocationComb.currentText()
+        self.args['csiIm']['symbLoc'] = self.csiImSymbLocationEdit.text()
+        self.args['csiIm']['startRb'] = self.csiImStartRbEdit.text()
+        self.args['csiIm']['numRbs'] = self.csiImNumRbsEdit.text()
+        self.args['csiIm']['period'] = self.csiImPeriodComb.currentText()
+        self.args['csiIm']['offset'] = self.csiImOffsetEdit.text()
+
+        #csi-ResourceConfig
+        self.args['nzpCsiRsResCfg'] = dict()
+        self.args['nzpCsiRsResCfg']['resCfgId'] = self.csiResCfg1IdEdit.text()
+        self.args['nzpCsiRsResCfg']['resSetId'] = self.csiResCfg1NzpCsiRsResSetEdit.text()
+        self.args['nzpCsiRsResCfg']['bwpId'] = self.csiResCfg1BwpIdEdit.text()
+        self.args['nzpCsiRsResCfg']['resType'] = self.csiResCfg1ResTypeComb.currentText()
+
+        self.args['trsResCfg'] = dict()
+        self.args['trsResCfg']['resCfgId'] = self.csiResCfg3IdEdit.text()
+        self.args['trsResCfg']['resSetId'] = self.csiResCfg3TrsResSetEdit.text()
+        self.args['trsResCfg']['bwpId'] = self.csiResCfg3BwpIdEdit.text()
+        self.args['trsResCfg']['resType'] = self.csiResCfg3ResTypeComb.currentText()
+
+        self.args['csiImResCfg'] = dict()
+        self.args['csiImResCfg']['resCfgId'] = self.csiResCfg2IdEdit.text()
+        self.args['csiImResCfg']['resSetId'] = self.csiResCfg2CsiImResSetEdit.text()
+        self.args['csiImResCfg']['bwpId'] = self.csiResCfg2BwpIdEdit.text()
+        self.args['csiImResCfg']['resType'] = self.csiResCfg2ResTypeComb.currentText()
+
+        #csi-ReportConfig
+        self.args['csiRepCfg'] = dict()
+        self.args['csiRepCfg']['repCfgId'] = self.csiRepCfgIdEdit.text()
+        self.args['csiRepCfg']['resCfgIdChnMeas'] = self.csiRepCfgResChnMeasEdit.text()
+        self.args['csiRepCfg']['resCfgIdCsiImIntf'] = self.csiRepCfgCsiImResIntfEdit.text()
+        self.args['csiRepCfg']['repType'] = self.csiRepCfgTypeComb.currentText()
+        self.args['csiRepCfg']['period'] = self.csiRepCfgPeriodComb.currentText()
+        self.args['csiRepCfg']['offset'] = self.csiRepCfgOffsetEdit.text()
+        self.args['csiRepCfg']['ulBwpId'] = self.csiRepCfgUlBwpIdEdit.text()
+        self.args['csiRepCfg']['pucchRes'] = self.csiRepCfgPucchResEdit.text()
+        self.args['csiRepCfg']['quantity'] = self.csiRepCfgQuantityComb.currentText()
+
+        #dedicated ul bwp
+        self.args['dedUlBwp'] = dict()
+        self.args['dedUlBwp']['bwpId'] = self.nrDedUlBwpGenericBwpIdEdit.text()
+        self.args['dedUlBwp']['scs'] = self.nrDedUlBwpGenericScsComb.currentText()
+        self.args['dedUlBwp']['cp'] = self.nrDedUlBwpGenericCpComb.currentText()
+        self.args['dedUlBwp']['locAndBw'] = self.nrDedUlBwpGenericLocAndBwEdit.text()
+        self.args['dedUlBwp']['startRb'] = self.nrDedUlBwpGenericRbStartEdit.text()
+        self.args['dedUlBwp']['numRbs'] = self.nrDedUlBwpGenericLRbsEdit.text()
+
+        #srs resouce 0/1/2/3
+        self.args['srsRes0'] = dict()
+        self.args['srsRes0']['resId'] = self.nrSrsRes0ResourceIdEdit.text()
+        self.args['srsRes0']['numPorts'] = self.nrSrsRes0NumAntPortsComb.currentText()
+        self.args['srsRes0']['nonCbPtrsPort'] = self.nrSrsRes0NonCbPtrsPortIndComb.currentText()
+        self.args['srsRes0']['numCombs'] = self.nrSrsRes0NumCombsComb.currentText()
+        self.args['srsRes0']['combOff'] = self.nrSrsRes0CombOffsetEdit.text()
+        self.args['srsRes0']['startPos'] = self.nrSrsRes0StartPosEdit.text()
+        self.args['srsRes0']['numSymbs'] = self.nrSrsRes0NumSymbsComb.currentText()
+        self.args['srsRes0']['repetition'] = self.nrSrsRes0RepFactorComb.currentText()
+        self.args['srsRes0']['freqPos'] = self.nrSrsRes0FreqPosEdit.text()
+        self.args['srsRes0']['freqShift'] = self.nrSrsRes0FreqShiftEdit.text()
+        self.args['srsRes0']['cSrs'] = self.nrSrsRes0FreqHopCSrsEdit.text()
+        self.args['srsRes0']['bSrs'] = self.nrSrsRes0FreqHopBSrsEdit.text()
+        self.args['srsRes0']['bHop'] = self.nrSrsRes0FreqHopBHopEdit.text()
+        self.args['srsRes0']['type'] = self.nrSrsRes0ResTypeComb.currentText()
+        self.args['srsRes0']['period'] = self.nrSrsRes0PeriodComb.currentText()
+        self.args['srsRes0']['offset'] = self.nrSrsRes0OffsetEdit.text()
+        self.args['srsRes0']['mSRSb'] = self.srsRes0mSRSb
+        self.args['srsRes0']['Nb'] = self.srsRes0Nb
+
+        self.args['srsRes1'] = dict()
+        self.args['srsRes1']['resId'] = self.nrSrsRes1ResourceIdEdit.text()
+        self.args['srsRes1']['numPorts'] = self.nrSrsRes1NumAntPortsComb.currentText()
+        self.args['srsRes1']['nonCbPtrsPort'] = self.nrSrsRes1NonCbPtrsPortIndComb.currentText()
+        self.args['srsRes1']['numCombs'] = self.nrSrsRes1NumCombsComb.currentText()
+        self.args['srsRes1']['combOff'] = self.nrSrsRes1CombOffsetEdit.text()
+        self.args['srsRes1']['startPos'] = self.nrSrsRes1StartPosEdit.text()
+        self.args['srsRes1']['numSymbs'] = self.nrSrsRes1NumSymbsComb.currentText()
+        self.args['srsRes1']['repetition'] = self.nrSrsRes1RepFactorComb.currentText()
+        self.args['srsRes1']['freqPos'] = self.nrSrsRes1FreqPosEdit.text()
+        self.args['srsRes1']['freqShift'] = self.nrSrsRes1FreqShiftEdit.text()
+        self.args['srsRes1']['cSrs'] = self.nrSrsRes1FreqHopCSrsEdit.text()
+        self.args['srsRes1']['bSrs'] = self.nrSrsRes1FreqHopBSrsEdit.text()
+        self.args['srsRes1']['bHop'] = self.nrSrsRes1FreqHopBHopEdit.text()
+        self.args['srsRes1']['type'] = self.nrSrsRes1ResTypeComb.currentText()
+        self.args['srsRes1']['period'] = self.nrSrsRes1PeriodComb.currentText()
+        self.args['srsRes1']['offset'] = self.nrSrsRes1OffsetEdit.text()
+        self.args['srsRes1']['mSRSb'] = self.srsRes1mSRSb
+        self.args['srsRes1']['Nb'] = self.srsRes1Nb
+
+        self.args['srsRes2'] = dict()
+        self.args['srsRes2']['resId'] = self.nrSrsRes2ResourceIdEdit.text()
+        self.args['srsRes2']['numPorts'] = self.nrSrsRes2NumAntPortsComb.currentText()
+        self.args['srsRes2']['nonCbPtrsPort'] = self.nrSrsRes2NonCbPtrsPortIndComb.currentText()
+        self.args['srsRes2']['numCombs'] = self.nrSrsRes2NumCombsComb.currentText()
+        self.args['srsRes2']['combOff'] = self.nrSrsRes2CombOffsetEdit.text()
+        self.args['srsRes2']['startPos'] = self.nrSrsRes2StartPosEdit.text()
+        self.args['srsRes2']['numSymbs'] = self.nrSrsRes2NumSymbsComb.currentText()
+        self.args['srsRes2']['repetition'] = self.nrSrsRes2RepFactorComb.currentText()
+        self.args['srsRes2']['freqPos'] = self.nrSrsRes2FreqPosEdit.text()
+        self.args['srsRes2']['freqShift'] = self.nrSrsRes2FreqShiftEdit.text()
+        self.args['srsRes2']['cSrs'] = self.nrSrsRes2FreqHopCSrsEdit.text()
+        self.args['srsRes2']['bSrs'] = self.nrSrsRes2FreqHopBSrsEdit.text()
+        self.args['srsRes2']['bHop'] = self.nrSrsRes2FreqHopBHopEdit.text()
+        self.args['srsRes2']['type'] = self.nrSrsRes2ResTypeComb.currentText()
+        self.args['srsRes2']['period'] = self.nrSrsRes2PeriodComb.currentText()
+        self.args['srsRes2']['offset'] = self.nrSrsRes2OffsetEdit.text()
+        self.args['srsRes2']['mSRSb'] = self.srsRes2mSRSb
+        self.args['srsRes2']['Nb'] = self.srsRes2Nb
+
+        self.args['srsRes3'] = dict()
+        self.args['srsRes3']['resId'] = self.nrSrsRes3ResourceIdEdit.text()
+        self.args['srsRes3']['numPorts'] = self.nrSrsRes3NumAntPortsComb.currentText()
+        self.args['srsRes3']['nonCbPtrsPort'] = self.nrSrsRes3NonCbPtrsPortIndComb.currentText()
+        self.args['srsRes3']['numCombs'] = self.nrSrsRes3NumCombsComb.currentText()
+        self.args['srsRes3']['combOff'] = self.nrSrsRes3CombOffsetEdit.text()
+        self.args['srsRes3']['startPos'] = self.nrSrsRes3StartPosEdit.text()
+        self.args['srsRes3']['numSymbs'] = self.nrSrsRes3NumSymbsComb.currentText()
+        self.args['srsRes3']['repetition'] = self.nrSrsRes3RepFactorComb.currentText()
+        self.args['srsRes3']['freqPos'] = self.nrSrsRes3FreqPosEdit.text()
+        self.args['srsRes3']['freqShift'] = self.nrSrsRes3FreqShiftEdit.text()
+        self.args['srsRes3']['cSrs'] = self.nrSrsRes3FreqHopCSrsEdit.text()
+        self.args['srsRes3']['bSrs'] = self.nrSrsRes3FreqHopBSrsEdit.text()
+        self.args['srsRes3']['bHop'] = self.nrSrsRes3FreqHopBHopEdit.text()
+        self.args['srsRes3']['type'] = self.nrSrsRes3ResTypeComb.currentText()
+        self.args['srsRes3']['period'] = self.nrSrsRes3PeriodComb.currentText()
+        self.args['srsRes3']['offset'] = self.nrSrsRes3OffsetEdit.text()
+        self.args['srsRes3']['mSRSb'] = self.srsRes3mSRSb
+        self.args['srsRes3']['Nb'] = self.srsRes3Nb
+
+        #srs resouce set 0/1
+        self.args['srsResSet0'] = dict()
+        self.args['srsResSet0']['resSetId'] = self.nrSrsResSet0ResourceSetIdEdit.text()
+        self.args['srsResSet0']['resIdList'] = self.nrSrsResSet0ResourceIdListEdit.text()
+        self.args['srsResSet0']['type'] = self.nrSrsResSet0ResTypeComb.currentText()
+        self.args['srsResSet0']['usage'] = self.nrSrsResSet0UsageComb.currentText()
+
+        self.args['srsResSet1'] = dict()
+        self.args['srsResSet1']['resSetId'] = self.nrSrsResSet1ResourceSetIdEdit.text()
+        self.args['srsResSet1']['resIdList'] = self.nrSrsResSet1ResourceIdListEdit.text()
+        self.args['srsResSet1']['type'] = self.nrSrsResSet1ResTypeComb.currentText()
+        self.args['srsResSet1']['usage'] = self.nrSrsResSet1UsageComb.currentText()
 
         #(5) advanced settings tab
         self.args['advanced'] = dict()
