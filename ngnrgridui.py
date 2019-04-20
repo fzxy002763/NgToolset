@@ -2748,7 +2748,7 @@ class NgNrGridUi(QDialog):
 
         self.nrSrsRes0RepFactorLabel = QLabel('repetitionFactor:')
         self.nrSrsRes0RepFactorComb = QComboBox()
-        self.nrSrsRes0RepFactorComb.addItems(['n1', 'n2', 'n4'])
+        self.nrSrsRes0RepFactorComb.addItems(['n1'])
         self.nrSrsRes0RepFactorComb.setCurrentIndex(0)
 
         self.nrSrsRes0FreqPosLabel = QLabel('freqDomainPosition[0-67]:')
@@ -2870,7 +2870,7 @@ class NgNrGridUi(QDialog):
 
         self.nrSrsRes1RepFactorLabel = QLabel('repetitionFactor:')
         self.nrSrsRes1RepFactorComb = QComboBox()
-        self.nrSrsRes1RepFactorComb.addItems(['n1', 'n2', 'n4'])
+        self.nrSrsRes1RepFactorComb.addItems(['n1'])
         self.nrSrsRes1RepFactorComb.setCurrentIndex(0)
 
         self.nrSrsRes1FreqPosLabel = QLabel('freqDomainPosition[0-67]:')
@@ -2992,7 +2992,7 @@ class NgNrGridUi(QDialog):
 
         self.nrSrsRes2RepFactorLabel = QLabel('repetitionFactor:')
         self.nrSrsRes2RepFactorComb = QComboBox()
-        self.nrSrsRes2RepFactorComb.addItems(['n1', 'n2', 'n4'])
+        self.nrSrsRes2RepFactorComb.addItems(['n1'])
         self.nrSrsRes2RepFactorComb.setCurrentIndex(0)
 
         self.nrSrsRes2FreqPosLabel = QLabel('freqDomainPosition[0-67]:')
@@ -3971,6 +3971,18 @@ class NgNrGridUi(QDialog):
         self.nrSrsRes1PeriodComb.currentIndexChanged.connect(self.onSrsRes1PeriodCombCurIndChanged)
         self.nrSrsRes2PeriodComb.currentIndexChanged.connect(self.onSrsRes2PeriodCombCurIndChanged)
         self.nrSrsRes3PeriodComb.currentIndexChanged.connect(self.onSrsRes3PeriodCombCurIndChanged)
+        self.nrSrsRes0NumSymbsComb.currentIndexChanged.connect(self.onSrsRes0NumSymbsCombCurIndChanged)
+        self.nrSrsRes1NumSymbsComb.currentIndexChanged.connect(self.onSrsRes1NumSymbsCombCurIndChanged)
+        self.nrSrsRes2NumSymbsComb.currentIndexChanged.connect(self.onSrsRes2NumSymbsCombCurIndChanged)
+        self.nrSrsRes3NumSymbsComb.currentIndexChanged.connect(self.onSrsRes3NumSymbsCombCurIndChanged)
+        self.nrSrsRes0FreqHopCSrsEdit.textChanged.connect(self.onSrsRes0CSrsBSrsEditTextChanged)
+        self.nrSrsRes0FreqHopBSrsEdit.textChanged.connect(self.onSrsRes0CSrsBSrsEditTextChanged)
+        self.nrSrsRes1FreqHopCSrsEdit.textChanged.connect(self.onSrsRes1CSrsBSrsEditTextChanged)
+        self.nrSrsRes1FreqHopBSrsEdit.textChanged.connect(self.onSrsRes1CSrsBSrsEditTextChanged)
+        self.nrSrsRes2FreqHopCSrsEdit.textChanged.connect(self.onSrsRes2CSrsBSrsEditTextChanged)
+        self.nrSrsRes2FreqHopBSrsEdit.textChanged.connect(self.onSrsRes2CSrsBSrsEditTextChanged)
+        self.nrSrsRes3FreqHopCSrsEdit.textChanged.connect(self.onSrsRes3CSrsBSrsEditTextChanged)
+        self.nrSrsRes3FreqHopBSrsEdit.textChanged.connect(self.onSrsRes3CSrsBSrsEditTextChanged)
         #---->initial ul bwp
         self.nrRachGenericScsComb.currentIndexChanged.connect(self.onMsg1ScsCombCurIndChanged)
         self.nrRachMsg3TpComb.currentIndexChanged.connect(self.onRachMsg3TpCombCurIndChanged)
@@ -6878,7 +6890,7 @@ class NgNrGridUi(QDialog):
 
         #refer to 3GPP 38.211 vf40
         #Table 6.4.1.4.3-1: SRS bandwidth configuration.
-        #key=[C_SRS, B_SRS], val=[m_SRS_b, N_b] with b = B_SRS
+        #key=[cSrs, bSrs], val=[mSRSb, Nb] with b = bSrs
         self.nrSrsBwCfg = {
             '0_0' : (4,1), '0_1' : (4,1), '0_2' : (4,1), '0_3' : (4,1),
             '1_0' : (8,1), '1_1' : (4,2), '1_2' : (4,1), '1_3' : (4,1),
@@ -11146,6 +11158,174 @@ class NgNrGridUi(QDialog):
         self.nrSrsRes3CombOffsetLabel.setText('combOffset[0-%d]:' % (numComb - 1))
         self.nrSrsRes3CombOffsetEdit.setText('0')
 
+    def onSrsRes0NumSymbsCombCurIndChanged(self, index):
+        if index < 0:
+            return
+
+        self.ngwin.logEdit.append('-->inside onSrsRes0NumSymbsCombCurIndChanged, index=%d' % index)
+
+        numSymbs = int(self.nrSrsRes0NumSymbsComb.currentText()[1:])
+
+        #startPosition(l_offset) >= numSymbs - 1
+        self.nrSrsRes0StartPosLabel.setText('startPosition[%d-5]' % (numSymbs - 1))
+        self.nrSrsRes0StartPosEdit.setText('%d' % (numSymbs - 1))
+
+        #repetitionFactor(R) <= numSymbs
+        if numSymbs == 1:
+            self.nrSrsRes0RepFactorComb.clear()
+            self.nrSrsRes0RepFactorComb.addItems(['n1'])
+        elif numSymbs == 2:
+            self.nrSrsRes0RepFactorComb.clear()
+            self.nrSrsRes0RepFactorComb.addItems(['n1', 'n2'])
+        elif numSymbs == 4:
+            self.nrSrsRes0RepFactorComb.clear()
+            self.nrSrsRes0RepFactorComb.addItems(['n1', 'n2', 'n4'])
+        else:
+            pass
+
+    def onSrsRes1NumSymbsCombCurIndChanged(self, index):
+        if index < 0:
+            return
+
+        self.ngwin.logEdit.append('-->inside onSrsRes1NumSymbsCombCurIndChanged, index=%d' % index)
+
+        numSymbs = int(self.nrSrsRes1NumSymbsComb.currentText()[1:])
+
+        #startPosition(l_offset) >= numSymbs - 1
+        self.nrSrsRes1StartPosLabel.setText('startPosition[%d-5]' % (numSymbs - 1))
+        self.nrSrsRes1StartPosEdit.setText('%d' % (numSymbs - 1))
+
+        #repetitionFactor(R) <= numSymbs
+        if numSymbs == 1:
+            self.nrSrsRes1RepFactorComb.clear()
+            self.nrSrsRes1RepFactorComb.addItems(['n1'])
+        elif numSymbs == 2:
+            self.nrSrsRes1RepFactorComb.clear()
+            self.nrSrsRes1RepFactorComb.addItems(['n1', 'n2'])
+        elif numSymbs == 4:
+            self.nrSrsRes1RepFactorComb.clear()
+            self.nrSrsRes1RepFactorComb.addItems(['n1', 'n2', 'n4'])
+        else:
+            pass
+
+    def onSrsRes2NumSymbsCombCurIndChanged(self, index):
+        if index < 0:
+            return
+
+        self.ngwin.logEdit.append('-->inside onSrsRes2NumSymbsCombCurIndChanged, index=%d' % index)
+
+        numSymbs = int(self.nrSrsRes2NumSymbsComb.currentText()[1:])
+
+        #startPosition(l_offset) >= numSymbs - 1
+        self.nrSrsRes2StartPosLabel.setText('startPosition[%d-5]' % (numSymbs - 1))
+        self.nrSrsRes2StartPosEdit.setText('%d' % (numSymbs - 1))
+
+        #repetitionFactor(R) <= numSymbs
+        if numSymbs == 1:
+            self.nrSrsRes2RepFactorComb.clear()
+            self.nrSrsRes2RepFactorComb.addItems(['n1'])
+        elif numSymbs == 2:
+            self.nrSrsRes2RepFactorComb.clear()
+            self.nrSrsRes2RepFactorComb.addItems(['n1', 'n2'])
+        elif numSymbs == 4:
+            self.nrSrsRes2RepFactorComb.clear()
+            self.nrSrsRes2RepFactorComb.addItems(['n1', 'n2', 'n4'])
+        else:
+            pass
+
+    def onSrsRes3NumSymbsCombCurIndChanged(self, index):
+        if index < 0:
+            return
+
+        self.ngwin.logEdit.append('-->inside onSrsRes3NumSymbsCombCurIndChanged, index=%d' % index)
+
+        numSymbs = int(self.nrSrsRes3NumSymbsComb.currentText()[1:])
+
+        #startPosition(l_offset) >= numSymbs - 1
+        self.nrSrsRes3StartPosLabel.setText('startPosition[%d-5]' % (numSymbs - 1))
+        self.nrSrsRes3StartPosEdit.setText('%d' % (numSymbs - 1))
+
+        #repetitionFactor(R) <= numSymbs
+        if numSymbs == 1:
+            self.nrSrsRes3RepFactorComb.clear()
+            self.nrSrsRes3RepFactorComb.addItems(['n1'])
+        elif numSymbs == 2:
+            self.nrSrsRes3RepFactorComb.clear()
+            self.nrSrsRes3RepFactorComb.addItems(['n1', 'n2'])
+        elif numSymbs == 4:
+            self.nrSrsRes3RepFactorComb.clear()
+            self.nrSrsRes3RepFactorComb.addItems(['n1', 'n2', 'n4'])
+        else:
+            pass
+
+    def onSrsRes0CSrsBSrsEditTextChanged(self, text):
+        if not self.nrSrsRes0FreqHopCSrsEdit.text() or not self.nrSrsRes0FreqHopBSrsEdit.text():
+            return
+
+        cSrs = self.nrSrsRes0FreqHopCSrsEdit.text()
+        bSrs = self.nrSrsRes0FreqHopBSrsEdit.text()
+        self.ngwin.logEdit.append('-->inside onSrsRes0CSrsBSrsEditTextChanged')
+
+        key = '%s_%s' % (cSrs, bSrs)
+        if key not in self.nrSrsBwCfg:
+            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrSrsBwCfg.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+            self.srsRes0mSRSb, self.srsRes0Nb = (None, None)
+            return
+
+        self.srsRes0mSRSb, self.srsRes0Nb = self.nrSrsBwCfg[key]
+        self.ngwin.logEdit.append('[SRS resource 0]cSrs=%s,bSrs=%s --> mSRSb=%d,Nb=%d' % (cSrs, bSrs, self.srsRes0mSRSb, self.srsRes0Nb))
+
+    def onSrsRes1CSrsBSrsEditTextChanged(self, text):
+        if not self.nrSrsRes1FreqHopCSrsEdit.text() or not self.nrSrsRes1FreqHopBSrsEdit.text():
+            return
+
+        cSrs = self.nrSrsRes1FreqHopCSrsEdit.text()
+        bSrs = self.nrSrsRes1FreqHopBSrsEdit.text()
+        self.ngwin.logEdit.append('-->inside onSrsRes1CSrsBSrsEditTextChanged(cSrs=%s,bSrs=%s)' % (cSrs, bSrs))
+
+        key = '%s_%s' % (cSrs, bSrs)
+        if key not in self.nrSrsBwCfg:
+            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrSrsBwCfg.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+            self.srsRes1mSRSb, self.srsRes1Nb = (None, None)
+            return
+
+        self.srsRes1mSRSb, self.srsRes1Nb = self.nrSrsBwCfg[key]
+        self.ngwin.logEdit.append('[SRS resource 1]cSrs=%s,bSrs=%s --> mSRSb=%d,Nb=%d' % (cSrs, bSrs, self.srsRes1mSRSb, self.srsRes1Nb))
+
+    def onSrsRes2CSrsBSrsEditTextChanged(self, text):
+        if not self.nrSrsRes2FreqHopCSrsEdit.text() or not self.nrSrsRes2FreqHopBSrsEdit.text():
+            return
+
+        cSrs = self.nrSrsRes2FreqHopCSrsEdit.text()
+        bSrs = self.nrSrsRes2FreqHopBSrsEdit.text()
+        self.ngwin.logEdit.append('-->inside onSrsRes2CSrsBSrsEditTextChanged(cSrs=%s,bSrs=%s)' % (cSrs, bSrs))
+
+        key = '%s_%s' % (cSrs, bSrs)
+        if key not in self.nrSrsBwCfg:
+            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrSrsBwCfg.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+            self.srsRes2mSRSb, self.srsRes2Nb = (None, None)
+            return
+
+        self.srsRes2mSRSb, self.srsRes2Nb = self.nrSrsBwCfg[key]
+        self.ngwin.logEdit.append('[SRS resource 2]cSrs=%s,bSrs=%s --> mSRSb=%d,Nb=%d' % (cSrs, bSrs, self.srsRes2mSRSb, self.srsRes2Nb))
+
+    def onSrsRes3CSrsBSrsEditTextChanged(self, text):
+        if not self.nrSrsRes3FreqHopCSrsEdit.text() or not self.nrSrsRes3FreqHopBSrsEdit.text():
+            return
+
+        cSrs = self.nrSrsRes3FreqHopCSrsEdit.text()
+        bSrs = self.nrSrsRes3FreqHopBSrsEdit.text()
+        self.ngwin.logEdit.append('-->inside onSrsRes3CSrsBSrsEditTextChanged(cSrs=%s,bSrs=%s)' % (cSrs, bSrs))
+
+        key = '%s_%s' % (cSrs, bSrs)
+        if key not in self.nrSrsBwCfg:
+            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid key(="%s") when referring nrSrsBwCfg.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), key))
+            self.srsRes3mSRSb, self.srsRes3Nb = (None, None)
+            return
+
+        self.srsRes3mSRSb, self.srsRes3Nb = self.nrSrsBwCfg[key]
+        self.ngwin.logEdit.append('[SRS resource 3]cSrs=%s,bSrs=%s --> mSRSb=%d,Nb=%d' % (cSrs, bSrs, self.srsRes3mSRSb, self.srsRes3Nb))
+
     def onSrsRes0PeriodCombCurIndChanged(self, index):
         if index < 0:
             return
@@ -11181,6 +11361,8 @@ class NgNrGridUi(QDialog):
         else:
             self.nrSrsRes2OffsetLabel.setText('SRS-Offset[0-%d]:' % (period - 1))
         self.nrSrsRes2OffsetEdit.setText('0')
+
+
 
     def onSrsRes3PeriodCombCurIndChanged(self, index):
         if index < 0:
