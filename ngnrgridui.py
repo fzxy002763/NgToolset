@@ -10299,9 +10299,6 @@ class NgNrGridUi(QDialog):
                 Lmax = int(self.nrDedPuschCfgNonCbMaxLayersEdit.text())
 
                 srsSet1 = [int(i) for i in self.nrSrsResSet1ResourceIdListEdit.text().split(',') if len(i) > 0]
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Exception raised when parsing srs-resourceSet1.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
-                return
-
                 Nsrs = len(srsSet1)
                 if Nsrs > 1:
                     sri = int(self.nrDci01PuschSriFieldEdit.text())
@@ -10592,9 +10589,6 @@ class NgNrGridUi(QDialog):
                 Lmax = int(self.nrDedPuschCfgNonCbMaxLayersEdit.text())
 
                 srsSet1 = [int(i) for i in self.nrSrsResSet1ResourceIdListEdit.text().split(',') if len(i) > 0]
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Exception raised when parsing srs-resourceSet1.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
-                return
-
                 Nsrs = len(srsSet1)
                 if Nsrs == 0 or sum([1 for i in srsSet1 if i in range(4)]) != Nsrs:
                     self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: srs-ResourceIdList of srsSet1 should be a comma-separated string which contains valid srs-ResourceId[0-3], for example, "0,1,2,3".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
@@ -10647,9 +10641,6 @@ class NgNrGridUi(QDialog):
                     return
 
                 srsSet0 = [int(i) for i in self.nrSrsResSet0ResourceIdListEdit.text().split(',') if len(i) > 0]
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Exception raised when parsing srs-resourceSet0.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
-                return
-
                 Nsrs = len(srsSet0)
                 if Nsrs == 0 or sum([1 for i in srsSet0 if i in range(4)]) != Nsrs:
                     self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: srs-ResourceIdList of srsSet0 should be a comma-separated string which contains valid srs-ResourceId[0-3], for example, "0,1,2,3".' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
@@ -10774,8 +10765,6 @@ class NgNrGridUi(QDialog):
                 Lmax = int(self.nrDedPuschCfgNonCbMaxLayersEdit.text())
 
                 srsSet1 = [int(i) for i in self.nrSrsResSet1ResourceIdListEdit.text().split(',') if len(i) > 0]
-                self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Exception raised when parsing srs-resourceSet1.' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())))
-
                 Nsrs = len(srsSet1)
 
                 sri = int(self.nrDci01PuschSriFieldEdit.text())
