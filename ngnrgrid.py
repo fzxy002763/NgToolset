@@ -299,26 +299,6 @@ class NgNrGrid(object):
         self.nrRachKBar = self.args['rach']['raKBar']
 
         self.numTxSsb = len([c for c in self.ssbSet if c == '1'])
-        '''
-        self.numPrachSlotPerPeriod = len(self.nrRachCfgOffsety) * len(self.nrRachCfgSubfNumFr1SlotNumFr2) * self.nrRachCfgNumSlotsPerSubfFr1Per60KSlotFR2
-        self.numPrachOccasionPerPeriod = self.nrRachMsg1Fdm * self.numPrachSlotPerPeriod * self.nrRachCfgNumOccasionsPerSlot
-        self.numSsbPerPeriod = self.numPrachOccasionPerPeriod * self.nrRachSsbPerRachOccasionM8 / 8
-        kSet = {16:[1,], 8:[1,2], 4:[1,2,4], 2:[1,2,4,8], 1:[1,2,4,8,16]}[self.nrRachCfgPeriodx]
-        k2 = self.numTxSsb / self.numSsbPerPeriod
-        self.prachAssociationPeriod = None
-        for k in kSet:
-            if k >= k2:
-                self.prachAssociationPeriod = k * self.nrRachCfgPeriodx
-                self.numPrachSlotPerAssociationPeriod = k * self.numPrachSlotPerPeriod
-                self.numPrachOccasionPerAssociationPeriod = k * self.numPrachOccasionPerPeriod
-                break
-        if self.prachAssociationPeriod is None:
-            self.ngwin.logEdit.append('<font color=red><b>[%s]Error</font>: Invalid PRACH configuration(numTxSsb=%d,period=%d,numSsbPerPeriod=%.2f): PRACH association period is at most 160ms!' % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), self.numTxSsb, self.nrRachCfgPeriodx, self.numSsbPerPeriod))
-            return False
-
-        self.ngwin.logEdit.append('PRACH association period info: numTxSsb=%d, configuration period x=%d, numSsbPerPeriod=%.2f, association period=%d with #slots=%d and #occasions=%d' % (self.numTxSsb, self.nrRachCfgPeriodx, self.numSsbPerPeriod, self.prachAssociationPeriod, self.numPrachSlotPerAssociationPeriod, self.numPrachOccasionPerAssociationPeriod))
-        '''
-
         self.minNumValidPrachOccasionPerAssociationPeriod = math.ceil(self.numTxSsb / self.nrRachSsbPerRachOccasionM8 * 8)
 
         self.nrMsg3MuPusch = int(self.args['msg3Pusch']['muPusch'])
@@ -374,6 +354,176 @@ class NgNrGrid(object):
         self.nrMsg4DmrsNumFrontLoadSymbs = int(self.args['dmrsMsg4']['numFrontLoadSymbs'])
         self.nrMsg4DmrsTdL = self.args['dmrsMsg4']['tdL']
         self.nrMsg4DmrsFdK = self.args['dmrsMsg4']['fdK']
+
+        #whether dedicated ul/dl bwp is received through MSG4?
+        self.msg4Recved = False
+
+        self.nrDedDlBwpId = int(self.args['dedDlBwp']['bwpId'])
+        self.nrDedDlBwpScs = int(self.args['dedDlBwp']['scs'][:-3])
+        self.nrDedDlBwpCp = self.args['dedDlBwp']['cp']
+        self.nrDedDlBwpLocAndBw = int(self.args['dedDlBwp']['locAndBw'])
+        self.nrDedDlBwpStartRb = int(self.args['dedDlBwp']['startRb'])
+        self.nrDedDlBwpNumRbs = int(self.args['dedDlBwp']['numRbs'])
+
+        self.nrNzpCsiRsResSetId = int(self.args['nzpCsiRs']['resSetId'])
+        self.nrNzpCsiRsTrsInfo = self.args['nzpCsiRs']['trsInfo']
+        self.nrNzpCsiRsResId = int(self.args['nzpCsiRs']['resId'])
+        self.nrNzpCsiRsNumPorts = int(self.args['nzpCsiRs']['numPorts'][1:])
+        self.nrNzpCsiRsCdmType = self.args['nzpCsiRs']['cdmType']
+        self.nrNzpCsiRsDensity = self.args['nzpCsiRs']['density']
+        self.nrNzpCsiRsFreqAlloc = self.args['nzpCsiRs']['freqAlloc']
+        self.nrNzpCsiRsFirstSymb = int(self.args['nzpCsiRs']['firstSymb']) if self.args['nzpCsiRs']['firstSymb'] else None
+        self.nrNzpCsiRsFirstSymb2 = int(self.args['nzpCsiRs']['firstSymb2']) if self.args['nzpCsiRs']['firstSymb2'] else None
+        self.nrNzpCsiRsStartRb = int(self.args['nzpCsiRs']['startRb'])
+        self.nrNzpCsiRsNumRbs = int(self.args['nzpCsiRs']['numRbs'])
+        self.nrNzpCsiRsPeriod = int(self.args['nzpCsiRs']['period'][5:])
+        self.nrNzpCsiRsOffset = int(self.args['nzpCsiRs']['offset'])
+        self.nrNzpCsiRsRow = self.args['nzpCsiRs']['row']
+        self.nrNzpCsiRsKBarLBar = self.args['nzpCsiRs']['kBarLBar']
+        self.nrNzpCsiRsKi = self.args['nzpCsiRs']['ki']
+        self.nrNzpCsiRsLi = self.args['nzpCsiRs']['li']
+        self.nrNzpCsiRsCdmGrpIndj = self.args['nzpCsiRs']['cdmGrpIndj']
+        self.nrNzpCsiRsKap = self.args['nzpCsiRs']['kap']
+        self.nrNzpCsiRsLap = self.args['nzpCsiRs']['lap']
+
+        self.nrTrsResSetId = int(self.args['trs']['resSetId'])
+        self.nrTrsTrsInfo = self.args['trs']['trsInfo']
+        startResId, endResId = self.args['trs']['resId'].split('-')
+        self.nrTrsResIdList = list(range(int(startResId), int(endResId)+1))
+        self.nrTrsNumPorts = int(self.args['trs']['numPorts'][1:])
+        self.nrTrsCdmType = self.args['trs']['cdmType']
+        self.nrTrsDensity = self.args['trs']['density']
+        self.nrTrsFreqAlloc = self.args['trs']['freqAlloc']
+        self.nrTrsFirstSymbList = [int(k) for k in self.args['trs']['firstSymb'].split(',')]
+        self.nrTrsStartRb = int(self.args['trs']['startRb'])
+        self.nrTrsNumRbs = int(self.args['trs']['numRbs'])
+        self.nrTrsPeriod = int(self.args['trs']['period'][5:])
+        self.nrTrsOffsetList = [int(k) for k in self.args['trs']['offset'].split(',')]
+        self.nrTrsRow = self.args['trs']['row']
+        self.nrTrsKBarLBar = self.args['trs']['kBarLBar']
+        self.nrTrsKi = self.args['trs']['ki']
+        self.nrTrsLi = self.args['trs']['li']
+        self.nrTrsCdmGrpIndj = self.args['trs']['cdmGrpIndj']
+        self.nrTrsKap = self.args['trs']['kap']
+        self.nrTrsLap = self.args['trs']['lap']
+
+        self.nrCsiImResSetId = int(self.args['csiIm']['resSetId'])
+        self.nrCsiImResId = int(self.args['csiIm']['resId'])
+        self.nrCsiImRePattern = self.args['csiIm']['rePattern']
+        self.nrCsiImScLoc = int(self.args['csiIm']['scLoc'][1:])
+        self.nrCsiImSymbLoc = int(self.args['csiIm']['symbLoc'])
+        self.nrCsiImStartRb = int(self.args['csiIm']['startRb'])
+        self.nrCsiImNumRbs = int(self.args['csiIm']['numRbs'])
+        self.nrCsiImPeriod = int(self.args['csiIm']['period'][5:])
+        self.nrCsiImOffset = int(self.args['csiIm']['offset'])
+
+        self.nrNzpCsiRsResCfgId = int(self.args['nzpCsiRsResCfg']['resCfgId'])
+        self.nrNzpCsiRsResCfgResSetId = int(self.args['nzpCsiRsResCfg']['resSetId'])
+        self.nrNzpCsiRsResCfgBwpId = int(self.args['nzpCsiRsResCfg']['bwpId'])
+        self.nrNzpCsiRsResCfgResType = self.args['nzpCsiRsResCfg']['resType']
+
+        self.nrTrsResCfgId = int(self.args['trsResCfg']['resCfgId'])
+        self.nrTrsResCfgResSetId = int(self.args['trsResCfg']['resSetId'])
+        self.nrTrsResCfgBwpId = int(self.args['trsResCfg']['bwpId'])
+        self.nrTrsResCfgResType = self.args['trsResCfg']['resType']
+
+        self.nrCsiImResCfgId = int(self.args['csiImResCfg']['resCfgId'])
+        self.nrCsiImResCfgResSetId = int(self.args['csiImResCfg']['resSetId'])
+        self.nrCsiImResCfgBwpId = int(self.args['csiImResCfg']['bwpId'])
+        self.nrCsiImResCfgResType = self.args['csiImResCfg']['resType']
+
+        self.nrCsiRepCfgId = int(self.args['csiRepCfg']['repCfgId'])
+        self.nrCsiRepCfgResCfgIdChnMeas = int(self.args['csiRepCfg']['resCfgIdChnMeas'])
+        self.nrCsiRepCfgResCfgIdCsiImIntf = int(self.args['csiRepCfg']['resCfgIdCsiImIntf'])
+        self.nrCsiRepCfgRepType = self.args['csiRepCfg']['repType']
+        self.nrCsiRepCfgPeriod = int(self.args['csiRepCfg']['period'][5:])
+        self.nrCsiRepCfgOffset = int(self.args['csiRepCfg']['offset'])
+        self.nrCsiRepCfgUlBwpId = int(self.args['csiRepCfg']['ulBwpId'])
+        self.nrCsiRepCfgPucchRes = int(self.args['csiRepCfg']['pucchRes'])
+        self.nrCsiRepCfgQuantity = self.args['csiRepCfg']['quantity']
+
+        self.nrDedUlBwpId = int(self.args['dedUlBwp']['bwpId'])
+        self.nrDedUlBwpScs = int(self.args['dedUlBwp']['scs'][:-3])
+        self.nrDedUlBwpCp = self.args['dedUlBwp']['cp']
+        self.nrDedUlBwpLocAndBw = int(self.args['dedUlBwp']['locAndBw'])
+        self.nrDedUlBwpStartRb = int(self.args['dedUlBwp']['startRb'])
+        self.nrDedUlBwpNumRbs = int(self.args['dedUlBwp']['numRbs'])
+
+        self.nrSrsRes0Id = int(self.args['srsRes0']['resId'])
+        self.nrSrsRes0NumPorts = int(self.args['srsRes0']['numPorts'][-1:])
+        self.nrSrsRes0NonCbPtrsPort = int(self.args['srsRes0']['nonCbPtrsPort'][1:])
+        self.nrSrsRes0NumCombs = int(self.args['srsRes0']['numCombs'][1:])
+        self.nrSrsRes0CombOff = int(self.args['srsRes0']['combOff'])
+        self.nrSrsRes0StartPos = int(self.args['srsRes0']['startPos'])
+        self.nrSrsRes0NumSymbs = int(self.args['srsRes0']['numSymbs'][1:])
+        self.nrSrsRes0Repetition = int(self.args['srsRes0']['repetition'][1:])
+        self.nrSrsRes0FreqPos = int(self.args['srsRes0']['freqPos'])
+        self.nrSrsRes0FreqShift = int(self.args['srsRes0']['freqShift'])
+        self.nrSrsRes0CSrs = int(self.args['srsRes0']['cSrs'])
+        self.nrSrsRes0BSrs = int(self.args['srsRes0']['bSrs'])
+        self.nrSrsRes0BHop = int(self.args['srsRes0']['bHop'])
+        self.nrSrsRes0Type = self.args['srsRes0']['type']
+        self.nrSrsRes0Period = int(self.args['srsRes0']['period'][2:])
+        self.nrSrsRes0Offset = int(self.args['srsRes0']['offset'])
+        self.nrSrsRes0mSRSb = self.args['srsRes0']['mSRSb']
+        self.nrSrsRes0Nb = self.args['srsRes0']['Nb']
+
+        self.nrSrsRes1Id = int(self.args['srsRes1']['resId'])
+        self.nrSrsRes1NumPorts = int(self.args['srsRes1']['numPorts'][-1:])
+        self.nrSrsRes1NonCbPtrsPort = int(self.args['srsRes1']['nonCbPtrsPort'][1:])
+        self.nrSrsRes1NumCombs = int(self.args['srsRes1']['numCombs'][1:])
+        self.nrSrsRes1CombOff = int(self.args['srsRes1']['combOff'])
+        self.nrSrsRes1StartPos = int(self.args['srsRes1']['startPos'])
+        self.nrSrsRes1NumSymbs = int(self.args['srsRes1']['numSymbs'][1:])
+        self.nrSrsRes1Repetition = int(self.args['srsRes1']['repetition'][1:])
+        self.nrSrsRes1FreqPos = int(self.args['srsRes1']['freqPos'])
+        self.nrSrsRes1FreqShift = int(self.args['srsRes1']['freqShift'])
+        self.nrSrsRes1CSrs = int(self.args['srsRes1']['cSrs'])
+        self.nrSrsRes1BSrs = int(self.args['srsRes1']['bSrs'])
+        self.nrSrsRes1BHop = int(self.args['srsRes1']['bHop'])
+        self.nrSrsRes1Type = self.args['srsRes1']['type']
+        self.nrSrsRes1Period = int(self.args['srsRes1']['period'][2:])
+        self.nrSrsRes1Offset = int(self.args['srsRes1']['offset'])
+        self.nrSrsRes1mSRSb = self.args['srsRes1']['mSRSb']
+        self.nrSrsRes1Nb = self.args['srsRes1']['Nb']
+
+        self.nrSrsRes2Id = int(self.args['srsRes2']['resId'])
+        self.nrSrsRes2NumPorts = int(self.args['srsRes2']['numPorts'][-1:])
+        self.nrSrsRes2NonCbPtrsPort = int(self.args['srsRes2']['nonCbPtrsPort'][1:])
+        self.nrSrsRes2NumCombs = int(self.args['srsRes2']['numCombs'][1:])
+        self.nrSrsRes2CombOff = int(self.args['srsRes2']['combOff'])
+        self.nrSrsRes2StartPos = int(self.args['srsRes2']['startPos'])
+        self.nrSrsRes2NumSymbs = int(self.args['srsRes2']['numSymbs'][1:])
+        self.nrSrsRes2Repetition = int(self.args['srsRes2']['repetition'][1:])
+        self.nrSrsRes2FreqPos = int(self.args['srsRes2']['freqPos'])
+        self.nrSrsRes2FreqShift = int(self.args['srsRes2']['freqShift'])
+        self.nrSrsRes2CSrs = int(self.args['srsRes2']['cSrs'])
+        self.nrSrsRes2BSrs = int(self.args['srsRes2']['bSrs'])
+        self.nrSrsRes2BHop = int(self.args['srsRes2']['bHop'])
+        self.nrSrsRes2Type = self.args['srsRes2']['type']
+        self.nrSrsRes2Period = int(self.args['srsRes2']['period'][2:])
+        self.nrSrsRes2Offset = int(self.args['srsRes2']['offset'])
+        self.nrSrsRes2mSRSb = self.args['srsRes2']['mSRSb']
+        self.nrSrsRes2Nb = self.args['srsRes2']['Nb']
+
+        self.nrSrsRes3Id = int(self.args['srsRes3']['resId'])
+        self.nrSrsRes3NumPorts = int(self.args['srsRes3']['numPorts'][-1:])
+        self.nrSrsRes3NonCbPtrsPort = int(self.args['srsRes3']['nonCbPtrsPort'][1:])
+        self.nrSrsRes3NumCombs = int(self.args['srsRes3']['numCombs'][1:])
+        self.nrSrsRes3CombOff = int(self.args['srsRes3']['combOff'])
+        self.nrSrsRes3StartPos = int(self.args['srsRes3']['startPos'])
+        self.nrSrsRes3NumSymbs = int(self.args['srsRes3']['numSymbs'][1:])
+        self.nrSrsRes3Repetition = int(self.args['srsRes3']['repetition'][1:])
+        self.nrSrsRes3FreqPos = int(self.args['srsRes3']['freqPos'])
+        self.nrSrsRes3FreqShift = int(self.args['srsRes3']['freqShift'])
+        self.nrSrsRes3CSrs = int(self.args['srsRes3']['cSrs'])
+        self.nrSrsRes3BSrs = int(self.args['srsRes3']['bSrs'])
+        self.nrSrsRes3BHop = int(self.args['srsRes3']['bHop'])
+        self.nrSrsRes3Type = self.args['srsRes3']['type']
+        self.nrSrsRes3Period = int(self.args['srsRes3']['period'][2:])
+        self.nrSrsRes3Offset = int(self.args['srsRes3']['offset'])
+        self.nrSrsRes3mSRSb = self.args['srsRes3']['mSRSb']
+        self.nrSrsRes3Nb = self.args['srsRes3']['Nb']
 
         #advanced settings
         try:
@@ -1960,6 +2110,7 @@ class NgNrGrid(object):
                                 if not (self.nrMsg4TdMappingType == 'Type B' and self.nrMsg4TdNumSymbs == 2):
                                     self.gridNrFddDl[dn][msg4ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbMsg4InBaseScsTd+i*scaleTd:firstSymbMsg4InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DTX.value
 
+        self.msg4Recved = True
         return (hsfn, sfn, slotMsg4)
 
     def sendPucch(self, hsfn, sfn, slot, harq=True, sr=False, csi=False, pucchResSet='common'):

@@ -11362,8 +11362,6 @@ class NgNrGridUi(QDialog):
             self.nrSrsRes2OffsetLabel.setText('SRS-Offset[0-%d]:' % (period - 1))
         self.nrSrsRes2OffsetEdit.setText('0')
 
-
-
     def onSrsRes3PeriodCombCurIndChanged(self, index):
         if index < 0:
             return
@@ -12102,7 +12100,7 @@ class NgNrGridUi(QDialog):
                             if key not in self.args:
                                 self.args[key] = dict()
 
-                            if tokens[0] in ('maxDlFreq', 'maxL', 'coreset0MultiplexingPat', 'coreset0NumRbs', 'coreset0NumSymbs', 'coreset0Offset', 'coreset0StartRb', 'raX', 'raStartingSymb', 'raNumSlotsPerSubfFr1Per60KSlotFr2', 'raNumOccasionsPerSlot', 'raDuration', 'raLen', 'raNumRbs', 'raKBar'):
+                            if tokens[0] in ('maxDlFreq', 'maxL', 'coreset0MultiplexingPat', 'coreset0NumRbs', 'coreset0NumSymbs', 'coreset0Offset', 'coreset0StartRb', 'raX', 'raStartingSymb', 'raNumSlotsPerSubfFr1Per60KSlotFr2', 'raNumOccasionsPerSlot', 'raDuration', 'raLen', 'raNumRbs', 'raKBar', 'row', 'mSrsb', 'Nb'):
                                 self.args[key][tokens[0]] = int(tokens[1])
                             elif (tokens[1].startswith('(') and tokens[1].endswith(')')) or (tokens[1].startswith('[') and tokens[1].endswith(']')):
                                 #using python built-in function: eval(expression, globals=None, locals=None)
