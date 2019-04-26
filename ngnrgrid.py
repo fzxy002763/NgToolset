@@ -449,81 +449,66 @@ class NgNrGrid(object):
         self.nrDedUlBwpStartRb = int(self.args['dedUlBwp']['startRb'])
         self.nrDedUlBwpNumRbs = int(self.args['dedUlBwp']['numRbs'])
 
-        self.nrSrsRes0Id = int(self.args['srsRes0']['resId'])
-        self.nrSrsRes0NumPorts = int(self.args['srsRes0']['numPorts'][-1:])
-        self.nrSrsRes0NonCbPtrsPort = int(self.args['srsRes0']['nonCbPtrsPort'][1:])
-        self.nrSrsRes0NumCombs = int(self.args['srsRes0']['numCombs'][1:])
-        self.nrSrsRes0CombOff = int(self.args['srsRes0']['combOff'])
-        self.nrSrsRes0StartPos = int(self.args['srsRes0']['startPos'])
-        self.nrSrsRes0NumSymbs = int(self.args['srsRes0']['numSymbs'][1:])
-        self.nrSrsRes0Repetition = int(self.args['srsRes0']['repetition'][1:])
-        self.nrSrsRes0FreqPos = int(self.args['srsRes0']['freqPos'])
-        self.nrSrsRes0FreqShift = int(self.args['srsRes0']['freqShift'])
-        self.nrSrsRes0CSrs = int(self.args['srsRes0']['cSrs'])
-        self.nrSrsRes0BSrs = int(self.args['srsRes0']['bSrs'])
-        self.nrSrsRes0BHop = int(self.args['srsRes0']['bHop'])
-        self.nrSrsRes0Type = self.args['srsRes0']['type']
-        self.nrSrsRes0Period = int(self.args['srsRes0']['period'][2:])
-        self.nrSrsRes0Offset = int(self.args['srsRes0']['offset'])
-        self.nrSrsRes0mSRSb = self.args['srsRes0']['mSRSb']
-        self.nrSrsRes0Nb = self.args['srsRes0']['Nb']
+        self.nrSrsRes = dict()
+        for i in range(4):
+            self.nrSrsRes[i] = dict()
+            self.nrSrsRes[i]['resId'] = int(self.args['srsRes%d' % i]['resId'])
+            self.nrSrsRes[i]['numPorts'] = int(self.args['srsRes%d' % i]['numPorts'][-1:])
+            self.nrSrsRes[i]['nonCbPtrsPort'] = int(self.args['srsRes%d' % i]['nonCbPtrsPort'][1:])
+            self.nrSrsRes[i]['numCombs'] = int(self.args['srsRes%d' % i]['numCombs'][1:])
+            self.nrSrsRes[i]['combOff'] = int(self.args['srsRes%d' % i]['combOff'])
+            self.nrSrsRes[i]['startPos'] = int(self.args['srsRes%d' % i]['startPos'])
+            self.nrSrsRes[i]['numSymbs'] = int(self.args['srsRes%d' % i]['numSymbs'][1:])
+            self.nrSrsRes[i]['repetition'] = int(self.args['srsRes%d' % i]['repetition'][1:])
+            self.nrSrsRes[i]['freqPos'] = int(self.args['srsRes%d' % i]['freqPos'])
+            self.nrSrsRes[i]['freqShift'] = int(self.args['srsRes%d' % i]['freqShift'])
+            self.nrSrsRes[i]['cSrs'] = int(self.args['srsRes%d' % i]['cSrs'])
+            self.nrSrsRes[i]['bSrs'] = int(self.args['srsRes%d' % i]['bSrs'])
+            self.nrSrsRes[i]['bHop'] = int(self.args['srsRes%d' % i]['bHop'])
+            self.nrSrsRes[i]['type'] = self.args['srsRes%d' % i]['type']
+            self.nrSrsRes[i]['period'] = int(self.args['srsRes%d' % i]['period'][2:])
+            self.nrSrsRes[i]['offset'] = int(self.args['srsRes%d' % i]['offset'])
+            self.nrSrsRes[i]['mSRSb'] = self.args['srsRes%d' % i]['mSRSb']
+            self.nrSrsRes[i]['Nb'] = self.args['srsRes%d' % i]['Nb']
 
-        self.nrSrsRes1Id = int(self.args['srsRes1']['resId'])
-        self.nrSrsRes1NumPorts = int(self.args['srsRes1']['numPorts'][-1:])
-        self.nrSrsRes1NonCbPtrsPort = int(self.args['srsRes1']['nonCbPtrsPort'][1:])
-        self.nrSrsRes1NumCombs = int(self.args['srsRes1']['numCombs'][1:])
-        self.nrSrsRes1CombOff = int(self.args['srsRes1']['combOff'])
-        self.nrSrsRes1StartPos = int(self.args['srsRes1']['startPos'])
-        self.nrSrsRes1NumSymbs = int(self.args['srsRes1']['numSymbs'][1:])
-        self.nrSrsRes1Repetition = int(self.args['srsRes1']['repetition'][1:])
-        self.nrSrsRes1FreqPos = int(self.args['srsRes1']['freqPos'])
-        self.nrSrsRes1FreqShift = int(self.args['srsRes1']['freqShift'])
-        self.nrSrsRes1CSrs = int(self.args['srsRes1']['cSrs'])
-        self.nrSrsRes1BSrs = int(self.args['srsRes1']['bSrs'])
-        self.nrSrsRes1BHop = int(self.args['srsRes1']['bHop'])
-        self.nrSrsRes1Type = self.args['srsRes1']['type']
-        self.nrSrsRes1Period = int(self.args['srsRes1']['period'][2:])
-        self.nrSrsRes1Offset = int(self.args['srsRes1']['offset'])
-        self.nrSrsRes1mSRSb = self.args['srsRes1']['mSRSb']
-        self.nrSrsRes1Nb = self.args['srsRes1']['Nb']
+        self.nrSrsResSet0Id = int(self.args['srsResSet0']['resSetId'])
+        self.nrSrsResSet0ResList = [int(k) for k in self.args['srsResSet0']['resIdList'].split(',')]
+        self.nrSrsResSet0Type = self.args['srsResSet0']['type']
+        self.nrSrsResSet0Usage = self.args['srsResSet0']['usage']
 
-        self.nrSrsRes2Id = int(self.args['srsRes2']['resId'])
-        self.nrSrsRes2NumPorts = int(self.args['srsRes2']['numPorts'][-1:])
-        self.nrSrsRes2NonCbPtrsPort = int(self.args['srsRes2']['nonCbPtrsPort'][1:])
-        self.nrSrsRes2NumCombs = int(self.args['srsRes2']['numCombs'][1:])
-        self.nrSrsRes2CombOff = int(self.args['srsRes2']['combOff'])
-        self.nrSrsRes2StartPos = int(self.args['srsRes2']['startPos'])
-        self.nrSrsRes2NumSymbs = int(self.args['srsRes2']['numSymbs'][1:])
-        self.nrSrsRes2Repetition = int(self.args['srsRes2']['repetition'][1:])
-        self.nrSrsRes2FreqPos = int(self.args['srsRes2']['freqPos'])
-        self.nrSrsRes2FreqShift = int(self.args['srsRes2']['freqShift'])
-        self.nrSrsRes2CSrs = int(self.args['srsRes2']['cSrs'])
-        self.nrSrsRes2BSrs = int(self.args['srsRes2']['bSrs'])
-        self.nrSrsRes2BHop = int(self.args['srsRes2']['bHop'])
-        self.nrSrsRes2Type = self.args['srsRes2']['type']
-        self.nrSrsRes2Period = int(self.args['srsRes2']['period'][2:])
-        self.nrSrsRes2Offset = int(self.args['srsRes2']['offset'])
-        self.nrSrsRes2mSRSb = self.args['srsRes2']['mSRSb']
-        self.nrSrsRes2Nb = self.args['srsRes2']['Nb']
+        self.nrSrsResSet1Id = int(self.args['srsResSet1']['resSetId'])
+        self.nrSrsResSet1ResList = [int(k) for k in self.args['srsResSet1']['resIdList'].split(',')]
+        self.nrSrsResSet1Type = self.args['srsResSet1']['type']
+        self.nrSrsResSet1Usage = self.args['srsResSet1']['usage']
 
-        self.nrSrsRes3Id = int(self.args['srsRes3']['resId'])
-        self.nrSrsRes3NumPorts = int(self.args['srsRes3']['numPorts'][-1:])
-        self.nrSrsRes3NonCbPtrsPort = int(self.args['srsRes3']['nonCbPtrsPort'][1:])
-        self.nrSrsRes3NumCombs = int(self.args['srsRes3']['numCombs'][1:])
-        self.nrSrsRes3CombOff = int(self.args['srsRes3']['combOff'])
-        self.nrSrsRes3StartPos = int(self.args['srsRes3']['startPos'])
-        self.nrSrsRes3NumSymbs = int(self.args['srsRes3']['numSymbs'][1:])
-        self.nrSrsRes3Repetition = int(self.args['srsRes3']['repetition'][1:])
-        self.nrSrsRes3FreqPos = int(self.args['srsRes3']['freqPos'])
-        self.nrSrsRes3FreqShift = int(self.args['srsRes3']['freqShift'])
-        self.nrSrsRes3CSrs = int(self.args['srsRes3']['cSrs'])
-        self.nrSrsRes3BSrs = int(self.args['srsRes3']['bSrs'])
-        self.nrSrsRes3BHop = int(self.args['srsRes3']['bHop'])
-        self.nrSrsRes3Type = self.args['srsRes3']['type']
-        self.nrSrsRes3Period = int(self.args['srsRes3']['period'][2:])
-        self.nrSrsRes3Offset = int(self.args['srsRes3']['offset'])
-        self.nrSrsRes3mSRSb = self.args['srsRes3']['mSRSb']
-        self.nrSrsRes3Nb = self.args['srsRes3']['Nb']
+        self.nrPucchFmt134NumSlots = int(self.args['pucchFmtCfg']['numSlots'][1:])
+        self.nrPucchFmt134InterSlotFreqHop = self.args['pucchFmtCfg']['interSlotFreqHop']
+        self.nrPucchFmt34AddDmrs = self.args['pucchFmtCfg']['addDmrs']
+        self.nrPucchFmt234SimulAckCsi = self.args['pucchFmtCfg']['simulAckCsi']
+
+        self.nrPucchRes = dict()
+        for i in range(5):
+            self.nrPucchRes[i] = dict()
+            self.nrPucchRes[i]['resId'] = int(self.args['pucchRes%d' % i]['resId'])
+            self.nrPucchRes[i]['format'] = int(self.args['pucchRes%d' % i]['format'][-1:])
+            self.nrPucchRes[i]['resSetId'] = int(self.args['pucchRes%d' % i]['resSetId'])
+            self.nrPucchRes[i]['startRb'] = int(self.args['pucchRes%d' % i]['startRb'])
+            self.nrPucchRes[i]['intraSlotFreqHop'] = self.args['pucchRes%d' % i]['intraSlotFreqHop']
+            if self.nrPucchRes[i]['intraSlotFreqHop'] == 'enabled' or (self.nrPucchFmt134NumSlots > 1 and self.nrPucchFmt134InterSlotFreqHop == 'enabled'):
+                self.nrPucchRes[i]['secondHopPrb'] = int(self.args['pucchRes%d' % i]['secondHopPrb'])
+            else:
+                self.nrPucchRes[i]['secondHopPrb'] = None
+            self.nrPucchRes[i]['numRbs'] = int(self.args['pucchRes%d' % i]['numRbs'])
+            self.nrPucchRes[i]['startSymb'] = int(self.args['pucchRes%d' % i]['startSymb'])
+            self.nrPucchRes[i]['numSymbs'] = int(self.args['pucchRes%d' % i]['numSymbs'])
+
+        self.nrDsrRes = dict()
+        for i in range(2):
+            self.nrDsrRes[i] = dict()
+            self.nrDsrRes[i]['resId'] = int(self.args['dsrRes%d' % i]['resId'])
+            self.nrDsrRes[i]['pucchRes'] = int(self.args['dsrRes%d' % i]['pucchRes'])
+            self.nrDsrRes[i]['period'] = self.args['dsrRes%d' % i]['period']
+            self.nrDsrRes[i]['offset'] = int(self.args['dsrRes%d' % i]['offset'])
 
         #advanced settings
         try:

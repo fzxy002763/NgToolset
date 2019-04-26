@@ -3346,7 +3346,7 @@ class NgNrGridUi(QDialog):
         self.nrDedPucchRes0ResourceSetIdEdit.setEnabled(False)
 
         self.nrDedPucchRes0StartingPrbLabel = QLabel('startingPRB[0-274]:')
-        self.nrDedPucchRes0StartingPrbEdit = QLineEdit()
+        self.nrDedPucchRes0StartingPrbEdit = QLineEdit('0')
         self.nrDedPucchRes0StartingPrbEdit.setValidator(QIntValidator(0, 274))
 
         self.nrDedPucchRes0IntraSlotFreqHopLabel = QLabel('intraSlotFrequencyHopping:')
@@ -3413,7 +3413,7 @@ class NgNrGridUi(QDialog):
         self.nrDedPucchRes1ResourceSetIdEdit.setEnabled(False)
 
         self.nrDedPucchRes1StartingPrbLabel = QLabel('startingPRB[0-274]:')
-        self.nrDedPucchRes1StartingPrbEdit = QLineEdit()
+        self.nrDedPucchRes1StartingPrbEdit = QLineEdit('0')
         self.nrDedPucchRes1StartingPrbEdit.setValidator(QIntValidator(0, 274))
 
         self.nrDedPucchRes1IntraSlotFreqHopLabel = QLabel('intraSlotFrequencyHopping:')
@@ -3480,7 +3480,7 @@ class NgNrGridUi(QDialog):
         self.nrDedPucchRes2ResourceSetIdEdit.setEnabled(False)
 
         self.nrDedPucchRes2StartingPrbLabel = QLabel('startingPRB[0-274]:')
-        self.nrDedPucchRes2StartingPrbEdit = QLineEdit()
+        self.nrDedPucchRes2StartingPrbEdit = QLineEdit('0')
         self.nrDedPucchRes2StartingPrbEdit.setValidator(QIntValidator(0, 274))
 
         self.nrDedPucchRes2IntraSlotFreqHopLabel = QLabel('intraSlotFrequencyHopping:')
@@ -3547,7 +3547,7 @@ class NgNrGridUi(QDialog):
         self.nrDedPucchRes3ResourceSetIdEdit.setEnabled(False)
 
         self.nrDedPucchRes3StartingPrbLabel = QLabel('startingPRB[0-274]:')
-        self.nrDedPucchRes3StartingPrbEdit = QLineEdit()
+        self.nrDedPucchRes3StartingPrbEdit = QLineEdit('0')
         self.nrDedPucchRes3StartingPrbEdit.setValidator(QIntValidator(0, 274))
 
         self.nrDedPucchRes3IntraSlotFreqHopLabel = QLabel('intraSlotFrequencyHopping:')
@@ -3614,7 +3614,7 @@ class NgNrGridUi(QDialog):
         self.nrDedPucchRes4ResourceSetIdEdit.setEnabled(False)
 
         self.nrDedPucchRes4StartingPrbLabel = QLabel('startingPRB[0-274]:')
-        self.nrDedPucchRes4StartingPrbEdit = QLineEdit()
+        self.nrDedPucchRes4StartingPrbEdit = QLineEdit('0')
         self.nrDedPucchRes4StartingPrbEdit.setValidator(QIntValidator(0, 274))
 
         self.nrDedPucchRes4IntraSlotFreqHopLabel = QLabel('intraSlotFrequencyHopping:')
@@ -11549,7 +11549,7 @@ class NgNrGridUi(QDialog):
             #export grid to excel
             if not nrGrid.error:
                 if self.ngwin.enableDebug:
-                    #Don't want waste time for waiting exportToExcel to finish!
+                    #Don't waste time for waiting exportToExcel to finish!
                     self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Exporting to excel skipped</b></font>')
                     pass
                 else:
@@ -12031,6 +12031,80 @@ class NgNrGridUi(QDialog):
         self.args['srsResSet1']['resIdList'] = self.nrSrsResSet1ResourceIdListEdit.text()
         self.args['srsResSet1']['type'] = self.nrSrsResSet1ResTypeComb.currentText()
         self.args['srsResSet1']['usage'] = self.nrSrsResSet1UsageComb.currentText()
+
+        #pucch-config
+        self.args['pucchFmtCfg'] = dict()
+        self.args['pucchFmtCfg']['numSlots'] = self.nrDedPucchFmt134NumSlotsComb.currentText()
+        self.args['pucchFmtCfg']['interSlotFreqHop'] = self.nrDedPucchFmt134InterSlotFreqHopComb.currentText()
+        self.args['pucchFmtCfg']['addDmrs'] = self.nrDedPucchFmt34AddDmrsComb.currentText()
+        self.args['pucchFmtCfg']['simulAckCsi'] = self.nrDedPucchFmt234SimulAckCsiComb.currentText()
+
+        self.args['pucchRes0'] = dict()
+        self.args['pucchRes0']['resId'] = self.nrDedPucchRes0ResourceIdEdit.text()
+        self.args['pucchRes0']['format'] = self.nrDedPucchRes0FormatComb.currentText()
+        self.args['pucchRes0']['resSetId'] = self.nrDedPucchRes0ResourceSetIdEdit.text()
+        self.args['pucchRes0']['startRb'] = self.nrDedPucchRes0StartingPrbEdit.text()
+        self.args['pucchRes0']['intraSlotFreqHop'] = self.nrDedPucchRes0IntraSlotFreqHopComb.currentText()
+        self.args['pucchRes0']['secondHopPrb'] = self.nrDedPucchRes0SecondHopPrbEdit.text()
+        self.args['pucchRes0']['numRbs'] = self.nrDedPucchRes0NumPrbsEdit.text()
+        self.args['pucchRes0']['startSymb'] = self.nrDedPucchRes0StartingSymbEdit.text()
+        self.args['pucchRes0']['numSymbs'] = self.nrDedPucchRes0NumSymbEdit.text()
+
+        self.args['pucchRes1'] = dict()
+        self.args['pucchRes1']['resId'] = self.nrDedPucchRes1ResourceIdEdit.text()
+        self.args['pucchRes1']['format'] = self.nrDedPucchRes1FormatComb.currentText()
+        self.args['pucchRes1']['resSetId'] = self.nrDedPucchRes1ResourceSetIdEdit.text()
+        self.args['pucchRes1']['startRb'] = self.nrDedPucchRes1StartingPrbEdit.text()
+        self.args['pucchRes1']['intraSlotFreqHop'] = self.nrDedPucchRes1IntraSlotFreqHopComb.currentText()
+        self.args['pucchRes1']['secondHopPrb'] = self.nrDedPucchRes1SecondHopPrbEdit.text()
+        self.args['pucchRes1']['numRbs'] = self.nrDedPucchRes1NumPrbsEdit.text()
+        self.args['pucchRes1']['startSymb'] = self.nrDedPucchRes1StartingSymbEdit.text()
+        self.args['pucchRes1']['numSymbs'] = self.nrDedPucchRes1NumSymbEdit.text()
+
+        self.args['pucchRes2'] = dict()
+        self.args['pucchRes2']['resId'] = self.nrDedPucchRes2ResourceIdEdit.text()
+        self.args['pucchRes2']['format'] = self.nrDedPucchRes2FormatComb.currentText()
+        self.args['pucchRes2']['resSetId'] = self.nrDedPucchRes2ResourceSetIdEdit.text()
+        self.args['pucchRes2']['startRb'] = self.nrDedPucchRes2StartingPrbEdit.text()
+        self.args['pucchRes2']['intraSlotFreqHop'] = self.nrDedPucchRes2IntraSlotFreqHopComb.currentText()
+        self.args['pucchRes2']['secondHopPrb'] = self.nrDedPucchRes2SecondHopPrbEdit.text()
+        self.args['pucchRes2']['numRbs'] = self.nrDedPucchRes2NumPrbsEdit.text()
+        self.args['pucchRes2']['startSymb'] = self.nrDedPucchRes2StartingSymbEdit.text()
+        self.args['pucchRes2']['numSymbs'] = self.nrDedPucchRes2NumSymbEdit.text()
+
+        self.args['pucchRes3'] = dict()
+        self.args['pucchRes3']['resId'] = self.nrDedPucchRes3ResourceIdEdit.text()
+        self.args['pucchRes3']['format'] = self.nrDedPucchRes3FormatComb.currentText()
+        self.args['pucchRes3']['resSetId'] = self.nrDedPucchRes3ResourceSetIdEdit.text()
+        self.args['pucchRes3']['startRb'] = self.nrDedPucchRes3StartingPrbEdit.text()
+        self.args['pucchRes3']['intraSlotFreqHop'] = self.nrDedPucchRes3IntraSlotFreqHopComb.currentText()
+        self.args['pucchRes3']['secondHopPrb'] = self.nrDedPucchRes3SecondHopPrbEdit.text()
+        self.args['pucchRes3']['numRbs'] = self.nrDedPucchRes3NumPrbsEdit.text()
+        self.args['pucchRes3']['startSymb'] = self.nrDedPucchRes3StartingSymbEdit.text()
+        self.args['pucchRes3']['numSymbs'] = self.nrDedPucchRes3NumSymbEdit.text()
+
+        self.args['pucchRes4'] = dict()
+        self.args['pucchRes4']['resId'] = self.nrDedPucchRes4ResourceIdEdit.text()
+        self.args['pucchRes4']['format'] = self.nrDedPucchRes4FormatComb.currentText()
+        self.args['pucchRes4']['resSetId'] = self.nrDedPucchRes4ResourceSetIdEdit.text()
+        self.args['pucchRes4']['startRb'] = self.nrDedPucchRes4StartingPrbEdit.text()
+        self.args['pucchRes4']['intraSlotFreqHop'] = self.nrDedPucchRes4IntraSlotFreqHopComb.currentText()
+        self.args['pucchRes4']['secondHopPrb'] = self.nrDedPucchRes4SecondHopPrbEdit.text()
+        self.args['pucchRes4']['numRbs'] = self.nrDedPucchRes4NumPrbsEdit.text()
+        self.args['pucchRes4']['startSymb'] = self.nrDedPucchRes4StartingSymbEdit.text()
+        self.args['pucchRes4']['numSymbs'] = self.nrDedPucchRes4NumSymbEdit.text()
+
+        self.args['dsrRes0'] = dict()
+        self.args['dsrRes0']['resId'] = self.nrDsrRes0SrResourceIdEdit.text()
+        self.args['dsrRes0']['pucchRes'] = self.nrDsrRes0ResourceIdEdit.text()
+        self.args['dsrRes0']['period'] = self.nrDsrRes0PeriodicityComb.currentText()
+        self.args['dsrRes0']['offset'] = self.nrDsrRes0OffsetEdit.text()
+
+        self.args['dsrRes1'] = dict()
+        self.args['dsrRes1']['resId'] = self.nrDsrRes1SrResourceIdEdit.text()
+        self.args['dsrRes1']['pucchRes'] = self.nrDsrRes1ResourceIdEdit.text()
+        self.args['dsrRes1']['period'] = self.nrDsrRes1PeriodicityComb.currentText()
+        self.args['dsrRes1']['offset'] = self.nrDsrRes1OffsetEdit.text()
 
         #(5) advanced settings tab
         self.args['advanced'] = dict()
