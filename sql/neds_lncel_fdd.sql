@@ -1,4 +1,4 @@
---SQL Name: NEDS_LNCEL.sql
+--SQL Name: NEDS_LNCEL_FDD.sql
 --Update History:
 --2018-3-22: initial version by gaozw
 --2019-4-29: update earfcn using singleOAM by gaozw
