@@ -12,6 +12,7 @@ Change History:
 
 import os
 import time
+import traceback
 from PyQt5.QtWidgets import qApp
 
 class M8015(object):
@@ -376,50 +377,56 @@ class NgM8015Proc(object):
 
     def loadLncel(self):
         outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
-        with open(os.path.join(outDir, 'neds_lncel.csv'), 'r') as f:
-            #print('Loading %s' % f.name)
-            self.ngwin.logEdit.append('Loading %s' % f.name)
-            qApp.processEvents()
+        fns = ['neds_lncel_fdd.csv', 'neds_lncel_tdd.csv']
+        for fn in fns:
+            try:
+                with open(os.path.join(outDir, fn), 'r') as f:
+                    #print('Loading %s' % f.name)
+                    self.ngwin.logEdit.append('Loading %s' % f.name)
+                    qApp.processEvents()
 
-            #note: use strip to remove the tailing '/n'
-            line = f.readline().strip()
-            tokens = line.split(',')
-            d = dict(zip(tokens, range(len(tokens))))
-            #print(d)
+                    #note: use strip to remove the tailing '/n'
+                    line = f.readline().strip()
+                    tokens = line.split(',')
+                    d = dict(zip(tokens, range(len(tokens))))
+                    #print(d)
 
-            while True:
-                line = f.readline().strip()
-                if not line:
-                    break
+                    while True:
+                        line = f.readline().strip()
+                        if not line:
+                            break
 
-                tokens = line.split(',')
+                        tokens = line.split(',')
 
-                t = Lncel()
-                t.lnbtsId = tokens[d['LNBTS_ID']]
-                t.enbId = tokens[d['ENB_ID']]
-                t.lcrId = tokens[d['LCR_ID']]
-                t.eci = tokens[d['ECI']]
-                t.earfcn = tokens[d['EARFCN']]
-                t.pci = tokens[d['PCI']]
-                t.tac = tokens[d['TAC']]
-                t.th1 = tokens[d['TH1']]
-                t.a3Off = tokens[d['A3_OFF']]
-                t.hysA3Off = tokens[d['HYS_A3_OFF']]
-                t.a3RepInt = tokens[d['A3_REP_INT']]
-                t.a3Ttt = tokens[d['A3_TTT']]
-                t.a5Th3 = tokens[d['A5_TH3']]
-                t.a5Th3a = tokens[d['A5_TH3A']]
-                t.hysA5Th3 = tokens[d['HYS_A5_TH3']]
-                t.a5RepInt = tokens[d['A5_REP_INT']]
-                t.a5Ttt = tokens[d['A5_TTT']]
-                t.a2Th2If = tokens[d['A2_TH2_IF']]
-                t.hysA2Th2If = tokens[d['HYS_A2_TH2_IF']]
-                t.a2Ttt = tokens[d['A2_TTT']]
-                t.a1Th2a = tokens[d['A1_TH2A']]
-                t.hysA1Th2a = tokens[d['HYS_A1_TH2A']]
-                t.a1Ttt = tokens[d['A1_TTT']]
+                        t = Lncel()
+                        t.lnbtsId = tokens[d['LNBTS_ID']]
+                        t.enbId = tokens[d['ENB_ID']]
+                        t.lcrId = tokens[d['LCR_ID']]
+                        t.eci = tokens[d['ECI']]
+                        t.earfcn = tokens[d['EARFCN']]
+                        t.pci = tokens[d['PCI']]
+                        t.tac = tokens[d['TAC']]
+                        t.th1 = tokens[d['TH1']]
+                        t.a3Off = tokens[d['A3_OFF']]
+                        t.hysA3Off = tokens[d['HYS_A3_OFF']]
+                        t.a3RepInt = tokens[d['A3_REP_INT']]
+                        t.a3Ttt = tokens[d['A3_TTT']]
+                        t.a5Th3 = tokens[d['A5_TH3']]
+                        t.a5Th3a = tokens[d['A5_TH3A']]
+                        t.hysA5Th3 = tokens[d['HYS_A5_TH3']]
+                        t.a5RepInt = tokens[d['A5_REP_INT']]
+                        t.a5Ttt = tokens[d['A5_TTT']]
+                        t.a2Th2If = tokens[d['A2_TH2_IF']]
+                        t.hysA2Th2If = tokens[d['HYS_A2_TH2_IF']]
+                        t.a2Ttt = tokens[d['A2_TTT']]
+                        t.a1Th2a = tokens[d['A1_TH2A']]
+                        t.hysA1Th2a = tokens[d['HYS_A1_TH2A']]
+                        t.a1Ttt = tokens[d['A1_TTT']]
 
-                self.lncelData[tokens[d['LNCEL_ID']]] = t
+                        self.lncelData[tokens[d['LNCEL_ID']]] = t
+            except Exception as e:
+                self.ngwin.logEdit.append(traceback.format_exc())
+                qApp.processEvents()
 
     def loadLnadj(self):
         outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
