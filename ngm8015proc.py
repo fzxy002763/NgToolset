@@ -34,7 +34,7 @@ class M8015(object):
         self.mroPingPongHo = 0
         self.ifLbHoAtt = 0
         self.ifLbHoSucc = 0
-        
+
     def __str__(self):
         _list = [self.periodStartTime, self.iaHoPrepFail, self.iaHoAtt, self.iaHoSucc, self.iaHoFailTime,
                  self.irHoPrepFailOth, self.irHoPrepFailTime, self.irHoPrepFailAc, self.irHoPrepFailQci,
@@ -50,7 +50,7 @@ class M8001(object):
         self.largeMsg1Att = 0
         self.dedMsg1Att = 0
         self.rachMsg2 = 0
-        
+
     def __str__(self):
         _list = [self.smallMsg1Att, self.largeMsg1Att, self.dedMsg1Att, self.rachMsg2]
         _list = list(map(str, _list))
@@ -74,7 +74,7 @@ class M8005(object):
         self.avgRssiPusch = 0
         self.avgSinrPucch = 0
         self.avgSinrPusch = 0
-        
+
     def __str__(self):
         _list = [self.avgRssiPucch, self.avgRssiPusch, self.avgSinrPucch, self.avgSinrPusch]
         _list = list(map(str, _list))
@@ -104,7 +104,7 @@ class M8006(object):
         self.erabRelQci1HoFail = 0
         self.erabRelQci1EpcPs = 0
         self.erabRelQci1TnlUnsp = 0
-        
+
     def __str__(self):
         _list = [self.erabSetupAtt, self.erabSetupSucc, self.erabSetupFailRrnaIni, self.erabSetupFailRrnaAdd, self.erabSetupFailTruIni, self.erabSetupFailTruAdd,
                  self.erabSetupFailUelIni, self.erabSetupFailUelAdd, self.erabSetupFailRipIni, self.erabSetupFailRipAdd, self.erabSetupFailUp, self.erabSetupFailMob,
@@ -122,20 +122,20 @@ class M8013(object):
         self.rrcMsg3HiPrio = 0
         self.rrcMsg3DelTol = 0
         self.rrcMsg5 = 0
-        
+
     def __str__(self):
         _list = [self.rrcMsg3Mos, self.rrcMsg3Mt, self.rrcMsg3Mod, self.rrcMsg3Emg,
                  self.rrcMsg3HiPrio, self.rrcMsg3DelTol, self.rrcMsg5]
         _list = list(map(str, _list))
         return ','.join(_list)
-    
+
 class M8051(object):
     def __init__(self):
         self.avgUeRrcConn = 0
         self.maxUeRrcConn = 0
         self.avgUeAct = 0
         self.maxUeAct = 0
-        
+
     def __str__(self):
         _list = [self.avgRssiPucch, self.avgRssiPusch, self.avgSinrPucch, self.avgSinrPusch]
         _list = list(map(str, _list))
@@ -166,7 +166,7 @@ class Lncel(object):
         self.a1Th2a = None
         self.hysA1Th2a = None
         self.a1Ttt = None
-    
+
     def __str__(self):
         _list = [self.enbId, self.lcrId, self.eci, self.earfcn, self.pci, self.tac, self.th1,
                  self.a3Off, self.hysA3Off, self.a3RepInt, self.a3Ttt,
@@ -181,11 +181,11 @@ class Lnadj(object):
         self.adjEnbId = None
         self.adjEnbIp = None
         self.x2Stat = None
-        
+
     def __str__(self):
         _list = [self.coDn, self.adjEnbId, self.adjEnbIp, self.x2Stat]
         return ','.join(_list)
-    
+
 class Lnadjl(object):
     def __init__(self):
         self.coDn = None
@@ -194,11 +194,11 @@ class Lnadjl(object):
         self.adjEarfcn = None
         self.adjPci = None
         self.adjTac = None
-        
+
     def __str__(self):
         _list = [self.coDn, self.adjEnbId, self.adjLcrId, self.adjEarfcn, self.adjPci, self.adjTac]
         return ','.join(_list)
-    
+
 class Lnhoif(object):
     def __init__(self):
         self.coDn = None
@@ -213,7 +213,7 @@ class Lnhoif(object):
         self.ifA5RepInt = None
         self.ifA5Ttt = None
         self.ifMbw = None
-        
+
     def __str__(self):
         _list = [self.coDn, self.ifEarfcn, self.ifA3Off, self.ifHysA3Off, self.ifA3RepInt, self.ifA3Ttt,
                  self.ifA5Th3, self.ifA5Th3a, self.ifHysA5Th3, self.ifA5RepInt, self.ifA5Ttt, self.ifMbw]
@@ -228,11 +228,11 @@ class Irfim(object):
         self.ifThLow = None
         self.ifThHigh = None
         self.ifMbw = None
-        
+
     def __str__(self):
         _list = [self.coDn, self.ifEarfcn, self.ifResPrio, self.ifRxlevMin, self.ifThLow, self.ifThHigh, self.ifMbw]
         return ','.join(_list)
-    
+
 class Lnrel(object):
     def __init__(self):
         self.coDn = None
@@ -241,9 +241,9 @@ class Lnrel(object):
         self.cio = None
         self.hoAllowed = None
         self.nrStat = None
-        
+
     def __str__(self):
-        _list = [self.coDn, #self.adjEnbId, self.adjLcrId, 
+        _list = [self.coDn, #self.adjEnbId, self.adjLcrId,
                  self.cio, self.hoAllowed, self.nrStat]
         return ','.join(_list)
 
@@ -260,16 +260,16 @@ class HoStat(object):
         self.mroLateHo = 0
         self.mroEarlyHo = 0
         self.mroPingPongHo = 0
-    
+
     def __str__(self):
         _list = [self.lnbtsId, self.lncelId, self.iaHoPrepFail, self.iaHoAtt, self.iaHoSucc, self.irHoPrepFail, self.irHoAtt, self.irHoSucc]
         _list = list(map(_list, str))
         return ','.join(_list)
-        
+
 class NgM8015Proc(object):
     def __init__(self, ngwin):
         self.ngwin = ngwin
-        
+
         #connection defined as below:
         #m8015Data.key.lncel_id == lncelData.key
         #m8015Data.key.lncel_id == lnhoifData.key
@@ -278,7 +278,7 @@ class NgM8015Proc(object):
         #m8015Data.key.lnbts_id == lnadjlData.key
         self.m8015Data= dict() #[key='m8015.lnbts_id+m8015.lncel_id+m8015.eci_id', val=list of M8015]
         self.m8015AggData= dict() #[key='m8015.lnbts_id+m8015.lncel_id+m8015.eci_id', val=aggregated M8015]
-        
+
         self.m8001Data= dict() #[key='m8001.lnbts_id+m8001.lncel_id', val=list of M8001]
         self.m8001AggData= dict() #[key='m8001.lnbts_id+m8001.lncel_id', val=aggregated M8001]
 
@@ -287,16 +287,16 @@ class NgM8015Proc(object):
 
         self.m8005Data= dict() #[key='m8005.lnbts_id+m8005.lncel_id', val=list of M8005]
         self.m8005AggData= dict() #[key='m8005.lnbts_id+m8005.lncel_id', val=aggregated M8005]
-        
+
         self.m8006Data= dict() #[key='m8006.lnbts_id+m8006.lncel_id', val=list of M8006]
         self.m8006AggData= dict() #[key='m8006.lnbts_id+m8006.lncel_id', val=aggregated M8006]
-        
+
         self.m8013Data= dict() #[key='m8013.lnbts_id+m8013.lncel_id', val=list of M8013]
         self.m8013AggData= dict() #[key='m8013.lnbts_id+m8013.lncel_id', val=aggregated M8013]
-        
+
         self.m8051Data= dict() #[key='m8051.lnbts_id+m8051.lncel_id', val=list of M8051]
         self.m8051AggData= dict() #[key='m8051.lnbts_id+m8051.lncel_id', val=aggregated M8051]
-        
+
         self.lncelData = dict() #[key=lncel.lncel_id, val=Lncel]
         self.lnadjData = dict() #[key=lnadj.lnbts_id, val=Lnadj]
         self.lnadjlData = dict() #[key=lnadjl.lnbts_id, val=Lnadjl]
@@ -304,20 +304,20 @@ class NgM8015Proc(object):
         self.irfimData = dict() #[key=irfim.lncel_id+irfim.if_earfcn, val=Irfim]
         self.lnrelData = dict() #[key='lnrel.lncel_id+lnrel.adj_enb_id+lnrel.adj_lcr_id', val=Lnrel]
         self.gridData = [] #optional data for atu grid, enbid+lcrid
-        
+
         self.lnbtsIdLncelIdMap = dict() #[key=ECI, val=lnbts_id+lncel_id]
         self.earfcnMap = dict() #[key=eci, val=earfcn]
         self.pciMap = dict() #[key=eci, val=pci]
         self.tacMap = dict() #[key=eci, val=tac]
-        
+
         self.m8015Earfcnxy = dict() #[key='earfcnx+earfcny', val=HoStat]
         self.m8015Ecixy = dict() #[key='ecix+eciy', val=HoStat]
-        
+
         self.earfcnLnhoif = dict() #[key=enbid+lcrid, val=list of lnhoif earfcn]
         self.earfcnIrfim = dict() #[key=enbid+lcrid, val=list of irfim earfcn]
 
         self.ngwin.logEdit.append('<font color=blue>M8015 analyzer initialized!</font>')
-    
+
     def loadCsvData(self):
         self.loadLncel()
         self.loadLnadj()
@@ -333,7 +333,7 @@ class NgM8015Proc(object):
         self.loadM8013()
         self.loadM8051()
         self.loadOpt()
-    
+
     def print_(self):
         for key,val in self.lncelData.items():
             print('key=%s,val=%s' % (key, val))
@@ -347,7 +347,7 @@ class NgM8015Proc(object):
             print('key=%s,val=%s' % (key, val))
         for key,val in self.m8015Data.items():
             print('key=%s,val=%s' % (key, val))
-    
+
     def loadOpt(self):
         try:
             outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
@@ -355,16 +355,16 @@ class NgM8015Proc(object):
                 #print('Loading %s' % f.name)
                 self.ngwin.logEdit.append('Loading %s' % f.name)
                 qApp.processEvents()
-                
+
                 line = f.readline().strip()
                 tokens = line.split(',')
                 d = dict(zip(tokens, range(len(tokens))))
-                
+
                 while True:
                     line = f.readline().strip()
                     if not line:
                         break
-                    
+
                     tokens = line.split(',')
                     dn = tokens[d['ENBID']] + '_' + tokens[d['LCRID']]
                     if not dn in self.gridData:
@@ -373,27 +373,27 @@ class NgM8015Proc(object):
                         self.ngwin.logEdit.append('-->Duplicate cell found: %s' % dn)
         except Exception as e:
             return
-        
+
     def loadLncel(self):
         outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
         with open(os.path.join(outDir, 'neds_lncel.csv'), 'r') as f:
             #print('Loading %s' % f.name)
             self.ngwin.logEdit.append('Loading %s' % f.name)
             qApp.processEvents()
-            
+
             #note: use strip to remove the tailing '/n'
             line = f.readline().strip()
             tokens = line.split(',')
             d = dict(zip(tokens, range(len(tokens))))
             #print(d)
-            
+
             while True:
                 line = f.readline().strip()
                 if not line:
                     break
-                
+
                 tokens = line.split(',')
-                
+
                 t = Lncel()
                 t.lnbtsId = tokens[d['LNBTS_ID']]
                 t.enbId = tokens[d['ENB_ID']]
@@ -418,55 +418,55 @@ class NgM8015Proc(object):
                 t.a1Th2a = tokens[d['A1_TH2A']]
                 t.hysA1Th2a = tokens[d['HYS_A1_TH2A']]
                 t.a1Ttt = tokens[d['A1_TTT']]
-                
-                self.lncelData[tokens[d['LNCEL_ID']]] = t 
-    
+
+                self.lncelData[tokens[d['LNCEL_ID']]] = t
+
     def loadLnadj(self):
         outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
         with open(os.path.join(outDir, 'neds_lnadj.csv'), 'r') as f:
             #print('Loading %s' % f.name)
             self.ngwin.logEdit.append('Loading %s' % f.name)
             qApp.processEvents()
-            
+
             line = f.readline().strip()
             tokens = line.split(',')
             d = dict(zip(tokens, range(len(tokens))))
             #print(d)
-            
+
             while True:
                 line = f.readline().strip()
                 if not line:
                     break
-                
+
                 tokens = line.split(',')
-                
+
                 t = Lnadj()
                 t.coDn = '/'.join(tokens[d['CO_DN']].split('/')[1:])
                 t.adjEnbId = tokens[d['ADJ_ENB_ID']]
                 t.adjEnbIp = tokens[d['ADJ_ENB_IP']]
                 t.x2Stat = tokens[d['X2_STAT']]
-                
+
                 self.lnadjData[tokens[d['LNBTS_ID']] + '_' + tokens[d['ADJ_ENB_ID']]] = t
-    
+
     def loadLnadjl(self):
         outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
         with open(os.path.join(outDir, 'neds_lnadjl.csv'), 'r') as f:
             #print('Loading %s' % f.name)
             self.ngwin.logEdit.append('Loading %s' % f.name)
             qApp.processEvents()
-            
+
             line = f.readline().strip()
             tokens = line.split(',')
             d = dict(zip(tokens, range(len(tokens))))
             #print(d)
-            
+
             while True:
                 line = f.readline().strip()
                 if not line:
                     break
-                
+
                 tokens = line.split(',')
-                
+
                 t = Lnadjl()
                 t.coDn = '/'.join(tokens[d['CO_DN']].split('/')[1:])
                 t.adjEnbId = tokens[d['ADJ_ENB_ID']]
@@ -474,28 +474,28 @@ class NgM8015Proc(object):
                 t.adjEarfcn = tokens[d['ADJ_EARFCN']]
                 t.adjPci = tokens[d['ADJ_PCI']]
                 t.adjTac = tokens[d['ADJ_TAC']]
-                
+
                 self.lnadjlData[tokens[d['LNBTS_ID']]] = t
-    
+
     def loadLnhoif(self):
         outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
         with open(os.path.join(outDir, 'neds_lnhoif.csv'), 'r') as f:
             #print('Loading %s' % f.name)
             self.ngwin.logEdit.append('Loading %s' % f.name)
             qApp.processEvents()
-            
+
             line = f.readline().strip()
             tokens = line.split(',')
             d = dict(zip(tokens, range(len(tokens))))
             #print(d)
-            
+
             while True:
                 line = f.readline().strip()
                 if not line:
                     break
-                
+
                 tokens = line.split(',')
-                
+
                 t = Lnhoif()
                 t.coDn = '/'.join(tokens[d['CO_DN']].split('/')[1:])
                 t.ifEarfcn = tokens[d['IF_EARFCN']]
@@ -509,28 +509,28 @@ class NgM8015Proc(object):
                 t.ifA5RepInt = tokens[d['IF_A5_REP_INT']]
                 t.ifA5Ttt = tokens[d['IF_A5_TTT']]
                 t.ifMbw = tokens[d['IF_MBW']]
-                
+
                 self.lnhoifData[tokens[d['LNCEL_ID']] + '_' + tokens[d['IF_EARFCN']]] = t
-    
+
     def loadIrfim(self):
         outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
         with open(os.path.join(outDir, 'neds_irfim.csv'), 'r') as f:
             #print('Loading %s' % f.name)
             self.ngwin.logEdit.append('Loading %s' % f.name)
             qApp.processEvents()
-            
+
             line = f.readline().strip()
             tokens = line.split(',')
             d = dict(zip(tokens, range(len(tokens))))
             #print(d)
-            
+
             while True:
                 line = f.readline().strip()
                 if not line:
                     break
-                
+
                 tokens = line.split(',')
-                
+
                 t = Irfim()
                 t.coDn = '/'.join(tokens[d['CO_DN']].split('/')[1:])
                 t.ifEarfcn = tokens[d['IF_EARFCN']]
@@ -539,28 +539,28 @@ class NgM8015Proc(object):
                 t.ifThLow = tokens[d['IF_TH_LOW']]
                 t.ifThHigh = tokens[d['IF_TH_HIGH']]
                 t.ifMbw = tokens[d['IF_MBW']]
-                
+
                 self.irfimData[tokens[d['LNCEL_ID']] + '_' + tokens[d['IF_EARFCN']]] = t
-    
+
     def loadLnrel(self):
         outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
         with open(os.path.join(outDir, 'neds_lnrel.csv'), 'r') as f:
             #print('Loading %s' % f.name)
             self.ngwin.logEdit.append('Loading %s' % f.name)
             qApp.processEvents()
-            
+
             line = f.readline().strip()
             tokens = line.split(',')
             d = dict(zip(tokens, range(len(tokens))))
             #print(d)
-            
+
             while True:
                 line = f.readline().strip()
                 if not line:
                     break
-                
+
                 tokens = line.split(',')
-                
+
                 t = Lnrel()
                 t.coDn = '/'.join(tokens[d['CO_DN']].split('/')[1:])
                 t.adjEnbId = tokens[d['ADJ_ENB_ID']]
@@ -568,28 +568,28 @@ class NgM8015Proc(object):
                 t.cio = tokens[d['CIO']]
                 t.hoAllowed = tokens[d['HO_ALLOWED']]
                 t.nrStat = tokens[d['NR_STAT']]
-                
+
                 self.lnrelData[tokens[d['LNCEL_ID']] + '_' + tokens[d['ADJ_ENB_ID']] + '_' + tokens[d['ADJ_LCR_ID']]] = t
-    
+
     def loadM8015(self):
         outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
         with open(os.path.join(outDir, 'neds_m8015.csv'), 'r') as f:
             #print('Loading %s' % f.name)
             self.ngwin.logEdit.append('Loading %s' % f.name)
             qApp.processEvents()
-            
+
             line = f.readline().strip()
             tokens = line.split(',')
             d = dict(zip(tokens, range(len(tokens))))
             #print(d)
-            
+
             while True:
                 line = f.readline().strip()
                 if not line:
                     break
-                
+
                 tokens = line.split(',')
-                
+
                 t = M8015()
                 t.periodStartTime = tokens[d['PERIOD_START_TIME']]
                 t.iaHoPrepFail = tokens[d['INTRA_HO_PREP_FAIL_NB']]
@@ -609,48 +609,48 @@ class NgM8015Proc(object):
                 t.mroPingPongHo = tokens[d['MRO_PING_PONG_HO_NB']]
                 t.ifLbHoAtt = tokens[d['HO_LB_IF_ATT_NB']]
                 t.ifLbHoSucc = tokens[d['HO_LB_IF_SUCC_NB']]
-                
+
                 key = tokens[d['LNBTS_ID']] + '_' + tokens[d['LNCEL_ID']] + '_' + tokens[d['ECI_ID']]
-                
+
                 if not key in self.m8015Data:
                     self.m8015Data[key] = [t]
                 else:
                     self.m8015Data[key].append(t)
-        
+
         self.aggM8015()
-    
+
     def loadM8001(self):
         outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
         with open(os.path.join(outDir, 'neds_m8001.csv'), 'r') as f:
             #print('Loading %s' % f.name)
             self.ngwin.logEdit.append('Loading %s' % f.name)
             qApp.processEvents()
-            
+
             line = f.readline().strip()
             tokens = line.split(',')
             d = dict(zip(tokens, range(len(tokens))))
             #print(d)
-            
+
             while True:
                 line = f.readline().strip()
                 if not line:
                     break
-                
+
                 tokens = line.split(',')
-                
+
                 t = M8001()
                 t.smallMsg1Att = tokens[d['RACH_STP_ATT_SMALL_MSG']]
                 t.largeMsg1Att = tokens[d['RACH_STP_ATT_LARGE_MSG']]
                 t.dedMsg1Att = tokens[d['RACH_STP_ATT_DEDICATED']]
                 t.rachMsg2 = tokens[d['RACH_STP_COMPLETIONS']]
-                
+
                 key = tokens[d['LNBTS_ID']] + '_' + tokens[d['LNCEL_ID']]
-                
+
                 if not key in self.m8001Data:
                     self.m8001Data[key] = [t]
                 else:
                     self.m8001Data[key].append(t)
-        
+
         self.aggM8001()
 
     def loadM8007(self):
@@ -692,53 +692,53 @@ class NgM8015Proc(object):
             #print('Loading %s' % f.name)
             self.ngwin.logEdit.append('Loading %s' % f.name)
             qApp.processEvents()
-            
+
             line = f.readline().strip()
             tokens = line.split(',')
             d = dict(zip(tokens, range(len(tokens))))
             #print(d)
-            
+
             while True:
                 line = f.readline().strip()
                 if not line:
                     break
-                
+
                 tokens = line.split(',')
-                
+
                 t = M8005()
                 t.avgRssiPucch = tokens[d['RSSI_PUCCH_AVG']]
                 t.avgRssiPusch = tokens[d['RSSI_PUSCH_AVG']]
                 t.avgSinrPucch = tokens[d['SINR_PUCCH_AVG']]
                 t.avgSinrPusch = tokens[d['SINR_PUSCH_AVG']]
-                
+
                 key = tokens[d['LNBTS_ID']] + '_' + tokens[d['LNCEL_ID']]
-                
+
                 if not key in self.m8005Data:
                     self.m8005Data[key] = [t]
                 else:
                     self.m8005Data[key].append(t)
-        
+
         self.aggM8005()
-    
+
     def loadM8006(self):
         outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
         with open(os.path.join(outDir, 'neds_m8006.csv'), 'r') as f:
             #print('Loading %s' % f.name)
             self.ngwin.logEdit.append('Loading %s' % f.name)
             qApp.processEvents()
-            
+
             line = f.readline().strip()
             tokens = line.split(',')
             d = dict(zip(tokens, range(len(tokens))))
             #print(d)
-            
+
             while True:
                 line = f.readline().strip()
                 if not line:
                     break
-                
+
                 tokens = line.split(',')
-                
+
                 t = M8006()
                 t.erabSetupAtt = tokens[d['EPS_BEARER_SETUP_ATTEMPTS']]
                 t.erabSetupSucc = tokens[d['EPS_BEARER_SETUP_COMPLETIONS']]
@@ -762,35 +762,35 @@ class NgM8015Proc(object):
                 t.erabRelQci1HoFail = tokens[d['ERAB_REL_HO_FAIL_TIM_QCI1']]
                 t.erabRelQci1EpcPs = tokens[d['ERAB_REL_EPC_PATH_SWITCH_QCI1']]
                 t.erabRelQci1TnlUnsp = tokens[d['ERAB_REL_ENB_TNL_UNSP_QCI1']]
-                
+
                 key = tokens[d['LNBTS_ID']] + '_' + tokens[d['LNCEL_ID']]
-                
+
                 if not key in self.m8006Data:
                     self.m8006Data[key] = [t]
                 else:
                     self.m8006Data[key].append(t)
-        
+
         self.aggM8006()
-    
+
     def loadM8013(self):
         outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
         with open(os.path.join(outDir, 'neds_m8013.csv'), 'r') as f:
             #print('Loading %s' % f.name)
             self.ngwin.logEdit.append('Loading %s' % f.name)
             qApp.processEvents()
-            
+
             line = f.readline().strip()
             tokens = line.split(',')
             d = dict(zip(tokens, range(len(tokens))))
             #print(d)
-            
+
             while True:
                 line = f.readline().strip()
                 if not line:
                     break
-                
+
                 tokens = line.split(',')
-                
+
                 t = M8013()
                 t.rrcMsg3Mos = tokens[d['SIGN_CONN_ESTAB_ATT_MO_S']]
                 t.rrcMsg3Mt = tokens[d['SIGN_CONN_ESTAB_ATT_MT']]
@@ -799,54 +799,54 @@ class NgM8015Proc(object):
                 t.rrcMsg3HiPrio = tokens[d['SIGN_CONN_ESTAB_ATT_HIPRIO']]
                 t.rrcMsg3DelTol = tokens[d['SIGN_CONN_ESTAB_ATT_DEL_TOL']]
                 t.rrcMsg5 = tokens[d['SIGN_CONN_ESTAB_COMP']]
-                
+
                 key = tokens[d['LNBTS_ID']] + '_' + tokens[d['LNCEL_ID']]
-                
+
                 if not key in self.m8013Data:
                     self.m8013Data[key] = [t]
                 else:
                     self.m8013Data[key].append(t)
-        
+
         self.aggM8013()
-    
+
     def loadM8051(self):
         outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
         with open(os.path.join(outDir, 'neds_m8051.csv'), 'r') as f:
             #print('Loading %s' % f.name)
             self.ngwin.logEdit.append('Loading %s' % f.name)
             qApp.processEvents()
-            
+
             line = f.readline().strip()
             tokens = line.split(',')
             d = dict(zip(tokens, range(len(tokens))))
             #print(d)
-            
+
             while True:
                 line = f.readline().strip()
                 if not line:
                     break
-                
+
                 tokens = line.split(',')
-                
+
                 t = M8051()
                 t.avgUeRrcConn = tokens[d['RRC_CONNECTED_UE_AVG']]
                 t.maxUeRrcConn = tokens[d['RRC_CONNECTED_UE_MAX']]
                 t.avgUeAct = tokens[d['CELL_LOAD_ACTIVE_UE_AVG']]
                 t.maxUeAct = tokens[d['CELL_LOAD_ACTIVE_UE_MAX']]
-                
+
                 key = tokens[d['LNBTS_ID']] + '_' + tokens[d['LNCEL_ID']]
-                
+
                 if not key in self.m8051Data:
                     self.m8051Data[key] = [t]
                 else:
                     self.m8051Data[key].append(t)
-        
+
         self.aggM8051()
-    
+
     def aggM8001(self):
         self.ngwin.logEdit.append('Aggregating M8001')
         qApp.processEvents()
-        
+
         for key,val in self.m8001Data.items():
             t = M8001()
             for rec in val:
@@ -858,9 +858,9 @@ class NgM8015Proc(object):
                 except Exception as e:
                     #ignore ValueError that may raised by int()
                     continue
-            
+
             self.m8001AggData[key] = t
-                
+
         '''
         for key,val in self.m8001AggData.items():
             print('key=%s,val=%s' % (key,val))
@@ -887,11 +887,11 @@ class NgM8015Proc(object):
         for key,val in self.m8007AggData.items():
             print('key=%s,val=%s' % (key,val))
         '''
-        
+
     def aggM8005(self):
         self.ngwin.logEdit.append('Aggregating M8005')
         qApp.processEvents()
-        
+
         for key,val in self.m8005Data.items():
             t = M8005()
             cnt = 0
@@ -905,7 +905,7 @@ class NgM8015Proc(object):
                 except Exception as e:
                     #ignore ValueError that may raised by int()
                     continue
-            
+
             if cnt > 0:
                 t.avgRssiPucch = round(t.avgRssiPucch / cnt, 2)
                 t.avgRssiPusch = round(t.avgRssiPusch / cnt, 2)
@@ -913,19 +913,19 @@ class NgM8015Proc(object):
                 t.avgSinrPusch = round(t.avgSinrPusch / cnt, 2)
             else:
                 t.avgRssiPucch, t.avgRssiPusch, t.avgSinrPucch, t.avgSinrPusch = ('DIV0', 'DIV0', 'DIV0', 'DIV0')
-                
-            
+
+
             self.m8005AggData[key] = t
-                
+
         '''
         for key,val in self.m8005AggData.items():
             print('key=%s,val=%s' % (key,val))
         '''
-    
+
     def aggM8006(self):
         self.ngwin.logEdit.append('Aggregating M8006')
         qApp.processEvents()
-        
+
         for key,val in self.m8006Data.items():
             t = M8006()
             for rec in val:
@@ -955,18 +955,18 @@ class NgM8015Proc(object):
                 except Exception as e:
                     #ignore ValueError that may raised by int()
                     continue
-            
+
             self.m8006AggData[key] = t
-                
+
         '''
         for key,val in self.m8006AggData.items():
             print('key=%s,val=%s' % (key,val))
         '''
-    
+
     def aggM8013(self):
         self.ngwin.logEdit.append('Aggregating M8013')
         qApp.processEvents()
-        
+
         for key,val in self.m8013Data.items():
             t = M8013()
             for rec in val:
@@ -981,18 +981,18 @@ class NgM8015Proc(object):
                 except Exception as e:
                     #ignore ValueError that may raised by int()
                     continue
-            
+
             self.m8013AggData[key] = t
-                
+
         '''
         for key,val in self.m8013AggData.items():
             print('key=%s,val=%s' % (key,val))
         '''
-    
+
     def aggM8051(self):
         self.ngwin.logEdit.append('Aggregating M8051')
         qApp.processEvents()
-        
+
         for key,val in self.m8051Data.items():
             t = M8051()
             cnt = 0
@@ -1006,25 +1006,25 @@ class NgM8015Proc(object):
                 except Exception as e:
                     #ignore ValueError that may raised by int()
                     continue
-                
+
             if cnt > 0:
                 t.avgUeRrcConn = round(t.avgUeRrcConn / cnt, 2)
                 t.avgUeAct = round(t.avgUeAct / cnt, 2)
             else:
                 t.avgUeRrcConn, t.avgUeAct = ('DIV0', 'DIV0')
-            
+
             self.m8051AggData[key] = t
-                
+
         '''
         for key,val in self.m8051AggData.items():
             print('key=%s,val=%s' % (key,val))
         '''
-    
+
     def aggM8015(self):
         #print('Aggregating M8015')
         self.ngwin.logEdit.append('Aggregating M8015')
         qApp.processEvents()
-        
+
         for key,val in self.m8015Data.items():
             t = M8015()
             for rec in val:
@@ -1049,39 +1049,39 @@ class NgM8015Proc(object):
                 except Exception as e:
                     #ignore ValueError that may raised by int()
                     continue
-            
+
             self.m8015AggData[key] = t
-                
+
         '''
         for key,val in self.m8015AggData.items():
             print('key=%s,val=%s' % (key,val))
         '''
-    
+
     def makeEciMap(self):
         #print('Making per ECI map')
         self.ngwin.logEdit.append('Making per ECI map')
         qApp.processEvents()
-        
+
         for key,val in self.lncelData.items():
             self.lnbtsIdLncelIdMap[val.eci] = val.lnbtsId + '_' + key
-            
+
             if not val.eci in self.earfcnMap:
                 self.earfcnMap[val.eci] = val.earfcn
                 self.pciMap[val.eci] = val.pci
                 self.tacMap[val.eci] = val.tac
-        
+
         for key,val in self.lnadjlData.items():
             eci = 256*val.adjEnbId+val.adjLcrId
             if not eci in self.earfcnMap:
                 self.earfcnMap[eci] = val.adjEarfcn
                 self.pciMap[eci] = val.adjPci
                 self.tacMap[eci] = val.adjTac
-                
+
     def procUserCase01(self):
         #print('Performing analysis for user case #01: per earfcn hosr')
         self.ngwin.logEdit.append('<font color=blue>Performing analysis for user case #01: per earfcn hosr</font>')
         qApp.processEvents()
-        
+
         #user case#1: EARFCNx -> EARFCNy HOSR analysis
         for key,val in self.m8015AggData.items():
             tokens = key.split('_')
@@ -1091,39 +1091,39 @@ class NgM8015Proc(object):
                 eci = tokens[2]
             else:
                 continue
-            
+
             if not lncelId in self.lncelData:
                 continue
-            
+
             eciSrc = self.lncelData[lncelId].eci
-            
+
             if eciSrc in self.earfcnMap:
                 earfcnSrc = self.earfcnMap[eciSrc]
             else:
                 earfcnSrc = 'NA'
-                
+
             if eci in self.earfcnMap:
                 earfcnDst = self.earfcnMap[eci]
             else:
                 earfcnDst = 'NA'
-            
-            key = earfcnSrc + '_' + earfcnDst 
+
+            key = earfcnSrc + '_' + earfcnDst
             if not key in self.m8015Earfcnxy:
                 self.m8015Earfcnxy[key] = HoStat()
             self.m8015Earfcnxy[key].iaHoAtt = self.m8015Earfcnxy[key].iaHoAtt + val.iaHoAtt
             self.m8015Earfcnxy[key].iaHoSucc = self.m8015Earfcnxy[key].iaHoSucc + val.iaHoSucc
             self.m8015Earfcnxy[key].irHoAtt = self.m8015Earfcnxy[key].irHoAtt + val.irHoAtt
             self.m8015Earfcnxy[key].irHoSucc = self.m8015Earfcnxy[key].irHoSucc + val.irHoSucc
-        
+
         outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
         with open(os.path.join(outDir, 'm8015_per_earfcn_%s.csv' % time.strftime('%Y%m%d_%H%M%S', time.localtime())), 'w') as f:
             self.ngwin.logEdit.append('-->Exporting results to: %s' % f.name)
             qApp.processEvents()
-                    
+
             header = ['DN', 'IA_HO_ATT', 'IA_HO_SUCC', 'IR_HO_ATT', 'IR_HO_SUCC', 'HO_ATT_TOT', 'HO_SUCC_TOT', 'HOSR2(%)']
             f.write(','.join(header))
             f.write('\n')
-            
+
             #for key,val in self.m8015Earfcnxy.items():
             for key,val in sorted(self.m8015Earfcnxy.items(), key=lambda d : d[0]):
                 line = [key, val.iaHoAtt, val.iaHoSucc, val.irHoAtt, val.irHoSucc]
@@ -1136,12 +1136,12 @@ class NgM8015Proc(object):
                 line = list(map(str, line))
                 f.write(','.join(line))
                 f.write('\n')
-        
+
     def procUserCase02(self):
         #print('Performing analysis for user case #02: hosr top n')
         self.ngwin.logEdit.append('<font color=blue>Performing analysis for user case #02: hosr top n</font>')
         qApp.processEvents()
-        
+
         #user case#2: hosr top n analysis
         for key,val in self.m8015AggData.items():
             tokens = key.split('_')
@@ -1151,17 +1151,17 @@ class NgM8015Proc(object):
                 eci = tokens[2]
             else:
                 continue
-            
+
             if not lncelId in self.lncelData:
                 continue
-            
+
             eciSrc = self.lncelData[lncelId].eci
-            
+
             key = eciSrc + '_' + eci
             if not key in self.m8015Ecixy:
                 self.m8015Ecixy[key] = HoStat()
             self.m8015Ecixy[key].lnbtsId = lnbtsId
-            self.m8015Ecixy[key].lncelId = lncelId 
+            self.m8015Ecixy[key].lncelId = lncelId
             self.m8015Ecixy[key].iaHoPrepFail = val.iaHoPrepFail
             self.m8015Ecixy[key].iaHoAtt = val.iaHoAtt
             self.m8015Ecixy[key].iaHoSucc = val.iaHoSucc
@@ -1171,14 +1171,16 @@ class NgM8015Proc(object):
             self.m8015Ecixy[key].mroLateHo= val.mroLateHo
             self.m8015Ecixy[key].mroEarlyHo= val.mroEarlyType1Ho + val.mroEarlyType2Ho
             self.m8015Ecixy[key].mroPingPongHo= val.mroPingPongHo
-            
+            self.m8015Ecixy[key].ifLbHoAtt= val.ifLbHoAtt
+            self.m8015Ecixy[key].ifLbHoSucc= val.ifLbHoSucc
+
         outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
         with open(os.path.join(outDir, 'm8015_topn_%s.csv' % time.strftime('%Y%m%d_%H%M%S', time.localtime())), 'w') as f:
             self.ngwin.logEdit.append('-->Exporting results to: %s' % f.name)
             qApp.processEvents()
-                    
+
             header = ['DN','SRC_ENB_ID', 'SRC_LCR_ID', 'SRC_EARFCN', 'SRC_PCI', 'SRC_TAC', 'DST_ENB_ID', 'DST_LCR_ID', 'DST_EARFCN', 'DST_PCI', 'DST_TAC']
-            header.extend(['IA_HO_PREP_FAIL', 'IA_HO_ATT', 'IA_HO_SUCC', 'IR_HO_PREP_FAIL', 'IR_HO_ATT', 'IR_HO_SUCC', 'HO_ATT_TOT', 'HO_SUCC_TOT', 'HO_PREP_FAIL', 'HO_EXEC_FAIL', 'HOSR2(%)', 'MRO_LATE_HO', 'MRO_EARLY_HO', 'MRO_PPONG_HO'])
+            header.extend(['IA_HO_PREP_FAIL', 'IA_HO_ATT', 'IA_HO_SUCC', 'IR_HO_PREP_FAIL', 'IR_HO_ATT', 'IR_HO_SUCC', 'HO_ATT_TOT', 'HO_SUCC_TOT', 'HO_PREP_FAIL', 'HO_EXEC_FAIL', 'HOSR2(%)', 'MRO_LATE_HO', 'MRO_EARLY_HO', 'MRO_PPONG_HO', 'IFLB_HO_ATT', 'IFLB_HO_SUCC'])
             header.extend(['DN_LNADJ', 'X2_STAT'])
             header.extend(['DN_LNREL', 'CIO', 'HO_ALLOWED'])
             header.extend(['IA_A3', 'IA_A5', 'IF_A2', 'IF_A1'])
@@ -1192,12 +1194,12 @@ class NgM8015Proc(object):
             header.extend(['IS_GRID'])
             f.write(','.join(header))
             f.write('\n')
-            
+
             #for key,val in self.m8015Ecixy.items():
             for key,val in sorted(self.m8015Ecixy.items(), key=lambda d : d[1].iaHoPrepFail+d[1].irHoPrepFail+d[1].iaHoAtt+d[1].irHoAtt-d[1].iaHoSucc-d[1].irHoSucc, reverse=True):
                 if val.iaHoPrepFail + val.iaHoAtt + val.irHoPrepFail + val.irHoAtt == 0:
                     continue
-                
+
                 #src/dst cell info
                 line = [key]
                 eciSrc, eciDst = key.split('_')
@@ -1205,40 +1207,40 @@ class NgM8015Proc(object):
                 lcrIdDst = int(eciDst) % 256
                 enbIdSrc = (int(eciSrc) - lcrIdSrc) // 256
                 enbIdDst = (int(eciDst) - lcrIdDst) // 256
-                
+
                 if eciSrc in self.earfcnMap:
                     earfcnSrc = self.earfcnMap[eciSrc]
                 else:
                     earfcnSrc = 'NA'
-                    
+
                 if eciDst in self.earfcnMap:
                     earfcnDst = self.earfcnMap[eciDst]
                 else:
                     earfcnDst = 'NA'
-                
+
                 if eciSrc in self.pciMap:
                     pciSrc = self.pciMap[eciSrc]
                 else:
                     pciSrc = 'NA'
-                    
+
                 if eciDst in self.pciMap:
                     pciDst = self.pciMap[eciDst]
                 else:
                     pciDst = 'NA'
-                    
+
                 if eciSrc in self.tacMap:
                     tacSrc = self.tacMap[eciSrc]
                 else:
                     tacSrc = 'NA'
-                    
+
                 if eciDst in self.tacMap:
                     tacDst = self.tacMap[eciDst]
                 else:
                     tacDst = 'NA'
-                    
+
                 line.extend([enbIdSrc, lcrIdSrc, earfcnSrc, pciSrc, tacSrc])
                 line.extend([enbIdDst, lcrIdDst, earfcnDst, pciDst, tacDst])
-                
+
                 #M8015 info
                 line.extend([val.iaHoPrepFail, val.iaHoAtt, val.iaHoSucc, val.irHoPrepFail, val.irHoAtt, val.irHoSucc])
                 line.append(val.iaHoAtt + val.irHoAtt)
@@ -1249,8 +1251,8 @@ class NgM8015Proc(object):
                     line.append('DIV0')
                 else:
                     line.append('%.2f' % (100*(val.iaHoSucc+val.irHoSucc)/(val.iaHoAtt+val.irHoAtt)))
-                line.extend([val.mroLateHo, val.mroEarlyHo, val.mroPingPongHo])
-                
+                line.extend([val.mroLateHo, val.mroEarlyHo, val.mroPingPongHo, val.ifLbHoAtt, val.ifLbHoSucc])
+
                 #LNADJ info
                 lnadjKey = val.lnbtsId + '_' + str(enbIdDst)
                 if lnadjKey in self.lnadjData:
@@ -1259,7 +1261,7 @@ class NgM8015Proc(object):
                 else:
                     dnLnadj, x2Stat = ('NA', 'NA')
                 line.extend([dnLnadj, x2Stat])
-                
+
                 #LNREL info
                 lnrelKey = val.lncelId + '_' + str(enbIdDst) + '_' + str(lcrIdDst)
                 if lnrelKey in self.lnrelData:
@@ -1269,7 +1271,7 @@ class NgM8015Proc(object):
                 else:
                     dnLnrel, cio, hoAllowed = ('NA', 'NA', 'NA')
                 line.extend([dnLnrel, cio, hoAllowed])
-                
+
                 #LNCEL info
                 lncelKey = val.lncelId
                 if lncelKey in self.lncelData:
@@ -1280,7 +1282,7 @@ class NgM8015Proc(object):
                 else:
                     iaA3, iaA5, ifA2, ifA1 = ('NA', 'NA', 'NA', 'NA')
                 line.extend([iaA3, iaA5, ifA2, ifA1])
-                    
+
                 #LNHOIF info
                 lnhoifKey = val.lncelId + '_' + earfcnDst
                 if lnhoifKey in self.lnhoifData:
@@ -1290,7 +1292,7 @@ class NgM8015Proc(object):
                 else:
                     dnLnhoif, ifA3, ifA5 = ('NA', 'NA', 'NA')
                 line.extend([dnLnhoif, ifA3, ifA5])
-                
+
                 #erab abnormal release(cause=ue_lost or ho_fail) for qci1, source cell only
                 m8006Key = val.lnbtsId + '_' + val.lncelId
                 if m8006Key in self.m8006AggData:
@@ -1299,7 +1301,7 @@ class NgM8015Proc(object):
                 else:
                     ueLost, hoFail = ('NA', 'NA')
                 line.extend([ueLost, hoFail])
-                
+
                 msg1, msg2, msg3, msg5, rasrMsg2, rasrMsg3, rrcSsr = ('NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA')
                 drbAtt, drbSucc, drbFailTim, drbFailOth = ('NA', 'NA', 'NA', 'NA')
                 erabAtt, erabSucc, erabFailRrna, erabFailTru, erabFailUel, erabFailRip, erabFailUp, erabFailMob, erabFailOth = ('NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA')
@@ -1343,7 +1345,7 @@ class NgM8015Proc(object):
                         maxUeRrc = self.m8051AggData[m8051Key].maxUeRrcConn
                         avgUeAct = self.m8051AggData[m8051Key].avgUeAct
                         maxUeAct = self.m8051AggData[m8051Key].maxUeAct
-                    
+
                     #pucch/pusch rssi/sinr, target cell only
                     m8005Key = self.lnbtsIdLncelIdMap[eciDst]
                     if m8005Key in self.m8005AggData:
@@ -1351,13 +1353,13 @@ class NgM8015Proc(object):
                         sinrPucch = self.m8005AggData[m8005Key].avgSinrPucch
                         rssiPusch = self.m8005AggData[m8005Key].avgRssiPusch
                         sinrPusch = self.m8005AggData[m8005Key].avgSinrPusch
-                        
+
                 line.extend([msg1, msg2, msg3, msg5, rasrMsg2, rasrMsg3, rrcSsr])
                 line.extend([drbAtt, drbSucc, drbFailTim, drbFailOth])
                 line.extend([erabAtt, erabSucc, erabFailRrna, erabFailTru, erabFailUel, erabFailRip, erabFailUp, erabFailMob, erabFailOth])
                 line.extend([avgUeRrc, maxUeRrc, avgUeAct, maxUeAct])
                 line.extend([rssiPucch, sinrPucch, rssiPusch, sinrPusch])
-                
+
                 #for ATU grid info
                 gridSrcKey = str(enbIdSrc) + '_' + str(lcrIdSrc)
                 gridDstKey = str(enbIdDst) + '_' + str(lcrIdDst)
@@ -1371,15 +1373,15 @@ class NgM8015Proc(object):
                 else:
                     isGrid = isGrid + 'NO'
                 line.extend([isGrid])
-                
+
                 line = list(map(str, line))
                 f.write(','.join(line))
                 f.write('\n')
-                
+
     def procUserCase03(self):
         self.ngwin.logEdit.append('<font color=blue>Performing analysis for user case #03: clean LNADJ/LNREL</font>')
         qApp.processEvents()
-        
+
         #user case#3: clean lnadj/lnrel
         for lncelidx in self.lncelData.keys():
             for lncelidy in self.lncelData.keys():
@@ -1391,17 +1393,17 @@ class NgM8015Proc(object):
                 lnbtsidy = self.lncelData[lncelidy].lnbtsId
                 enby = self.lncelData[lncelidy].enbId
                 lcry = self.lncelData[lncelidy].lcrId
-                
+
                 #x-->y
-                m8015xy = lnbtsidx + '_' + lncelidx + '_' + str(256*int(enby)+int(lcry)) 
+                m8015xy = lnbtsidx + '_' + lncelidx + '_' + str(256*int(enby)+int(lcry))
                 lnrelxy = lncelidx + '_' + enby + '_' + lcry
                 lnadjxy = lnbtsidx + '_' + enby
-                
+
                 #y-->x
                 m8015yx = lnbtsidy + '_' + lncelidy + '_' + str(256*int(enbx)+int(lcrx))
                 lnrelyx = lncelidy + '_' + enbx + '_' + lcrx
                 lnadjyx = lnbtsidy + '_' + enbx
-                
+
                 if lnrelxy in self.lnrelData and lnrelyx in self.lnrelData:
                     if checkM8015(m8015xy) and checkM8015(m8015yx):
                         continue
@@ -1412,67 +1414,67 @@ class NgM8015Proc(object):
                     if enbx == enby or lnadjxy in self.lnadjData or lnadjyx in self.lnadjData:
                         #redundant NR?
                         pass
-            
+
     def procUserCase04(self):
         self.ngwin.logEdit.append('<font color=blue>Performing analysis for user case #04: lnhoif/irfim configuration analysis</font>')
         qApp.processEvents()
-        
+
         earfcnSet = ['37900', '38098', '38400', '38544', '38950', '39148']
-        
+
         #check LNHOIF
         for key in self.lnhoifData.keys():
             tokens = key.split('_')
             lncelId = tokens[0]
             earfcn = tokens[1]
-            
+
             if earfcn == 'None':
                 continue
-            
+
             if lncelId in self.lncelData:
                 dn = self.lncelData[lncelId].enbId + '_' + self.lncelData[lncelId].lcrId
                 if not dn in self.earfcnLnhoif:
                     self.earfcnLnhoif[dn] = [earfcn]
                 else:
                     self.earfcnLnhoif[dn].append(earfcn)
-        
+
         #check IRFIM
         invalidIrfim = ['ENBID,LCRID,EARFCN,IRFIM_DN,IF_EARFCN,IF_RES_PRIO,IF_RXLEV_MIN,IF_TH_LOW,IF_TH_HIGH,IF_MBW']
         for key in self.irfimData.keys():
             tokens = key.split('_')
             lncelId = tokens[0]
             earfcn = tokens[1]
-            
+
             if earfcn == 'None':
                 continue
-            
+
             if lncelId in self.lncelData:
                 if earfcn == self.lncelData[lncelId].earfcn:
                     #invalid IRFIM founded
                     invalidIrfim.append(','.join([self.lncelData[lncelId].enbId, self.lncelData[lncelId].lcrId, self.lncelData[lncelId].earfcn, str(self.irfimData[key])]))
                     continue
-                    
+
                 dn = self.lncelData[lncelId].enbId + '_' + self.lncelData[lncelId].lcrId
                 if not dn in self.earfcnIrfim:
                     self.earfcnIrfim[dn] = [earfcn]
                 else:
                     self.earfcnIrfim[dn].append(earfcn)
-                    
+
         outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
         with open(os.path.join(outDir, 'lnhoif_irfim_check_%s.csv' % time.strftime('%Y%m%d_%H%M%S', time.localtime())), 'w') as f:
             self.ngwin.logEdit.append('-->Exporting results to: %s' % f.name)
             qApp.processEvents()
-            
+
             header = ['ENBID', 'LCRID', 'EARFCN', 'LNHOIF_EARFCN', 'MISSED_LNHOIF_EARFCN', 'IRFIM_EARFCN', 'MISSED_IRFIM_EARFCN']
             f.write(','.join(header))
             f.write('\n')
-            
+
             for key,val in self.lncelData.items():
                 dn = val.enbId + '_' + val.lcrId
                 if not dn in self.earfcnLnhoif and not dn in self.earfcnLnhoif:
                     continue
-                
+
                 line = [val.enbId, val.lcrId, val.earfcn]
-                
+
                 if dn in self.earfcnLnhoif:
                     configued = '/'.join(self.earfcnLnhoif[dn])
                     #missed = '/'.join([f for f in earfcnSet if not f in self.earfcnLnhoif[dn] and f != val.earfcn])
@@ -1483,11 +1485,11 @@ class NgM8015Proc(object):
                     elif val.earfcn == '40738':
                         missed.remove('38098')
                     missed = '/'.join(missed)
-                    
+
                     line.extend([configued, missed])
                 else:
                     line.extend(['NA', 'NA'])
-                
+
                 if dn in self.earfcnIrfim:
                     configued = '/'.join(self.earfcnIrfim[dn])
                     #missed = '/'.join([f for f in earfcnSet if not f in self.earfcnIrfim[dn] and f != val.earfcn])
@@ -1498,14 +1500,14 @@ class NgM8015Proc(object):
                     elif val.earfcn == '40738':
                         missed.remove('38098')
                     missed = '/'.join(missed)
-                    
+
                     line.extend([configued, missed])
                 else:
                     line.extend(['NA', 'NA'])
-                
+
                 f.write(','.join(line))
                 f.write('\n')
-        
+
         if len(invalidIrfim) > 1:
             with open(os.path.join(outDir, 'irfim_problem_%s.csv' % time.strftime('%Y%m%d_%H%M%S', time.localtime())), 'w') as f:
                 self.ngwin.logEdit.append('-->Exporting results to: %s' % f.name)
@@ -1513,17 +1515,17 @@ class NgM8015Proc(object):
                 for val in invalidIrfim:
                     f.write(val)
                     f.write('\n')
-                
+
     def checkM8015(self, key):
         if not key in self.m8015AggData:
             return False
-        
+
         val = self.m8015AggData[key]
         numHo = val.iaHoPrepFail + val.iaHoAtt + val.irHoPrepFailAc + val.irHoPrepFailOth + val.irHoPrepFailQci + val.irHoPrepFailTime + val.irHoAtt
         if numHo > 0:
-            return True 
+            return True
         else:
             return False
-        
+
     def procUserCasexx(self):
         pass

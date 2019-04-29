@@ -25,21 +25,21 @@ class NgSqlQuery(object):
         self.dbStat = False
         self.queryStat = False
         self.initDb()
-    
+
     def initDb(self):
         confDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config')
         try:
             with open(os.path.join(confDir, self.args['dbConf']), 'r') as f:
                 self.ngwin.logEdit.append('<font color=blue>Parsing DB configuration: %s</font>' % f.name)
                 qApp.processEvents()
-                
+
                 while True:
                     line = f.readline()
                     if not line:
                         break
                     if line.startswith('#') or line.strip() == '':
                         continue
-                    
+
                     tokens = line.split('=')
                     tokens = list(map(lambda x:x.strip(), tokens))
                     if len(tokens) == 2:
@@ -56,13 +56,13 @@ class NgSqlQuery(object):
                 self.dbStat = True
         except Exception as e:
             self.ngwin.logEdit.append('<font color=red>Exception: %s</font>' % str(e))
-    
+
     def exec_(self):
         if not self.dbStat:
             return
-        
+
         dsn = cx_Oracle.makedsn(self.dbHost, self.dbPort, service_name=self.dbService)
-        
+
         self.ngwin.logEdit.append('<font color=blue>Connecting to Oracle DB</font>')
         self.ngwin.logEdit.append('-->DSN = %s' % dsn)
         qApp.processEvents()
@@ -77,15 +77,15 @@ class NgSqlQuery(object):
             #               _C00102056) violated - parent key not found'
             self.ngwin.logEdit.append('<font color=red>cx_Oracle.DatabaseError: %s!</font>' % e.args[0].message)
             return
-            
+
         cursor = db.cursor()
-        
+
         sqlDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sql')
         for sqlFn in self.args['sqlQuery']:
             with open(os.path.join(sqlDir, sqlFn), 'r') as f:
                 self.ngwin.logEdit.append('<font color=blue>Executing query: %s</font>' % f.name)
                 qApp.processEvents()
-                
+
                 self.names = []
                 self.answers = []
                 reSql = re.compile(r"^[a-zA-Z0-9\_\s\>\<\=\(]+\&([a-zA-Z\_]+)[\,\s\'a-zA-Z0-9\)]+$")
@@ -93,12 +93,12 @@ class NgSqlQuery(object):
                     line = f.readline()
                     if not line:
                         break
-                    
+
                     #substitute names if necessary
                     m = reSql.match(line)
                     if m is not None:
                         self.names.extend(m.groups())
-                        
+
                 f.seek(0)
                 query = f.read()
                 if len(self.names) > 0:
@@ -119,7 +119,7 @@ class NgSqlQuery(object):
                                 self.ngwin.logEdit.append('<font color=red>-->Query skipped!</font>')
                                 qApp.processEvents()
                                 continue
-                            
+
                             #save for later use if possible
                             if dlg.applyToAllChkBox.isChecked():
                                 for name,answer in zip(self.names, self.answers):
@@ -128,47 +128,50 @@ class NgSqlQuery(object):
                             self.ngwin.logEdit.append('<font color=red>-->Query skipped!</font>')
                             qApp.processEvents()
                             continue
-                    
+
                     for name, answer in zip(self.names, self.answers):
                         self.ngwin.logEdit.append('-->Subsitution: [%s=%s]' % (name, answer))
                         qApp.processEvents()
-                        
+
                     for index,name in enumerate(self.names):
                         query = query.replace('&'+name, "'"+self.answers[index]+"'")
-                
+
                 try:
                     cursor.execute(query)
                 except cx_Oracle.DatabaseError as e:
                     self.ngwin.logEdit.append('<font color=red>cx_Oracle.DatabaseError: %s!</font>' % e.args[0].message)
                     return
-                
+
                 fields = ','.join([a[0] for a in cursor.description])
                 #self.ngwin.logEdit.append('Fields: %s' % fields)
-                
+
                 #record = cursor.fetchone()
                 #self.ngwin.logEdit.append(','.join([str(i) for i in record]))
                 records = cursor.fetchall()
-                
+
                 outDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
+                if not os.path.exists(outDir):
+                    os.mkdir(outDir)
+
                 outFn = sqlFn.replace('.sql', '.csv')
                 with open(os.path.join(outDir, outFn), 'w') as of:
                     self.ngwin.logEdit.append('-->Exporting query results to: %s' % of.name)
                     qApp.processEvents()
-                    
+
                     of.write(fields)
                     of.write('\n')
                     for r in records:
                         of.write(','.join([str(token) for token in r]))
                         of.write('\n')
-        
+
         self.queryStat = True
         self.ngwin.logEdit.append('<font color=blue>Done!</font>')
-    
+
     def checkSubMap(self):
         ret = True
         for name in self.names:
             if not name in self.subsMap:
                 ret = False
                 break
-        
+
         return ret

@@ -1,4 +1,4 @@
---SQL Name: NEDS_LNCEL.sql
+--SQL Name: NEDS_LNCEL_TDD.sql
 --Update History:
 --2018-3-22: initial version by gaozw
 --2019-4-29: update earfcn using singleOAM by gaozw
@@ -12,7 +12,7 @@ co_lnbts.co_gid lnbts_id
 ,lncel.LNCEL_EUTRA_CEL_ID eci
 --,case when substr(co_lncel.co_sys_version, 0, 2) = 'FL' then lncel.LNCEL_EARFCN_DL else lncel.LNCEL_EARFCN end earfcn
 --LNCEL/cellTechnology: FDD (0), TDD (1), NB-IoT-FDD (3)
-,case when lncel.LNCEL_CLL_TECHNOLOGY = 0 then lncel_fdd.LNCEL_FDD_EARFCN_DL else lncel.LNCEL_EARFCN_DL end earfcn
+,case when lncel.LNCEL_CLL_TECHNOLOGY = 1 then lncel_tdd.LNCEL_TDD_EARFCN else lncel.LNCEL_EARFCN end earfcn
 ,lncel.LNCEL_PHY_CELL_ID pci
 ,lncel.lncel_tac tac
 --A3/A5
@@ -36,14 +36,14 @@ co_lnbts.co_gid lnbts_id
 
 from
 ctp_common_objects co_lncel
-,ctp_common_objects co_lncel_fdd
+,ctp_common_objects co_lncel_tdd
 ,ctp_common_objects co_lnbts
 ,c_lte_lncel lncel
-,c_lte_lncel_fdd lncel_fdd
+,c_lte_lncel_tdd lncel_tdd
 
 where
 lncel.conf_id = 1 and lncel.obj_gid = co_lncel.co_gid
-and lncel_fdd.conf_id = 1 and lncel_fdd.obj_gid = co_lncel_fdd.co_gid
-and co_lncel_fdd.co_parent_gid = co_lncel.co_gid
+and lncel_tdd.conf_id = 1 and lncel_tdd.obj_gid = co_lncel_tdd.co_gid
+and co_lncel_tdd.co_parent_gid = co_lncel.co_gid
 and co_lncel.co_parent_gid = co_lnbts.co_gid
 and lncel.LNCEL_EUTRA_CEL_ID is not null
