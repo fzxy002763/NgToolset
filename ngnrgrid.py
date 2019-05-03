@@ -2586,7 +2586,7 @@ class NgNrGrid(object):
             if (sfn * self.nrSlotPerRf[self.nrScs2Mu[self.nrDedDlBwpScs]] + sl - self.nrNzpCsiRsOffset) % self.nrNzpCsiRsPeriod != 0:
                 continue
 
-            self.ngwin.logEdit.append('valid slot of periodic NZP-CSI-RS: hsfn=%d,sfn=%d,slot=%d' % (hsfn, sfn, sl))
+            self.ngwin.logEdit.append('<font color=purple>valid slot for periodic NZP-CSI-RS(period=%dslots,offset=%dslots): hsfn=%d,sfn=%d,slot=%d</font>' % (self.nrNzpCsiRsPeriod, self.nrNzpCsiRsOffset, hsfn, sfn, sl))
             qApp.processEvents()
 
             #refer to 3GPP 38.331 vf40 CSI-FrequencyOccupation IE
@@ -2680,7 +2680,7 @@ class NgNrGrid(object):
             if (sfn * self.nrSlotPerRf[self.nrScs2Mu[self.nrDedDlBwpScs]] + sl - self.nrCsiImOffset) % self.nrCsiImPeriod != 0:
                 continue
 
-            self.ngwin.logEdit.append('valid slot of periodic CSI-IM: hsfn=%d,sfn=%d,slot=%d' % (hsfn, sfn, sl))
+            self.ngwin.logEdit.append('<font color=purple>valid slot for periodic CSI-IM(period=%dslots,offset=%dslots): hsfn=%d,sfn=%d,slot=%d</font>' % (self.nrCsiImPeriod, self.nrCsiImOffset,hsfn, sfn, sl))
             qApp.processEvents()
 
             #refer to 3GPP 38.331 vf40 CSI-FrequencyOccupation IE
@@ -2746,7 +2746,7 @@ class NgNrGrid(object):
         for sl in range(slot, self.nrSlotPerRf[self.nrScs2Mu[self.nrDedDlBwpScs]]):
             for offset in self.nrTrsOffsetList:
                 if (sfn * self.nrSlotPerRf[self.nrScs2Mu[self.nrDedDlBwpScs]] + sl - offset) % self.nrTrsPeriod == 0:
-                    self.ngwin.logEdit.append('valid slot of periodic TRS: hsfn=%d,sfn=%d,slot=%d' % (hsfn, sfn, sl))
+                    self.ngwin.logEdit.append('<font color=purple>valid slot for periodic TRS(period=%dslots,offset=%sslots): hsfn=%d,sfn=%d,slot=%d</font>' % (self.nrTrsPeriod, self.nrTrsOffsetList, hsfn, sfn, sl))
                     qApp.processEvents()
 
                     #refer to 3GPP 38.331 vf40 CSI-FrequencyOccupation IE
