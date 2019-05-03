@@ -2576,7 +2576,6 @@ class NgNrGrid(object):
             if (sfn * self.nrSlotPerRf[self.nrScs2Mu[self.nrDedDlBwpScs]] + sl - self.nrNzpCsiRsOffset) % self.nrNzpCsiRsPeriod != 0:
                 continue
 
-            #freq-domain
             #refer to 3GPP 38.331 vf40 CSI-FrequencyOccupation IE
             #startingRB:
             #--PRB where this CSI resource starts in relation to common resource block #0 (CRB#0) on the common resource block grid. Only multiples of 4 are allowed (0, 4, ...)
@@ -2588,8 +2587,35 @@ class NgNrGrid(object):
                 self.error = True
                 return
 
-            pass
-        #TODO
+            #refer to 3GPP 38.211 vf40
+            #Table 7.4.1.5.3-1: CSI-RS locations within a slot.
+            #determine ki (k0, k1 etc)
+            ki = []
+            pos = len(self.nrNzpCsiRsFreqAlloc)
+            while True:
+                try:
+                    pos = self.nrNzpCsiRsFreqAlloc.rindex('1', 0, pos)
+                except Exception as e:
+                    break
+                ki.append(pos)
+
+            #determine li(l0, l1)
+            li = [self.nrNzpCsiRsFirstSymb]
+            if self.nrNzpCsiRsFirstSymb2 is not None:
+                li.append(self.nrNzpCsiRsFirstSymb2)
+
+            self.ngwin.logEdit.append('ki=%s, li=%s' % (ki, li))
+            qApp.processevents()
+
+            for prb in range(self.nrNzpCsiRsStartRb, self.nrNzpCsiRsStartRb+self.nrNzpCsiRsNumRbs):
+                #refer to 3GPP 38.214 vf40
+                #5.2.2.3.1	NZP CSI-RS
+                #For density 1/2, the odd/even PRB allocation indicated in density is with respect to the common resource block grid.
+                if (self.nrNzpCsiRsDensity == 'evenPRBs' and prb % 2 == 1) or (self.nrNzpCsiRsDensity == 'oddPRBs' and prb % 2 == 0):
+                    continue
+
+        #TODO periodic csi-im
+        #TODO periodic trs
 
     def aotSrs(self, hsfn, sfn, slot):
         if self.error:
