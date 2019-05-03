@@ -1962,7 +1962,7 @@ class NgNrGrid(object):
             self.ngwin.logEdit.append('contents of msg3DmrsSymbs(w.r.t to slivS): %s' % msg3DmrsSymbs)
             qApp.processEvents()
 
-            firstScMsg3InBaseScsFd = self.nrCarrierMinGuardBand * self.nrScPerPrb * (self.nrCarrierScs // self.baseScsFd) + self.nrMsg3FdStartRb * self.nrScPerPrb * scaleFd
+            firstScMsg3InBaseScsFd = self.nrCarrierMinGuardBand * self.nrScPerPrb * (self.nrCarrierScs // self.baseScsFd) + self.nrIniUlBwpStartRb * self.nrScPerPrb * scaleFd + self.nrMsg3FdStartRb * self.nrScPerPrb * scaleFd
             msg3ScsInBaseScsFd = [firstScMsg3InBaseScsFd+k for k in range(self.nrMsg3FdNumRbs*self.nrScPerPrb*scaleFd)]
 
             #validate against tdd-ul-dl-config
@@ -2571,6 +2571,24 @@ class NgNrGrid(object):
         self.ngwin.logEdit.append('---->inside aotCsirs(hsfn=%d,sfn=%d,slot=%d)' % (hsfn, sfn, slot))
         qApp.processEvents()
 
+        #periodic nzp-csi-rs
+        for sl in range(slot, self.nrSlotPerRf[self.nrScs2Mu[self.nrDedDlBwpScs]]):
+            if (sfn * self.nrSlotPerRf[self.nrScs2Mu[self.nrDedDlBwpScs]] + sl - self.nrNzpCsiRsOffset) % self.nrNzpCsiRsPeriod != 0:
+                continue
+
+            #freq-domain
+            #refer to 3GPP 38.331 vf40 CSI-FrequencyOccupation IE
+            #startingRB:
+            #--PRB where this CSI resource starts in relation to common resource block #0 (CRB#0) on the common resource block grid. Only multiples of 4 are allowed (0, 4, ...)
+            #nrofRBs:
+            #--Number of PRBs across which this CSI resource spans. Only multiples of 4 are allowed. The smallest configurable number is the minimum of 24 and the width of the associated BWP. If the configured value is larger than the width of the corresponding BWP, the UE shall assume that the actual CSI-RS bandwidth is equal to the width of the BWP.
+            if not (self.nrNzpCsiRsStartRb % 4 == 0 and self.nrNzpCsiRsNumRbs % 4 == 0):
+                self.ngwin.logEdit.append('<font color=red>Error: [NZP-CSI-RS] The startingRB and nrofRBs of CSI-FrequencyOccupation must be multiples of 4.</font>')
+                qApp.processEvents()
+                self.error = True
+                return
+
+            pass
         #TODO
 
     def aotSrs(self, hsfn, sfn, slot):
