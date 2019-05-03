@@ -28,7 +28,7 @@ class NrResType(Enum):
     NR_RES_SIB1 = 3
     NR_RES_PDCCH = 4
     NR_RES_PDSCH = 5
-    NR_RES_NZP_CSI_RS = 6
+    NR_RES_CSI_RS = 6
     NR_RES_MSG2 = 7
     NR_RES_MSG4 = 8
 
@@ -64,6 +64,14 @@ class NrResType(Enum):
 
     NR_RES_CSI_IM = 80
     NR_RES_TRS = 81
+    NR_RES_CSI_RS_CDM_GRP_0 = 82
+    NR_RES_CSI_RS_CDM_GRP_1 = 83
+    NR_RES_CSI_RS_CDM_GRP_2 = 84
+    NR_RES_CSI_RS_CDM_GRP_3 = 85
+    NR_RES_CSI_RS_CDM_GRP_4 = 86
+    NR_RES_CSI_RS_CDM_GRP_5 = 87
+    NR_RES_CSI_RS_CDM_GRP_6 = 88
+    NR_RES_CSI_RS_CDM_GRP_7 = 89
 
     NR_RES_BUTT = 99
 
@@ -721,9 +729,7 @@ class NgNrGrid(object):
         resMap[NrResType.NR_RES_SIB1.value] = ('SIB1', '#0000FF', '#FFFFFF')
         resMap[NrResType.NR_RES_PDCCH.value] = ('PDCCH', '#000000', '#FF00FF')
         resMap[NrResType.NR_RES_PDSCH.value] = ('PDSCH', '#000000', '#FFFFFF')
-        resMap[NrResType.NR_RES_NZP_CSI_RS.value] = ('CSIRS', '#000000', '#FF0000')
-        resMap[NrResType.NR_RES_CSI_IM.value] = ('CSIIM', '#000000', '#FFFF00')
-        resMap[NrResType.NR_RES_TRS.value] = ('TRS', '#000000', '#FF00FF')
+        resMap[NrResType.NR_RES_CSI_RS.value] = ('CSIRS', '#000000', '#FF0000')
         resMap[NrResType.NR_RES_MSG2.value] = ('MSG2', '#000000', '#FF00FF')
         resMap[NrResType.NR_RES_MSG4.value] = ('MSG4', '#000000', '#FF00FF')
 
@@ -755,6 +761,17 @@ class NgNrGrid(object):
 
         resMap[NrResType.NR_RES_CORESET0.value] = ('CORESET0', '#000000', '#00FFFF')
         resMap[NrResType.NR_RES_CORESET1.value] = ('CORESET1', '#000000', '#00FFFF')
+
+        resMap[NrResType.NR_RES_CSI_RS_CDM_GRP_0.value] = ('CSIRS0', '#000000', '#FF0000')
+        resMap[NrResType.NR_RES_CSI_RS_CDM_GRP_1.value] = ('CSIRS1', '#000000', '#00FF00')
+        resMap[NrResType.NR_RES_CSI_RS_CDM_GRP_2.value] = ('CSIRS2', '#000000', '#0000FF')
+        resMap[NrResType.NR_RES_CSI_RS_CDM_GRP_3.value] = ('CSIRS3', '#000000', '#FF00FF')
+        resMap[NrResType.NR_RES_CSI_RS_CDM_GRP_4.value] = ('CSIRS4', '#000000', '#FFFF00')
+        resMap[NrResType.NR_RES_CSI_RS_CDM_GRP_5.value] = ('CSIRS5', '#000000', '#00FFFF')
+        resMap[NrResType.NR_RES_CSI_RS_CDM_GRP_6.value] = ('CSIRS6', '#000000', '#800000')
+        resMap[NrResType.NR_RES_CSI_RS_CDM_GRP_7.value] = ('CSIRS7', '#000000', '#008000')
+        resMap[NrResType.NR_RES_CSI_IM.value] = ('CSIIM', '#000000', '#FFFF00')
+        resMap[NrResType.NR_RES_TRS.value] = ('TRS', '#000000', '#FF00FF')
 
         formatMap = dict()
         for key, val in resMap.items():
@@ -2604,13 +2621,18 @@ class NgNrGrid(object):
             #Table 7.4.1.5.3-1: CSI-RS locations within a slot.
             #determine ki (k0, k1 etc)
             ki = []
-            pos = len(self.nrNzpCsiRsFreqAlloc)
+            pos = -1
             while True:
                 try:
-                    pos = self.nrNzpCsiRsFreqAlloc[::-1].index('1', 0, pos)
+                    pos = self.nrNzpCsiRsFreqAlloc[::-1].index('1', pos+1, len(self.nrNzpCsiRsFreqAlloc))
                 except Exception as e:
                     break
-                ki.append(pos)
+                if self.nrNzpCsiRsRow in (1, 2):
+                    ki.append(pos)
+                elif self.nrNzpCsiRsRow == 4:
+                    ki.append(4 * pos)
+                else:
+                    ki.append(2 * pos)
 
             #determine li(l0, l1)
             li = [self.nrNzpCsiRsFirstSymb]
@@ -2671,9 +2693,9 @@ class NgNrGrid(object):
                                     self.ngwin.logEdit.append('<font color=red>Error: Invalid symbol(l=%d, NrResType=%d) for NZP-CSI-RS mapping.</font>' % (l, self.gridNrTdd[dn][firstScInBaseScsFd, firstSymbInBaseScsTd]))
                                     return
 
-                                self.gridNrTdd[dn][firstScInBaseScsFd:firstScInBaseScsFd+scaleFd, firstSymbInBaseScsTd:firstSymbInBaseScsTd+scaleTd] = NrResType.NR_RES_NZP_CSI_RS.value
+                                self.gridNrTdd[dn][firstScInBaseScsFd:firstScInBaseScsFd+scaleFd, firstSymbInBaseScsTd:firstSymbInBaseScsTd+scaleTd] = NrResType.NR_RES_CSI_RS_CDM_GRP_0.value + cdmGrpInd
                             else:
-                                self.gridNrFddDl[dn][firstScInBaseScsFd:firstScInBaseScsFd+scaleFd, firstSymbInBaseScsTd:firstSymbInBaseScsTd+scaleTd] = NrResType.NR_RES_NZP_CSI_RS.value
+                                self.gridNrFddDl[dn][firstScInBaseScsFd:firstScInBaseScsFd+scaleFd, firstSymbInBaseScsTd:firstSymbInBaseScsTd+scaleTd] = NrResType.NR_RES_CSI_RS_CDM_GRP_0.value + cdmGrpInd
 
         #periodic csi-im
         for sl in range(slot, self.nrSlotPerRf[self.nrScs2Mu[self.nrDedDlBwpScs]]):
@@ -2777,13 +2799,18 @@ class NgNrGrid(object):
                     #Table 7.4.1.5.3-1: CSI-RS locations within a slot.
                     #determine ki (k0, k1 etc)
                     ki = []
-                    pos = len(self.nrTrsFreqAlloc)
+                    pos = -1
                     while True:
                         try:
-                            pos = self.nrTrsFreqAlloc[::-1].index('1', 0, pos)
+                            pos = self.nrTrsFreqAlloc[::-1].index('1', pos+1, len(self.nrTrsFreqAlloc))
                         except Exception as e:
                             break
-                        ki.append(pos)
+                        if self.nrNzpCsiRsRow in (1, 2):
+                            ki.append(pos)
+                        elif self.nrNzpCsiRsRow == 4:
+                            ki.append(4 * pos)
+                        else:
+                            ki.append(2 * pos)
 
                     for resId in range(2):
                         #determine li(l0, l1)
