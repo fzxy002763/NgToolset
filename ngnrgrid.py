@@ -28,7 +28,7 @@ class NrResType(Enum):
     NR_RES_SIB1 = 3
     NR_RES_PDCCH = 4
     NR_RES_PDSCH = 5
-    NR_RES_CSI_RS = 6
+    NR_RES_NZP_CSI_RS = 6
     NR_RES_MSG2 = 7
     NR_RES_MSG4 = 8
 
@@ -61,6 +61,9 @@ class NrResType(Enum):
 
     NR_RES_CORESET0 = 70
     NR_RES_CORESET1 = 71
+
+    NR_RES_CSI_IM = 80
+    NR_RES_TRS = 81
 
     NR_RES_BUTT = 99
 
@@ -718,7 +721,9 @@ class NgNrGrid(object):
         resMap[NrResType.NR_RES_SIB1.value] = ('SIB1', '#0000FF', '#FFFFFF')
         resMap[NrResType.NR_RES_PDCCH.value] = ('PDCCH', '#000000', '#FF00FF')
         resMap[NrResType.NR_RES_PDSCH.value] = ('PDSCH', '#000000', '#FFFFFF')
-        resMap[NrResType.NR_RES_CSI_RS.value] = ('CSIRS', '#000000', '#FF0000')
+        resMap[NrResType.NR_RES_NZP_CSI_RS.value] = ('CSIRS', '#000000', '#FF0000')
+        resMap[NrResType.NR_RES_CSI_IM.value] = ('CSIIM', '#000000', '#FFFF00')
+        resMap[NrResType.NR_RES_TRS.value] = ('TRS', '#000000', '#FF00FF')
         resMap[NrResType.NR_RES_MSG2.value] = ('MSG2', '#000000', '#FF00FF')
         resMap[NrResType.NR_RES_MSG4.value] = ('MSG4', '#000000', '#FF00FF')
 
@@ -2571,10 +2576,18 @@ class NgNrGrid(object):
         self.ngwin.logEdit.append('---->inside aotCsirs(hsfn=%d,sfn=%d,slot=%d)' % (hsfn, sfn, slot))
         qApp.processEvents()
 
+        scaleTd = self.baseScsTd // self.nrDedDlBwpScs
+        scaleFd = self.nrDedDlBwpScs // self.baseScsFd
+
+        dn = '%s_%s' % (hsfn, sfn)
+
         #periodic nzp-csi-rs
         for sl in range(slot, self.nrSlotPerRf[self.nrScs2Mu[self.nrDedDlBwpScs]]):
             if (sfn * self.nrSlotPerRf[self.nrScs2Mu[self.nrDedDlBwpScs]] + sl - self.nrNzpCsiRsOffset) % self.nrNzpCsiRsPeriod != 0:
                 continue
+
+            self.ngwin.logEdit.append('valid slot of periodic NZP-CSI-RS: hsfn=%d,sfn=%d,slot=%d' % (hsfn, sfn, sl))
+            qApp.processEvents()
 
             #refer to 3GPP 38.331 vf40 CSI-FrequencyOccupation IE
             #startingRB:
@@ -2594,7 +2607,7 @@ class NgNrGrid(object):
             pos = len(self.nrNzpCsiRsFreqAlloc)
             while True:
                 try:
-                    pos = self.nrNzpCsiRsFreqAlloc.rindex('1', 0, pos)
+                    pos = self.nrNzpCsiRsFreqAlloc[::-1].index('1', 0, pos)
                 except Exception as e:
                     break
                 ki.append(pos)
@@ -2605,17 +2618,202 @@ class NgNrGrid(object):
                 li.append(self.nrNzpCsiRsFirstSymb2)
 
             self.ngwin.logEdit.append('ki=%s, li=%s' % (ki, li))
-            qApp.processevents()
+            qApp.processEvents()
 
-            for prb in range(self.nrNzpCsiRsStartRb, self.nrNzpCsiRsStartRb+self.nrNzpCsiRsNumRbs):
+            #refer to 3GPP 38.214 vf40
+            #5.2.2.3.1	NZP CSI-RS
+            #Both nrofRBs and startingRB are configured as integer multiples of 4 RBs, and the reference point for startingRB is CRB 0 on the common resource block grid. If startingRB<N_BWP^start, the UE shall assume that the initial CRB index of the CSI-RS resource is N_(initial RB)=N_BWP^start, otherwise N_(initial RB)=startingRB. If nrofRBs>N_BWP^size+N_BWP^start-N_(initial RB), the UE shall assume that the bandwidth of the CSI-RS resource is N_(CSI-RS)^BW=N_BWP^size+N_BWP^start-N_(initial RB), otherwise N_(CSI-RS)^BW=nrofRBs. In all cases, the UE shall expect that N_(CSI-RS)^BW≥min⁡(24,N_BWP^size).
+            if self.nrNzpCsiRsStartRb < self.nrCarrierMinGuardBand + self.nrDedDlBwpStartRb:
+                startRb = self.nrCarrierMinGuardBand + self.nrDedDlBwpStartRb
+            else:
+                startRb = self.nrNzpCsiRsStartRb
+
+            if self.nrNzpCsiRsNumRbs > self.nrCarrierMinGuardBand + self.nrDedDlBwpStartRb + self.nrDedDlBwpNumRbs - startRb:
+                numRbs = self.nrCarrierMinGuardBand + self.nrDedDlBwpStartRb + self.nrDedDlBwpNumRbs - startRb
+            else:
+                numRbs = self.nrNzpCsiRsNumRbs
+
+            #determine antenna ports p
+            L = len(self.nrNzpCsiRsKap) * len(self.nrNzpCsiRsLap)
+            N = self.nrNzpCsiRsNumPorts
+            self.nzpCsiRsApMap = dict()
+            for j in range(N // L):
+                self.nzpCsiRsApMap[j] = []
+                for s in range(L):
+                    self.nzpCsiRsApMap[j].append(3000 + s + j * L)
+
+            for key,val in self.nzpCsiRsApMap.items():
+                self.ngwin.logEdit.append('CDM group index j=%d, antenna ports=%s' % (key, val))
+                qApp.processEvents()
+
+            for prb in range(startRb, startRb+numRbs):
                 #refer to 3GPP 38.214 vf40
                 #5.2.2.3.1	NZP CSI-RS
                 #For density 1/2, the odd/even PRB allocation indicated in density is with respect to the common resource block grid.
                 if (self.nrNzpCsiRsDensity == 'evenPRBs' and prb % 2 == 1) or (self.nrNzpCsiRsDensity == 'oddPRBs' and prb % 2 == 0):
                     continue
 
-        #TODO periodic csi-im
-        #TODO periodic trs
+                for j in range(len(self.nrNzpCsiRsKBarLBar)):
+                    kBar = ki[self.nrNzpCsiRsKi[j]] + self.nrNzpCsiRsKBarLBar[j][0]
+                    lBar = li[self.nrNzpCsiRsLi[j]] + self.nrNzpCsiRsKBarLBar[j][1]
+                    cdmGrpInd = self.nrNzpCsiRsCdmGrpIndj[j]
+                    for kap in self.nrNzpCsiRsKap:
+                        for lap in self.nrNzpCsiRsLap:
+                            k = kBar + kap
+                            l = lBar + lap
+
+                            firstScInBaseScsFd = (prb * self.nrScPerPrb + k) * scaleFd
+                            firstSymbInBaseScsTd = (sl * self.nrSymbPerSlotNormCp + l) * scaleTd
+
+                            if self.nrDuplexMode == 'TDD':
+                                if self.gridNrTdd[dn][firstScInBaseScsFd, firstSymbInBaseScsTd] != NrResType.NR_RES_D.value:
+                                    self.error = True
+                                    self.ngwin.logEdit.append('<font color=red>Error: Invalid symbol(l=%d, NrResType=%d) for NZP-CSI-RS mapping.</font>' % (l, self.gridNrTdd[dn][firstScInBaseScsFd, firstSymbInBaseScsTd]))
+                                    return
+
+                                self.gridNrTdd[dn][firstScInBaseScsFd:firstScInBaseScsFd+scaleFd, firstSymbInBaseScsTd:firstSymbInBaseScsTd+scaleTd] = NrResType.NR_RES_NZP_CSI_RS.value
+                            else:
+                                self.gridNrFddDl[dn][firstScInBaseScsFd:firstScInBaseScsFd+scaleFd, firstSymbInBaseScsTd:firstSymbInBaseScsTd+scaleTd] = NrResType.NR_RES_NZP_CSI_RS.value
+
+        #periodic csi-im
+        for sl in range(slot, self.nrSlotPerRf[self.nrScs2Mu[self.nrDedDlBwpScs]]):
+            if (sfn * self.nrSlotPerRf[self.nrScs2Mu[self.nrDedDlBwpScs]] + sl - self.nrCsiImOffset) % self.nrCsiImPeriod != 0:
+                continue
+
+            self.ngwin.logEdit.append('valid slot of periodic CSI-IM: hsfn=%d,sfn=%d,slot=%d' % (hsfn, sfn, sl))
+            qApp.processEvents()
+
+            #refer to 3GPP 38.331 vf40 CSI-FrequencyOccupation IE
+            #startingRB:
+            #--PRB where this CSI resource starts in relation to common resource block #0 (CRB#0) on the common resource block grid. Only multiples of 4 are allowed (0, 4, ...)
+            #nrofRBs:
+            #--Number of PRBs across which this CSI resource spans. Only multiples of 4 are allowed. The smallest configurable number is the minimum of 24 and the width of the associated BWP. If the configured value is larger than the width of the corresponding BWP, the UE shall assume that the actual CSI-RS bandwidth is equal to the width of the BWP.
+            if not (self.nrCsiImStartRb % 4 == 0 and self.nrCsiImNumRbs % 4 == 0):
+                self.ngwin.logEdit.append('<font color=red>Error: [CSI-IM] The startingRB and nrofRBs of CSI-FrequencyOccupation must be multiples of 4.</font>')
+                qApp.processEvents()
+                self.error = True
+                return
+
+            #refer to 3GPP 38.211 vf40
+            #5.2.2.4	Channel State Information – Interference Measurement (CSI-IM)
+            csiImRes = []
+            if self.nrCsiImRePattern == 'pattern0':
+                csiImRes.append([self.nrCsiImScLoc, self.nrCsiImSymbLoc])
+                csiImRes.append([self.nrCsiImScLoc, self.nrCsiImSymbLoc+1])
+                csiImRes.append([self.nrCsiImScLoc+1, self.nrCsiImSymbLoc])
+                csiImRes.append([self.nrCsiImScLoc+1, self.nrCsiImSymbLoc+1])
+            else:
+                csiImRes.append([self.nrCsiImScLoc, self.nrCsiImSymbLoc])
+                csiImRes.append([self.nrCsiImScLoc+1, self.nrCsiImSymbLoc])
+                csiImRes.append([self.nrCsiImScLoc+2, self.nrCsiImSymbLoc])
+                csiImRes.append([self.nrCsiImScLoc+3, self.nrCsiImSymbLoc])
+
+            self.ngwin.logEdit.append('csiImRePattern="%s",csiImRes=%s' % (self.nrCsiImRePattern, csiImRes))
+            qApp.processEvents()
+
+            #refer to 3GPP 38.214 vf40
+            #5.2.2.3.1	NZP CSI-RS
+            #Both nrofRBs and startingRB are configured as integer multiples of 4 RBs, and the reference point for startingRB is CRB 0 on the common resource block grid. If startingRB<N_BWP^start, the UE shall assume that the initial CRB index of the CSI-RS resource is N_(initial RB)=N_BWP^start, otherwise N_(initial RB)=startingRB. If nrofRBs>N_BWP^size+N_BWP^start-N_(initial RB), the UE shall assume that the bandwidth of the CSI-RS resource is N_(CSI-RS)^BW=N_BWP^size+N_BWP^start-N_(initial RB), otherwise N_(CSI-RS)^BW=nrofRBs. In all cases, the UE shall expect that N_(CSI-RS)^BW≥min⁡(24,N_BWP^size).
+            if self.nrCsiImStartRb < self.nrCarrierMinGuardBand + self.nrDedDlBwpStartRb:
+                startRb = self.nrCarrierMinGuardBand + self.nrDedDlBwpStartRb
+            else:
+                startRb = self.nrCsiImStartRb
+
+            if self.nrCsiImNumRbs > self.nrCarrierMinGuardBand + self.nrDedDlBwpStartRb + self.nrDedDlBwpNumRbs - startRb:
+                numRbs = self.nrCarrierMinGuardBand + self.nrDedDlBwpStartRb + self.nrDedDlBwpNumRbs - startRb
+            else:
+                numRbs = self.nrCsiImNumRbs
+
+            #refer to 3GPP 38.214 vf40
+            #5.2.1.4.1	Resource Setting configuration
+            #If interference measurement is performed on CSI-IM, each CSI-RS resource for channel measurement is resource-wise associated with a CSI-IM resource by the ordering of the CSI-RS resource and CSI-IM resource in the corresponding resource sets. The number of CSI-RS resources for channel measurement equals to the number of CSI-IM resources.
+            for prb in range(startRb, startRb+numRbs):
+                for k,l in csiImRes:
+                    firstScInBaseScsFd = (prb * self.nrScPerPrb + k) * scaleFd
+                    firstSymbInBaseScsTd = (sl * self.nrSymbPerSlotNormCp + l) * scaleTd
+
+                    if self.nrDuplexMode == 'TDD':
+                        if self.gridNrTdd[dn][firstScInBaseScsFd, firstSymbInBaseScsTd] != NrResType.NR_RES_D.value:
+                            self.error = True
+                            self.ngwin.logEdit.append('<font color=red>Error: Invalid symbol(l=%d, NrResType=%d) for CSI-IM mapping.</font>' % (l, self.gridNrTdd[dn][firstScInBaseScsFd, firstSymbInBaseScsTd]))
+                            return
+
+                        self.gridNrTdd[dn][firstScInBaseScsFd:firstScInBaseScsFd+scaleFd, firstSymbInBaseScsTd:firstSymbInBaseScsTd+scaleTd] = NrResType.NR_RES_CSI_IM.value
+                    else:
+                        self.gridNrFddDl[dn][firstScInBaseScsFd:firstScInBaseScsFd+scaleFd, firstSymbInBaseScsTd:firstSymbInBaseScsTd+scaleTd] = NrResType.NR_RES_CSI_IM.value
+
+        #periodic trs
+        for sl in range(slot, self.nrSlotPerRf[self.nrScs2Mu[self.nrDedDlBwpScs]]):
+            for offset in self.nrTrsOffsetList:
+                if (sfn * self.nrSlotPerRf[self.nrScs2Mu[self.nrDedDlBwpScs]] + sl - offset) % self.nrTrsPeriod == 0:
+                    self.ngwin.logEdit.append('valid slot of periodic TRS: hsfn=%d,sfn=%d,slot=%d' % (hsfn, sfn, sl))
+                    qApp.processEvents()
+
+                    #refer to 3GPP 38.331 vf40 CSI-FrequencyOccupation IE
+                    #startingRB:
+                    #--PRB where this CSI resource starts in relation to common resource block #0 (CRB#0) on the common resource block grid. Only multiples of 4 are allowed (0, 4, ...)
+                    #nrofRBs:
+                    #--Number of PRBs across which this CSI resource spans. Only multiples of 4 are allowed. The smallest configurable number is the minimum of 24 and the width of the associated BWP. If the configured value is larger than the width of the corresponding BWP, the UE shall assume that the actual CSI-RS bandwidth is equal to the width of the BWP.
+                    if not (self.nrTrsStartRb % 4 == 0 and self.nrTrsNumRbs % 4 == 0):
+                        self.ngwin.logEdit.append('<font color=red>Error: [TRS] The startingRB and nrofRBs of CSI-FrequencyOccupation must be multiples of 4.</font>')
+                        qApp.processEvents()
+                        self.error = True
+                        return
+
+                    #refer to 3GPP 38.214 vf40
+                    #5.2.2.3.1	NZP CSI-RS
+                    #Both nrofRBs and startingRB are configured as integer multiples of 4 RBs, and the reference point for startingRB is CRB 0 on the common resource block grid. If startingRB<N_BWP^start, the UE shall assume that the initial CRB index of the CSI-RS resource is N_(initial RB)=N_BWP^start, otherwise N_(initial RB)=startingRB. If nrofRBs>N_BWP^size+N_BWP^start-N_(initial RB), the UE shall assume that the bandwidth of the CSI-RS resource is N_(CSI-RS)^BW=N_BWP^size+N_BWP^start-N_(initial RB), otherwise N_(CSI-RS)^BW=nrofRBs. In all cases, the UE shall expect that N_(CSI-RS)^BW≥min⁡(24,N_BWP^size).
+                    if self.nrNzpCsiRsStartRb < self.nrCarrierMinGuardBand + self.nrDedDlBwpStartRb:
+                        startRb = self.nrCarrierMinGuardBand + self.nrDedDlBwpStartRb
+                    else:
+                        startRb = self.nrNzpCsiRsStartRb
+
+                    if self.nrNzpCsiRsNumRbs > self.nrCarrierMinGuardBand + self.nrDedDlBwpStartRb + self.nrDedDlBwpNumRbs - startRb:
+                        numRbs = self.nrCarrierMinGuardBand + self.nrDedDlBwpStartRb + self.nrDedDlBwpNumRbs - startRb
+                    else:
+                        numRbs = self.nrNzpCsiRsNumRbs
+
+                    #refer to 3GPP 38.211 vf40
+                    #Table 7.4.1.5.3-1: CSI-RS locations within a slot.
+                    #determine ki (k0, k1 etc)
+                    ki = []
+                    pos = len(self.nrTrsFreqAlloc)
+                    while True:
+                        try:
+                            pos = self.nrTrsFreqAlloc[::-1].index('1', 0, pos)
+                        except Exception as e:
+                            break
+                        ki.append(pos)
+
+                    for resId in range(2):
+                        #determine li(l0, l1)
+                        li = [self.nrTrsFirstSymbList[resId]]
+
+                        self.ngwin.logEdit.append('TRS resId=%d, ki=%s, li=%s' % (resId, ki, li))
+                        qApp.processEvents()
+
+                        for prb in range(startRb, startRb+numRbs):
+                            for j in range(len(self.nrTrsKBarLBar)):
+                                kBar = ki[self.nrTrsKi[j]] + self.nrTrsKBarLBar[j][0]
+                                lBar = li[self.nrTrsLi[j]] + self.nrTrsKBarLBar[j][1]
+                                cdmGrpInd = self.nrTrsCdmGrpIndj[j]
+                                for kap in self.nrTrsKap:
+                                    for lap in self.nrTrsLap:
+                                        k = kBar + kap
+                                        l = lBar + lap
+
+                                        firstScInBaseScsFd = (prb * self.nrScPerPrb + k) * scaleFd
+                                        firstSymbInBaseScsTd = (sl * self.nrSymbPerSlotNormCp + l) * scaleTd
+
+                                        if self.nrDuplexMode == 'TDD':
+                                            if self.gridNrTdd[dn][firstScInBaseScsFd, firstSymbInBaseScsTd] != NrResType.NR_RES_D.value:
+                                                self.error = True
+                                                self.ngwin.logEdit.append('<font color=red>Error: Invalid symbol(l=%d, NrResType=%d) for TRS mapping.</font>' % (l, self.gridNrTdd[dn][firstScInBaseScsFd, firstSymbInBaseScsTd]))
+                                                return
+
+                                            self.gridNrTdd[dn][firstScInBaseScsFd:firstScInBaseScsFd+scaleFd, firstSymbInBaseScsTd:firstSymbInBaseScsTd+scaleTd] = NrResType.NR_RES_TRS.value
+                                        else:
+                                            self.gridNrFddDl[dn][firstScInBaseScsFd:firstScInBaseScsFd+scaleFd, firstSymbInBaseScsTd:firstSymbInBaseScsTd+scaleTd] = NrResType.NR_RES_TRS.value
 
     def aotSrs(self, hsfn, sfn, slot):
         if self.error:
