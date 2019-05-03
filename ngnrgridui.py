@@ -11488,8 +11488,8 @@ class NgNrGridUi(QDialog):
             hsfn = 0
             sfn = int(self.args['mib']['sfn'])
 
-            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Init always-on-transmission(SSB/PDCCH/SIB1) @ [HSFN=%d, SFN=%d]</b></font>' % (hsfn, sfn))
-            nrGrid.alwaysOnTr(hsfn, sfn)
+            self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Init always-on-transmission(SSB/PDCCH/SIB1) @ [HSFN=%d, SFN=%d, Slot=%d]</b></font>' % (hsfn, sfn, 0))
+            nrGrid.alwaysOnTr(hsfn, sfn, 0)
 
             #receiving SIB1
             self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]UE recv SSB/SIB1 @ [HSFN=%d, SFN=%d]</b></font>' % (hsfn, sfn))
@@ -11529,6 +11529,11 @@ class NgNrGridUi(QDialog):
             if hsfn is not None and sfn is not None and slot is not None:
                 self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]UE send PUCCH(Msg4 HARQ) @ [HSFN=%d, SFN=%d, Slot=%d]</b></font>' % (hsfn, sfn, slot))
                 hsfn, sfn, slot = nrGrid.sendPucch(hsfn, sfn, slot, harq=True, sr=False, csi=False, pucchResSet='common')
+
+            #triggering always-on-transmission of periodic CSI-RS/SRS
+            if hsfn is not None and sfn is not None and slot is not None:
+                self.ngwin.logEdit.append('<font color=green><b>[5GNR SIM]Init always-on-transmission(periodic CSI-RS/SRS) @ [HSFN=%d, SFN=%d, Slot=%d]</b></font>' % (hsfn, sfn, slot))
+                nrGrid.alwaysOnTr(hsfn, sfn, slot)
 
             #monitoring PDCCH for normal PDSCH
             #if hsfn is not None and sfn is not None and slot is not None:

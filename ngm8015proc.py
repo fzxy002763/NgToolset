@@ -1533,6 +1533,3 @@ class NgM8015Proc(object):
             return True
         else:
             return False
-
-    def procUserCasexx(self):
-        pass

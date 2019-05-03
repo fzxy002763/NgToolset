@@ -862,7 +862,7 @@ class NgNrGrid(object):
                 firstSlotMonitoring = firstSlotMonitoring % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]
                 hsfn, sfn = self.incSfn(hsfn, sfn, 1)
                 #self.recvSsb(hsfn, sfn)
-                self.alwaysOnTr(hsfn, sfn)
+                self.alwaysOnTr(hsfn, sfn, 0)
             firstSymbMonitoring = math.ceil(((slot * self.nrSymbPerSlotNormCp + self.msg1LastSymb + 1) * scaleTd - 1) % self.nrSymbPerSlotNormCp)
 
             tmpStr = tmpStr + '[hsfn=%d, sfn=%d, slot=%d, symb=%d]' % (hsfn, sfn, firstSlotMonitoring, firstSymbMonitoring)
@@ -881,7 +881,7 @@ class NgNrGrid(object):
                     firstSlotMonitoring = firstSlotMonitoring % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]
                     hsfn, sfn = self.incSfn(hsfn, sfn, 1)
                     #self.recvSsb(hsfn, sfn)
-                    self.alwaysOnTr(hsfn, sfn)
+                    self.alwaysOnTr(hsfn, sfn, 0)
 
             self.ngwin.logEdit.append('start monitoring CSS0 for DCI 1_0 scheduling RAR: hsfn=%d, sfn=%d, firstSlotMonitoring=%d, firstSymbMonitoring=%d' % (hsfn, sfn, firstSlotMonitoring, firstSymbMonitoring))
             qApp.processEvents()
@@ -922,7 +922,7 @@ class NgNrGrid(object):
                 count = count + 1
                 hsfn, sfn = self.incSfn(hsfn, sfn, 1)
                 #self.recvSsb(hsfn, sfn)
-                self.alwaysOnTr(hsfn, sfn)
+                self.alwaysOnTr(hsfn, sfn, 0)
 
             if len(css0Msg2) == 0:
                 self.ngwin.logEdit.append('<font color=red>Error: css0Msg2 is empty after maxTry=%d frames!</font>' % maxTry)
@@ -1012,7 +1012,7 @@ class NgNrGrid(object):
                 firstSlotMonitoring = firstSlotMonitoring % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]
                 hsfn, sfn = self.incSfn(hsfn, sfn, 1)
                 #self.recvSsb(hsfn, sfn)
-                self.alwaysOnTr(hsfn, sfn)
+                self.alwaysOnTr(hsfn, sfn, 0)
             firstSymbMonitoring = math.ceil(((slot * self.nrSymbPerSlotNormCp + self.msg3LastSymb + 1) * scaleTd - 1) % self.nrSymbPerSlotNormCp)
 
             tmpStr = tmpStr + '[hsfn=%d, sfn=%d, slot=%d, symb=%d]' % (hsfn, sfn, firstSlotMonitoring, firstSymbMonitoring)
@@ -1029,7 +1029,7 @@ class NgNrGrid(object):
                     firstSlotMonitoring = firstSlotMonitoring % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]
                     hsfn, sfn = self.incSfn(hsfn, sfn, 1)
                     #self.recvSsb(hsfn, sfn)
-                    self.alwaysOnTr(hsfn, sfn)
+                    self.alwaysOnTr(hsfn, sfn, 0)
 
             self.ngwin.logEdit.append('start monitoring CSS0 for DCI 1_0 scheduling Msg4: hsfn=%d, sfn=%d, firstSlotMonitoring=%d, firstSymbMonitoring=%d' % (hsfn, sfn, firstSlotMonitoring, firstSymbMonitoring))
             qApp.processEvents()
@@ -1075,7 +1075,7 @@ class NgNrGrid(object):
 
                 hsfn, sfn = self.incSfn(hsfn, sfn, 1)
                 #self.recvSsb(hsfn, sfn)
-                self.alwaysOnTr(hsfn, sfn)
+                self.alwaysOnTr(hsfn, sfn, 0)
 
             if len(css0Msg4) == 0:
                 self.ngwin.logEdit.append('<font color=red>Error: css0Msg4 is empty when ra-ContentionResolutionTimer(=%s subframes) expired!</font>' % self.nrRachContResTimer)
@@ -1226,7 +1226,7 @@ class NgNrGrid(object):
                 else:
                     hsfn, sfn = self.incSfn(hsfn, sfn, 1)
                     #self.recvSsb(hsfn, sfn)
-                    self.alwaysOnTr(hsfn, sfn)
+                    self.alwaysOnTr(hsfn, sfn, 0)
                     sfnc = sfn
 
                 n0 = val % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]
@@ -1234,7 +1234,7 @@ class NgNrGrid(object):
                     oc = [(hsfn, sfnc, n0)]
                     hsfn, sfn = self.incSfn(hsfn, sfn, 1)
                     #self.recvSsb(hsfn, sfn)
-                    self.alwaysOnTr(hsfn, sfn)
+                    self.alwaysOnTr(hsfn, sfn, 0)
                     sfnc = sfn
                     oc.append((hsfn, sfnc, 0))
                 else:
@@ -1743,7 +1743,7 @@ class NgNrGrid(object):
         dn = '%s_%s' % (msg1Hsfn, msg1Sfn)
         if (self.nrDuplexMode == 'TDD' and not dn in self.gridNrTdd) or (self.nrDuplexMode == 'FDD' and not dn in self.gridNrFddUl):
             #self.recvSsb(msg1Hsfn, msg1Sfn)
-            self.alwaysOnTr(msg1Hsfn, msg1Sfn)
+            self.alwaysOnTr(msg1Hsfn, msg1Sfn, 0)
 
         scaleTd = self.baseScsTd // self.prachScs
         #last symbol of PRACH occasion, starting from msg1Slot
@@ -2163,7 +2163,7 @@ class NgNrGrid(object):
             if slotMsg4Harq >= self.nrSlotPerRf[self.nrScs2Mu[self.nrIniUlBwpScs]]:
                 slotMsg4Harq = slotMsg4Harq % self.nrSlotPerRf[self.nrScs2Mu[self.nrIniUlBwpScs]]
                 hsfn, sfn = self.incSfn(hsfn, sfn, 1)
-                self.alwaysOnTr(hsfn, sfn)
+                self.alwaysOnTr(hsfn, sfn, 0)
 
             dn = '%s_%s' % (hsfn, sfn)
             self.ngwin.logEdit.append('deltaPri=%d, rPucch=%d(format=%d,firstSymb=%d,numSymbs=%d,prbOffset=%d,initialCsSet=%s), prbPerHop=%s, K1=%s, slotMsg4Harq=[%s,%s,%s]' % (self.nrMsg4DeltaPri, rPucch, pucchFmt, firstSymb, numSymbs, prbOffset, initialCsSet, prbPerHop, k1, hsfn, sfn, slotMsg4Harq))
@@ -2228,11 +2228,11 @@ class NgNrGrid(object):
         self.ngwin.logEdit.append('---->inside recvPdsch')
         return (hsfn, sfn)
 
-    def alwaysOnTr(self, hsfn, sfn):
+    def alwaysOnTr(self, hsfn, sfn, slot):
         if self.error:
             return
 
-        self.ngwin.logEdit.append('---->inside alwaysOnTr(hsfn=%s,sfn=%s)' % (hsfn, sfn))
+        self.ngwin.logEdit.append('---->inside alwaysOnTr(hsfn=%s,sfn=%s,slot=%d)' % (hsfn, sfn, slot))
 
         dn = '%s_%s' % (hsfn, sfn)
         #init gridNrTdd or gridNrFddDl/gridNrFddUl if necessary
@@ -2253,6 +2253,13 @@ class NgNrGrid(object):
                 self.aotPdcchSib1(hsfn, sfn)
             if not self.error:
                 self.aotSib1(hsfn, sfn)
+
+        if self.msg4Recved:
+            if not self.error:
+                self.aotCsirs(hsfn, sfn, slot)
+
+            if not self.error:
+                self.aotSrs(hsfn, sfn, slot)
 
     def aotSsb(self, hsfn, sfn):
         if self.error:
@@ -2416,7 +2423,7 @@ class NgNrGrid(object):
                 qApp.processEvents()
 
                 hsfnc, sfnc, nc, firstSymb, pdcchCandidate = cand
-                self.alwaysOnTr(hsfnc, sfnc)
+                self.alwaysOnTr(hsfnc, sfnc, 0)
 
                 firstSymbInBaseScsTd = (nc * self.nrSymbPerSlotNormCp + firstSymb) * scaleTd
                 cceSet = [pdcchCandidate * self.nrCss0AggLevel + k for k in range(self.nrCss0AggLevel)]
@@ -2474,7 +2481,7 @@ class NgNrGrid(object):
             if slotSib1 >= self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]:
                 slotSib1 = slotSib1 % self.nrSlotPerRf[self.nrScs2Mu[self.nrMibCommonScs]]
                 hsfnc, sfnc = self.incSfn(hsfnc, sfnc, 1)
-                self.alwaysOnTr(hsfnc, sfnc)
+                self.alwaysOnTr(hsfnc, sfnc, 0)
 
             firstSymbSib1InBaseScsTd = (slotSib1 * self.nrSymbPerSlotNormCp + self.nrSib1TdStartSymb) * scaleTd
             sib1SymbsInBaseScsTd = [firstSymbSib1InBaseScsTd+k for k in range(self.nrSib1TdNumSymbs*scaleTd)]
@@ -2556,3 +2563,21 @@ class NgNrGrid(object):
                                         self.gridNrFddDl[dn2][sib1ScsInBaseScsFd[(j*self.nrScPerPrb+k)*scaleFd:(j*self.nrScPerPrb+k+1)*scaleFd], firstSymbSib1InBaseScsTd+i*scaleTd:firstSymbSib1InBaseScsTd+(i+1)*scaleTd] = NrResType.NR_RES_DTX.value
 
         return True
+
+    def aotCsirs(self, hsfn, sfn, slot):
+        if self.error:
+            return
+
+        self.ngwin.logEdit.append('---->inside aotCsirs(hsfn=%d,sfn=%d,slot=%d)' % (hsfn, sfn, slot))
+        qApp.processEvents()
+
+        #TODO
+
+    def aotSrs(self, hsfn, sfn, slot):
+        if self.error:
+            return
+
+        self.ngwin.logEdit.append('---->inside aotSrs(hsfn=%d,sfn=%d,slot=%d)' % (hsfn, sfn, slot))
+        qApp.processEvents()
+
+        #TODO
