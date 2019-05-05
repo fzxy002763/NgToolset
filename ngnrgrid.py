@@ -2768,9 +2768,6 @@ class NgNrGrid(object):
         for sl in range(slot, self.nrSlotPerRf[self.nrScs2Mu[self.nrDedDlBwpScs]]):
             for offset in self.nrTrsOffsetList:
                 if (sfn * self.nrSlotPerRf[self.nrScs2Mu[self.nrDedDlBwpScs]] + sl - offset) % self.nrTrsPeriod == 0:
-                    self.ngwin.logEdit.append('<font color=purple>valid slot for periodic TRS(period=%dslots,offset=%sslots): hsfn=%d,sfn=%d,slot=%d</font>' % (self.nrTrsPeriod, self.nrTrsOffsetList, hsfn, sfn, sl))
-                    qApp.processEvents()
-
                     #refer to 3GPP 38.331 vf40 CSI-FrequencyOccupation IE
                     #startingRB:
                     #--PRB where this CSI resource starts in relation to common resource block #0 (CRB#0) on the common resource block grid. Only multiples of 4 are allowed (0, 4, ...)
@@ -2803,6 +2800,9 @@ class NgNrGrid(object):
                         qApp.processEvents()
                         self.error = True
                         return
+
+                    self.ngwin.logEdit.append('<font color=purple>valid slot for periodic TRS(period=%dslots,offset=%sslots): hsfn=%d,sfn=%d,slot=%d</font>' % (self.nrTrsPeriod, self.nrTrsOffsetList, hsfn, sfn, sl))
+                    qApp.processEvents()
 
                     #refer to 3GPP 38.211 vf40
                     #Table 7.4.1.5.3-1: CSI-RS locations within a slot.
