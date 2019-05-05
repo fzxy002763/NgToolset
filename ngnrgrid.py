@@ -2795,6 +2795,15 @@ class NgNrGrid(object):
                     else:
                         numRbs = self.nrNzpCsiRsNumRbs
 
+                    #refer to 3GPP 38.214 vf40
+                    #5.1.6.1.1	CSI-RS for tracking
+                    #the UE is not expected to be configured with the periodicity of 2^u*10 slots if the bandwidth of CSI-RS resource is larger than 52 resource blocks.
+                    if numRbs > 52 and self.nrTrsPeriod == (2 ** self.nrScs2Mu[self.nrDedDlBwpScs]) * 10:
+                        self.ngwin.logEdit.append('<font color=red>Error: [TRS]UE is not expected to be configured with the periodicity of 2^u*10 slots if the bandwidth of CSI-RS resource is larger than 52 resource blocks..</font>')
+                        qApp.processEvents()
+                        self.error = True
+                        return
+
                     #refer to 3GPP 38.211 vf40
                     #Table 7.4.1.5.3-1: CSI-RS locations within a slot.
                     #determine ki (k0, k1 etc)

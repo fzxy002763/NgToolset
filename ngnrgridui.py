@@ -2111,8 +2111,8 @@ class NgNrGridUi(QDialog):
 
         self.trsPeriodLabel = QLabel('CSI-ResourcePeriodicity:')
         self.trsPeriodComb = QComboBox()
-        self.trsPeriodComb.addItems(['slots4', 'slots5', 'slots8', 'slots10', 'slots16', 'slots20', 'slots32', 'slots40', 'slots64', 'slots80', 'slots160', 'slots320', 'slots640'])
-        self.trsPeriodComb.setCurrentText('slots160')
+        self.trsPeriodComb.addItems(['slots10', 'slots20', 'slots40', 'slots80'])
+        self.trsPeriodComb.setCurrentText('slots20')
 
         self.trsOffsetLabel = QLabel('CSI-ResourceOffset[0-159]:')
         self.trsOffsetEdit = QLineEdit('0')
@@ -7262,6 +7262,12 @@ class NgNrGridUi(QDialog):
 
         #(5) validate 'uss first symbols' edit
         self.validateUssFirstSymbs()
+
+        #(6) update TRS periodicity
+        self.trsPeriodComb.clear()
+        self.trsPeriodComb.addItems(['slots10', 'slots20', 'slots40', 'slots80', 'slots160', 'slots320', 'slots640'][u:u+4])
+        self.trsPeriodComb.setCurrentIndex(1)
+        self.trsOffsetEdit.setText('0')
 
     def onMibScsCommonCombCurIndChanged(self, index):
         if index < 0:
